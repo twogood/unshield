@@ -34,8 +34,8 @@ AC_DEFUN(AM_PATH_LIBUNSHIELD, [
 	AC_CHECK_LIB(unshield,unshield_open,,[
 		AC_MSG_ERROR([Can't find unshield library])
 		])
-	AC_CHECK_HEADERS(unshield.h,,[
-		AC_MSG_ERROR([Can't find unshield.h])
+	AC_CHECK_HEADERS(libunshield.h,,[
+		AC_MSG_ERROR([Can't find libunshield.h])
 		])
 
 ])
