@@ -26,7 +26,7 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
           header->cab.file_table_offset +
           header->file_table[header->cab.directory_count + index];
 
-      unshield_trace("File descriptor offset: %08x", p - header->data);
+      /*unshield_trace("File descriptor offset: %08x", p - header->data);*/
  
       fd->flags             = FILE_COMPRESSED;
       fd->volume            = header->index;
@@ -44,6 +44,7 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       break;
 
     case 6:
+    case 7:
       saved_p = p = header->data +
           header->common.cab_descriptor_offset +
           header->cab.file_table_offset +
@@ -52,34 +53,6 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       
       /*unshield_trace("File descriptor offset: %08x", p - header->data);*/      
       fd->flags             = READ_UINT16(p); p += 2;
-      fd->expanded_size     = READ_UINT32(p); p += 4;
-      p += 4;
-      fd->compressed_size   = READ_UINT32(p); p += 4;
-      p += 4;
-      fd->data_offset       = READ_UINT32(p); p += 4;
-      p += 4;
-      memcpy(fd->md5, p, 0x10); p += 0x10;
-      p += 0x10;
-      fd->name_offset       = READ_UINT32(p); p += 4;
-      fd->directory_index   = READ_UINT16(p); p += 2;
-
-      assert((p - saved_p) == 0x40);
-      
-      p += 0x15;
-      fd->volume            = READ_UINT16(p); p += 2;
-
-      assert((p - saved_p) == 0x57);
-      break;
-
-    case 7:
-      saved_p = p = header->data +
-          header->common.cab_descriptor_offset +
-          header->cab.file_table_offset +
-          header->cab.file_table_offset2 +
-          index * 0x57;
-      
-      unshield_trace("File descriptor offset: %08x", p - header->data);
-      fd->flags            = READ_UINT16(p); p += 2;
       fd->expanded_size     = READ_UINT32(p); p += 4;
       p += 4;
       fd->compressed_size   = READ_UINT32(p); p += 4;
