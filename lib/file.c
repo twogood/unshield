@@ -526,6 +526,13 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
     success = unshield_file_save(unshield, file_descriptor->link_previous, filename);
     goto exit;
   }
+
+	if (file_descriptor->flags & FILE_ENCRYPTED)
+	{
+		unshield_warning("File %i (%s) is encrypted and that's not yet supported.",
+				index, unshield_file_name(unshield, index));
+		goto exit;
+	}
   
   reader = unshield_reader_create(unshield, index, file_descriptor);
   if (!reader)
