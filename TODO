@@ -3,22 +3,5 @@ $Id$
 TODO for Unshield
 =================
 
-- Make independent of libsynce (cut & paste?)
-
-- Read file format in a different way, quoting Stuart Caie (author of cabextract):
-
-Secondly, you are probably already aware of my style and opinions on reading 
-structures from disk after seeing cabextract, but I'll repeat it anyway 
-for the sake of advocating this style :)  I don't overlay raw byte-streams 
-with structures or types. I read disk data as  arrays of bytes, then extract 
-data elements from those arrays of bytes in an endian neutral manner. My 
-only architectural concern is that fread() works like CHAR_BIT == 8 and I 
-don't need to concern myself about changing type sizes, lack of exact 
-8/16/32 bit types, structure packing rules, compiler extensions, etc. It 
-also means I can pick and choose the data elements I store, in the order I 
-want them and it also allows faster access to structure members once I've 
-taken the hit of reading the data in. The end result is very widely 
-compatible with the C compilers of this world, and of equal speed on non-x86 
-architectures (at the penalty of slowing x86 :)
-
+- Support "encrypted" files
 
