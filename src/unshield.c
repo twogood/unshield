@@ -228,8 +228,12 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 
   if (!junk_paths && directory >= 0)
   {
-    strcat(dirname, unshield_directory_name(unshield, directory));
-    strcat(dirname, "/");
+    const char* tmp = unshield_directory_name(unshield, directory);
+    if (tmp && tmp[0])
+    {
+      strcat(dirname, tmp);
+      strcat(dirname, "/");
+    }
   }
 
   for (p = dirname + strlen(output_directory); *p != '\0'; p++)
@@ -367,7 +371,7 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
           *p = '/';
 #endif
 
-      if (dirname[0])
+      if (dirname[strlen(dirname)-1] != '/')
         strcat(dirname, "/");
 
       printf(" %8i  %s%s\n",
