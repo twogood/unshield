@@ -2,7 +2,7 @@
 #ifndef __cabfile_h__
 #define __cabfile_h__
 
-#include <synce.h>
+#include "internal.h"
 
 #define P __attribute__((packed))
 

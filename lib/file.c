@@ -1,9 +1,9 @@
 /* $Id$ */
-#include "unshield_internal.h"
+#include "internal.h"
 #include "md5/global.h"
 #include "md5/md5.h"
 #include "cabfile.h"
-#include <synce_log.h>
+#include "log.h"
 #include <stdlib.h>
 #include <string.h>
 #include <sys/param.h>    /* for MIN(a,b) */
@@ -78,7 +78,7 @@ static bool unshield_get_file_descriptor(Unshield* unshield, int index, FileDesc
 #if 0
         if (0 == strcmp(unshield_file_name(unshield, index), "start.htm"))
         {
-          synce_warning("File %i (%s) is start.htm. File descriptor offset 0x%08x. Volume %i offset 0x%08x.", 
+          unshield_warning("File %i (%s) is start.htm. File descriptor offset 0x%08x. Volume %i offset 0x%08x.", 
               index, unshield_file_name(unshield, index),
               (void*)fd6 - (void*)header->data,
               file_descriptor->volume, file_descriptor->data_offset);
@@ -88,7 +88,7 @@ static bool unshield_get_file_descriptor(Unshield* unshield, int index, FileDesc
 #if 0
         if (!(file_descriptor->status & FILE_COMPRESSED))
         {
-          synce_warning("File %i (%s) is not compressed. File descriptor offset 0x%08x. Volume %i offset 0x%08x.", 
+          unshield_warning("File %i (%s) is not compressed. File descriptor offset 0x%08x. Volume %i offset 0x%08x.", 
               index, unshield_file_name(unshield, index),
               (void*)fd6 - (void*)header->data,
               file_descriptor->volume, file_descriptor->data_offset);
@@ -97,14 +97,14 @@ static bool unshield_get_file_descriptor(Unshield* unshield, int index, FileDesc
 
         if (file_descriptor->status & FILE_ENCRYPTED)
         {
-          synce_warning("File %i (%s) is encrypted", 
+          unshield_warning("File %i (%s) is encrypted", 
               index, unshield_file_name(unshield, index));
         }
         
 #if 0 
         if (status & FILE_SPLIT)
         {
-          synce_trace("Split file in volume %i! Index = %i, Name = '%s', file descriptor offset: 0x%08x", 
+          unshield_trace("Split file in volume %i! Index = %i, Name = '%s', file descriptor offset: 0x%08x", 
               volume, index, unshield_file_name(unshield, index), (uint8_t*)fd - header->data);
         }
 #endif
@@ -112,7 +112,7 @@ static bool unshield_get_file_descriptor(Unshield* unshield, int index, FileDesc
       break;
 
     default:
-      synce_error("Unknown major version: %i", unshield->major_version);
+      unshield_error("Unknown major version: %i", unshield->major_version);
       goto exit;
   }
 
@@ -165,7 +165,7 @@ const char* unshield_file_name (Unshield* unshield, int index)/*{{{*/
         break;
 
       default:
-        synce_error("Unknown major version: %i", unshield->major_version);
+        unshield_error("Unknown major version: %i", unshield->major_version);
         return NULL;
     }
 
@@ -254,7 +254,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
   reader->volume_file = unshield_fopen_for_reading(reader->unshield, volume, CABINET_SUFFIX);
   if (!reader->volume_file)
   {
-    synce_error("Failed to open input cabinet file %i", volume);
+    unshield_error("Failed to open input cabinet file %i", volume);
     goto exit;
   }
 
@@ -306,7 +306,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
   if (reader->file_descriptor->status & FILE_SPLIT)  /* XXX: handle IS5 too */
   {   
 #if 0
-    synce_trace("Total bytes left = 0x08%x, previous data offset = 0x08%x",
+    unshield_trace("Total bytes left = 0x08%x, previous data offset = 0x08%x",
         total_bytes_left, data_offset); 
 #endif
 
@@ -314,7 +314,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
     {
       /* can be first file too... */
 #if 0
-      synce_trace("Index %i is last file in cabinet file %i",
+      unshield_trace("Index %i is last file in cabinet file %i",
           reader->index, volume);
 #endif
 
@@ -325,7 +325,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
     else if (reader->index == reader->volume_header.first_file_index)
     {
 #if 0
-      synce_trace("Index %i is first file in cabinet file %i",
+      unshield_trace("Index %i is first file in cabinet file %i",
           reader->index, volume);
 #endif
 
@@ -337,7 +337,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
       abort();
 
 #if 0
-    synce_trace("Will read 0x%08x bytes from offset 0x%08x",
+    unshield_trace("Will read 0x%08x bytes from offset 0x%08x",
         volume_bytes_left_compressed, data_offset);
 #endif
   }
@@ -375,7 +375,7 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
 
     if (bytes_to_read != fread(buffer, 1, bytes_to_read, reader->volume_file))
     {
-      synce_error("Failed to read 0x%08x bytes of file %i (%s) from volume %i. Current offset = 0x%08x",
+      unshield_error("Failed to read 0x%08x bytes of file %i (%s) from volume %i. Current offset = 0x%08x",
           bytes_to_read, reader->index, 
           unshield_file_name(reader->unshield, reader->index), reader->volume,
           ftell(reader->volume_file));
@@ -396,7 +396,7 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
 
     if (!unshield_reader_open_volume(reader, reader->volume + 1))
     {
-      synce_error("Failed to open volume %i",
+      unshield_error("Failed to open volume %i",
           bytes_to_read, reader->volume);
       goto exit;
     }
@@ -425,7 +425,7 @@ static UnshieldReader* unshield_reader_create(/*{{{*/
 
   if (!unshield_reader_open_volume(reader, file_descriptor->volume))
   {
-    synce_error("Failed to open volume %i",
+    unshield_error("Failed to open volume %i",
         file_descriptor->volume);
     goto exit;
   }
@@ -470,7 +470,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
 
   if (!unshield_get_file_descriptor(unshield, index, &file_descriptor))
   {
-    synce_error("Failed to get file descriptor for file %i", index);
+    unshield_error("Failed to get file descriptor for file %i", index);
     goto exit;
   }
 
@@ -483,14 +483,14 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
   reader = unshield_reader_create(unshield, index, &file_descriptor);
   if (!reader)
   {
-    synce_error("Failed to create data reader for file %i", index);
+    unshield_error("Failed to create data reader for file %i", index);
     goto exit;
   }
 
   output = fopen(filename, "w");
   if (!output)
   {
-    synce_error("Failed to open output file '%s'", filename);
+    unshield_error("Failed to open output file '%s'", filename);
     goto exit;
   }
 
@@ -511,7 +511,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
       if (!unshield_reader_read(reader, &bytes_to_read, sizeof(bytes_to_read)))
       {
 #if 0
-        synce_error("Failed to read %i bytes of file %i (%s) from input cabinet file %i", 
+        unshield_error("Failed to read %i bytes of file %i (%s) from input cabinet file %i", 
             sizeof(bytes_to_read), index, unshield_file_name(unshield, index), volume);
 #endif
         goto exit;
@@ -521,7 +521,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
       if (!unshield_reader_read(reader, input_buffer, bytes_to_read))
       {
 #if 0
-        synce_error("Failed to read %i bytes of file %i (%s) from input cabinet file %i", 
+        unshield_error("Failed to read %i bytes of file %i (%s) from input cabinet file %i", 
             bytes_to_read, index, unshield_file_name(unshield, index), volume);
 #endif
         goto exit;
@@ -534,7 +534,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
       if (Z_OK != result)
       {
 #if 0
-        synce_error("Decompression failed with code %i. bytes_to_read=%i, volume_bytes_left=%i", 
+        unshield_error("Decompression failed with code %i. bytes_to_read=%i, volume_bytes_left=%i", 
             result, bytes_to_read, volume_bytes_left);
 #endif
         /*      abort();*/
@@ -551,7 +551,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
       if (!unshield_reader_read(reader, input_buffer, bytes_to_write))
       {
 #if 0
-        synce_error("Failed to read %i bytes from input cabinet file %i", 
+        unshield_error("Failed to read %i bytes from input cabinet file %i", 
             bytes_to_write, volume);
 #endif
         goto exit;
@@ -564,7 +564,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
 
     if (bytes_to_write != fwrite(output_buffer, 1, bytes_to_write, output))
     {
-      synce_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
+      unshield_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
       goto exit;
     }
 
@@ -573,7 +573,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
 
   if (file_descriptor.expanded_size != total_written)
   {
-    synce_error("Expanded size expected to be %i, but was %i", file_descriptor.expanded_size, total_written);
+    unshield_error("Expanded size expected to be %i, but was %i", file_descriptor.expanded_size, total_written);
     goto exit;
   }
 
@@ -583,7 +583,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
 
     if (0 != memcmp(md5result, file_descriptor.md5, 16))
     {
-      synce_error("MD5 checksum failure for file %i (%s)", 
+      unshield_error("MD5 checksum failure for file %i (%s)", 
           index, unshield_file_name(unshield, index));
       goto exit;
     }
@@ -623,7 +623,7 @@ int unshield_file_directory(Unshield* unshield, int index)/*{{{*/
         break;
 
       default:
-        synce_error("Unknown major version: %i", unshield->major_version);
+        unshield_error("Unknown major version: %i", unshield->major_version);
         return -1;
     }
 

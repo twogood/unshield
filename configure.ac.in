@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(lib/unshield.h)
+AC_INIT(lib/libunshield.h)
 
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
@@ -29,11 +29,41 @@ dnl AM_PATH_CHECK()
 dnl Checks for libraries.
 AC_LIB_RPATH
 
-dnl Check for libsynce
-AM_PATH_LIBSYNCE
-
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
+
+dnl Big-endian stuff
+AC_SUBST(WORDS_BIGENDIAN)
+AC_SUBST(BYTESWAP_HEADER,dummy)
+AC_SUBST(HAVE_BYTESWAP_HEADER,0)
+
+AC_C_BIGENDIAN()
+
+if test "$ac_cv_c_bigendian" = yes; then
+  WORDS_BIGENDIAN=1
+  AC_CHECK_HEADERS(sys/byteswap.h,[BYTESWAP_HEADER=sys/byteswap.h; HAVE_BYTESWAP_HEADER=1])
+  AC_CHECK_HEADERS(byteswap.h,    [BYTESWAP_HEADER=byteswap.h;     HAVE_BYTESWAP_HEADER=1])
+else
+  WORDS_BIGENDIAN=0
+fi
+
+dnl Check where uint16_t and uint32_t may be found
+AC_SUBST(INT_HEADER)
+
+dnl Old compilers
+AC_CHECK_HEADERS(inttypes.h,[INT_HEADER=inttypes.h])
+
+dnl C99 compliant compilers
+AC_CHECK_HEADERS(stdint.h,[INT_HEADER=stdint.h])
+
+if test -z "$INT_HEADER"; then
+	AC_MSG_ERROR([Don't know how to get uint16_t and uint32_t on your system])
+fi
+
+AC_CHECK_HEADERS(stdbool.h,,[
+  AC_MSG_ERROR([Don't know how to get bool values on your system])
+])
+
 
 # http://www.gnu.org/manual/autoconf-2.53/html_node/AC_LIBOBJ-vs.-LIBOBJS.html
 # This is necessary so that .o files in LIBOBJS are also built via

@@ -1,6 +1,6 @@
 /* $Id$ */
 #define _BSD_SOURCE 1
-#include "unshield_internal.h"
+#include "internal.h"
 
 FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suffix)
 {

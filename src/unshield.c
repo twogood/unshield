@@ -1,7 +1,7 @@
 /* $Id$ */
 #define _BSD_SOURCE 1
 #define _POSIX_C_SOURCE 2
-#include <unshield.h>
+#include <libunshield.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +9,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <synce_log.h>
 
 typedef enum 
 {
@@ -102,7 +101,7 @@ static bool handle_parameters(
     int* end_optind)
 {
 	int c;
-	int log_level = SYNCE_LOG_LEVEL_LOWEST;
+	int log_level = UNSHIELD_LOG_LEVEL_LOWEST;
 
 	while ((c = getopt(argc, argv, "d:D:hjlLno")) != -1)
 	{
@@ -147,7 +146,7 @@ static bool handle_parameters(
 		}
 	}
 
-	synce_log_set_level(log_level);
+	unshield_set_log_level(log_level);
 
   *end_optind = optind;
 

@@ -1,5 +1,5 @@
 /* $Id$ */
-#include "unshield_internal.h"
+#include "internal.h"
 
 int unshield_directory_count(Unshield* unshield)
 {

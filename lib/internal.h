@@ -1,13 +1,20 @@
 /* $Id$ */
-#ifndef __unshield_internal_h__
-#define __unshield_internal_h__
+#ifndef __internal_h__
+#define __internal_h__
 
-#include "unshield.h"
-#include "cabfile.h"
+#include "libunshield.h"
+#include "unshield_config.h"
 
-#include <synce.h>
+#if HAVE_STDINT_H
+#include <stdint.h>
+#elif HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
 
+#include <stdbool.h>
 #include <stdio.h>  /* for FILE */
+
+#include "cabfile.h"
 
 typedef struct _Header Header;
 
@@ -54,6 +61,14 @@ long unshield_fsize(FILE* file);
 #define NEW1(type)      ((type*)calloc(1, sizeof(type)))
 #define FCLOSE(file)    if (file) { fclose(file); file = NULL; }
 #define FSIZE(file)     (file ? unshield_fsize(file) : 0)
+
+#if WORDS_BIGENDIAN
+#error "Big endian not yet supported"
+#else
+#define letoh32(n) (n)
+#define letoh16(n) (n)
+#endif
+
 
 #endif 
 

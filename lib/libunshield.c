@@ -1,10 +1,7 @@
 /* $Id$ */
 #define _BSD_SOURCE 1
-#include "unshield_internal.h"
-#include "cabfile.h"
-
-#include <synce_log.h>
-
+#include "internal.h"
+#include "log.h"
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -61,7 +58,7 @@ static bool unshield_read_headers(Unshield* unshield)/*{{{*/
 
   if (unshield->header_list)
   {
-    synce_warning("Already have a header list");
+    unshield_warning("Already have a header list");
     return true;
   }
 
@@ -83,14 +80,14 @@ static bool unshield_read_headers(Unshield* unshield)/*{{{*/
       header->size = FSIZE(file);
       if (header->size < 4)
       {
-        synce_error("Header file %i too small", i);
+        unshield_error("Header file %i too small", i);
         goto error;
       }
 
       header->data = malloc(header->size);
       if (!header->data)
       {
-        synce_error("Failed to allocate memory for header file %i", i);
+        unshield_error("Failed to allocate memory for header file %i", i);
         goto error;
       }
 
@@ -99,24 +96,24 @@ static bool unshield_read_headers(Unshield* unshield)/*{{{*/
 
       if (bytes_read != header->size)
       {
-        synce_error("Failed to read from header file %i. Expected = %i, read = %i", 
+        unshield_error("Failed to read from header file %i. Expected = %i, read = %i", 
             i, header->size, bytes_read);
         goto error;
       }
 
       if (!unshield_create_header_shortcuts(header))
       {
-        synce_error("Failed to create header shortcuts for header file %i", i);
+        unshield_error("Failed to create header shortcuts for header file %i", i);
         goto error;
       }
       
       if (CAB_SIGNATURE != letoh32(header->common->signature))
       {
-        synce_error("Invalid file signature for header file %i", i);
+        unshield_error("Invalid file signature for header file %i", i);
         goto error;
       }
 
-      synce_trace("Version: 0x%08x", letoh32(header->common->version));
+      unshield_trace("Version: 0x%08x", letoh32(header->common->version));
 
       if (((letoh32(header->common->version) >> 12) & 0xf) == 6)
         unshield->major_version = 6;
@@ -148,19 +145,19 @@ Unshield* unshield_open(const char* filename)/*{{{*/
   Unshield* unshield = NEW1(Unshield);
   if (!unshield)
   {
-    synce_error("Failed to allocate memory for Unshield structure");
+    unshield_error("Failed to allocate memory for Unshield structure");
     goto error;
   }
 
   if (!unshield_create_filename_pattern(unshield, filename))
   {
-    synce_error("Failed to create filename pattern");
+    unshield_error("Failed to create filename pattern");
     goto error;
   }
 
   if (!unshield_read_headers(unshield))
   {
-    synce_error("Failed to read header files");
+    unshield_error("Failed to read header files");
     goto error;
   }
 
