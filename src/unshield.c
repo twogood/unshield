@@ -12,19 +12,36 @@
 static bool make_sure_directory_exists(const char* directory)/*{{{*/
 {
 	struct stat dir_stat;
+  const char* p = directory;
 
-	/*
-	 * Make sure that this directory exists
-	 */
+  while (p && *p)
+  {
+    if ('/' == *p)
+      p++;
+    else if (0 == strncmp(p, "./", 2))
+      p+=2;
+    else if (0 == strncmp(p, "../", 3))
+      p+=3;
+    else
+    {
+      char* current = strdup(directory);
+      const char* slash = strchr(p, '/');
+      
+      if (slash)
+        current[slash-directory] = '\0';
 
-	if (stat(directory, &dir_stat) < 0)
-	{
-		if (mkdir(directory, 0700) < 0)
-		{
-			fprintf(stderr, "Failed to create directory %s\n", directory);
-			return false;
-		}
-	}
+      if (stat(current, &dir_stat) < 0)
+      {
+        if (mkdir(current, 0700) < 0)
+        {
+          fprintf(stderr, "Failed to create directory %s\n", directory);
+          return false;
+        }
+      }
+
+      p = slash;
+    }
+  }
 
 	return true;
 }/*}}}*/
