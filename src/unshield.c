@@ -53,8 +53,8 @@ static bool make_sure_directory_exists(const char* directory)/*{{{*/
       p+=3;
     else
     {
-      current = strdup(directory);
       const char* slash = strchr(p, '/');
+      current = strdup(directory);
       
       if (slash)
         current[slash-directory] = '\0';
@@ -391,8 +391,8 @@ static bool do_action(Unshield* unshield, ActionHelper helper)
   }
   else if (file_group_name)
   {
-    printf("File group: %s\n", file_group_name);
     UnshieldFileGroup* file_group = unshield_file_group_find(unshield, file_group_name);
+    printf("File group: %s\n", file_group_name);
     if (file_group)
       count = helper(unshield, file_group_name, file_group->first_file, file_group->last_file);
   }
