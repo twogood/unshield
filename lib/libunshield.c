@@ -269,7 +269,7 @@ static bool unshield_read_headers(Unshield* unshield)/*{{{*/
         goto error;
       }
       
-      header->major_version = (letoh32(header->common.version) >> 12) & 0xf;
+      header->major_version = (header->common.version >> 12) & 0xf;
 
 #if 0
       if (header->major_version < 5)
