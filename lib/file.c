@@ -55,7 +55,9 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
           header->cab.file_table_offset2 +
           index * 0x57;
       
-      /*unshield_trace("File descriptor offset: %08x", p - header->data);*/      
+#if VERBOSE
+      unshield_trace("File descriptor offset: %08x", p - header->data);
+#endif
       fd->flags             = READ_UINT16(p); p += 2;
       fd->expanded_size     = READ_UINT32(p); p += 4;
       p += 4;
@@ -70,7 +72,19 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
 
       assert((p - saved_p) == 0x40);
       
-      p += 0x15;
+      p += 0xc;
+      fd->link_previous     = READ_UINT32(p); p += 4;
+      fd->link_next         = READ_UINT32(p); p += 4;
+      fd->link_flags        = *p; p ++;
+
+#if VERBOSE
+      if (fd->link_flags != LINK_NONE)
+      {
+        unshield_trace("Link: previous=%i, next=%i, flags=%i",
+            fd->link_previous, fd->link_next, fd->link_flags);
+      }
+#endif
+      
       fd->volume            = READ_UINT16(p); p += 2;
 
       assert((p - saved_p) == 0x57);
@@ -504,6 +518,12 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
   if ((file_descriptor->flags & FILE_INVALID) || 0 == file_descriptor->data_offset)
   {
     /* invalid file */
+    goto exit;
+  }
+
+  if (file_descriptor->link_flags & LINK_PREV)
+  {
+    success = unshield_file_save(unshield, file_descriptor->link_previous, filename);
     goto exit;
   }
   

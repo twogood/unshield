@@ -65,6 +65,11 @@ typedef struct
 #define FILE_COMPRESSED		4L
 #define FILE_INVALID		8L
 
+#define LINK_NONE	0
+#define LINK_PREV	1
+#define LINK_NEXT	2
+#define LINK_BOTH	3
+
 typedef struct
 {
   uint32_t name_offset;
@@ -75,6 +80,9 @@ typedef struct
   uint32_t data_offset;
   uint8_t md5[16];
   uint16_t volume;
+  uint32_t link_previous;
+  uint32_t link_next;
+  uint8_t link_flags;
 } FileDescriptor;
 
 typedef struct
