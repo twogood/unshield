@@ -3,7 +3,7 @@
 %define name     unshield
 %define rel      1
 
-Summary: A program to extract InstallShield (R) cabinet files.
+Summary: A program to extract InstallShield cabinet files
 Name: %{name}
 Version: YOU_DID_NOT_RUN_THE_BOOTSTRAP_SCRIPT
 Release: %{rel}
@@ -16,11 +16,27 @@ Vendor: The SynCE Project
 Packager: David Eriksson <twogood@users.sourceforge.net>
 #Buildroot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Buildroot: %{_tmppath}/synce-root
+Requires: synce
 
 %description
 Cabinet (.CAB) files are a form of archive, which is used by
 the InstallShield installer software. The unshield program
 simply unpacks such files.
+
+See http://synce.sourceforge.net/ for more information.
+
+%package devel
+Summary:  A library to extract InstallShield cabinet files
+Group:    Development/Libraries
+Requires: %{name} = %{version}
+BuildRequires: synce-devel
+
+%description devel
+Cabinet (.CAB) files are a form of archive, which is used by
+the InstallShield installer software. The unshield program
+simply unpacks such files.
+
+See http://synce.sourceforge.net/ for more information.
 
 
 %prep
