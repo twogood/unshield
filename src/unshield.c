@@ -1,5 +1,6 @@
 /* $Id$ */
 #define _BSD_SOURCE 1
+#define _POSIX_C_SOURCE 2
 #include <unshield.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -8,6 +9,27 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <synce_log.h>
+
+typedef enum 
+{
+  OVERWRITE_ASK,
+  OVERWRITE_NEVER,
+  OVERWRITE_ALWAYS,
+} OVERWRITE;
+
+typedef enum
+{
+  ACTION_EXTRACT,
+  ACTION_LIST
+} ACTION;
+
+static const char* output_directory   = ".";
+static bool junk_paths                = false;
+static bool make_lowercase            = false;
+static bool verbose                   = false;
+static ACTION action                  = ACTION_EXTRACT;
+static OVERWRITE overwrite            = OVERWRITE_ASK;
 
 static bool make_sure_directory_exists(const char* directory)/*{{{*/
 {
@@ -46,6 +68,92 @@ static bool make_sure_directory_exists(const char* directory)/*{{{*/
 	return true;
 }/*}}}*/
 
+static void show_usage(const char* name)
+{
+  fprintf(stderr,
+      "Syntax:\n"
+      "\n"
+      "\t%s [-d DIRECTORY] [-D LEVEL] [-h] [-l] CABFILE\n"
+      "\n"
+      "\t-d DIRECTORY  Extract files to DIRECTORY\n"
+      "\t-D LEVEL      Set debug log level\n"
+      "\t                0 - No logging (default)\n"
+      "\t                1 - Errors only\n"
+      "\t                2 - Errors and warnings\n"
+      "\t                3 - Everything\n"
+      "\t-h            Show this help message\n"
+      "\t-j            Junk paths (do not make directories)\n"
+      "\t-l            List files (default action is to extract)\n"
+      "\t-L            Make file and directory names lowercase\n"
+      "\tCABFILE      The file to list or extract contents of\n"
+      ,
+      name);
+
+#if 0
+      "\t-n            Never overwrite files\n"
+      "\t-o            Overwrite files WITHOUT prompting\n"
+      "\t-v            Verbose output\n"
+#endif
+}
+
+static bool handle_parameters(
+    int argc, 
+    char** argv, 
+    int* end_optind)
+{
+	int c;
+	int log_level = SYNCE_LOG_LEVEL_LOWEST;
+
+	while ((c = getopt(argc, argv, "d:D:hjlLno")) != -1)
+	{
+		switch (c)
+		{
+			case 'd':
+				output_directory = optarg;
+				break;
+				
+			case 'D':
+				log_level = atoi(optarg);
+				break;
+       
+      case 'j':
+        junk_paths = true;
+        break;
+
+      case 'l':
+        action = ACTION_LIST;
+        break;
+
+      case 'L':
+        make_lowercase = true;
+        break;
+
+      case 'n':
+        overwrite = OVERWRITE_NEVER;
+        break;
+
+      case 'o':
+        overwrite = OVERWRITE_ALWAYS;
+        break;
+
+      case 'v':
+        verbose = true;
+        break;
+
+			case 'h':
+			default:
+				show_usage(argv[0]);
+				return false;
+		}
+	}
+
+	synce_log_set_level(log_level);
+
+  *end_optind = optind;
+
+	return true;
+}
+
 static bool extract(Unshield* unshield, int index)
 {
   bool success;
@@ -54,28 +162,39 @@ static bool extract(Unshield* unshield, int index)
   char* p;
   int directory = unshield_file_directory(unshield, index);
 
-  if (directory >= 0)
-    snprintf(dirname, sizeof(dirname), "/var/tmp/unshield/%s", 
-      unshield_directory_name(unshield, directory));
+  if (!junk_paths && directory >= 0)
+    snprintf(dirname, sizeof(dirname), "%s/%s", 
+        output_directory,
+        unshield_directory_name(unshield, directory));
   else
-    strcpy(dirname, "/var/tmp/unshield");
+    strcpy(dirname, output_directory);
 
-  for (p = dirname; *p != '\0'; p++)
+  for (p = dirname + strlen(output_directory); *p != '\0'; p++)
+  {
     if ('\\' == *p)
       *p = '/';
+    else if (make_lowercase)
+      *p = tolower(*p);
+  }
+
+  if (dirname[strlen(dirname)-1] != '/')
+    strcat(dirname, "/");
 
   make_sure_directory_exists(dirname);
 
-  snprintf(filename, sizeof(filename), "%s/%s", 
+  snprintf(filename, sizeof(filename), "%s%s", 
       dirname, unshield_file_name(unshield, index));
 
   for (p = filename; *p != '\0'; p++)
+  {
     if (!isprint(*p))
       *p = '_';
+    else if (make_lowercase)
+      *p = tolower(*p);
+  }
 
-  printf("Writing %s...", filename);
+  printf("  extracting: %s\n", filename);
   success = unshield_file_save(unshield, index, filename);
-  printf("%s.\n", success ? "success" : "failure");
 
   return success;
 }
@@ -88,29 +207,9 @@ static bool extract_all(Unshield* unshield)
   if (count < 0)
     return false;
   
-  printf("%i files:\n", count);
-
   for (i = 0; i < count; i++)
   {
     extract(unshield, i);
-  }
-
-  return true;
-}
-
-static bool list_directories(Unshield* unshield)
-{
-  int i;
-  int count = unshield_directory_count(unshield);
-
-  if (count < 0)
-    return false;
-  
-  printf("%i directories:\n", count);
-
-  for (i = 0; i < count; i++)
-  {
-    printf("%s\n", unshield_directory_name(unshield, i)); 
   }
 
   return true;
@@ -124,29 +223,73 @@ static bool list_files(Unshield* unshield)
   if (count < 0)
     return false;
   
-  printf("%i files:\n", count);
-
   for (i = 0; i < count; i++)
   {
-    printf("%s\n", unshield_file_name(unshield, i)); 
+    char *p;
+    char dirname[256];
+
+    strcpy(dirname,
+        unshield_directory_name(unshield, unshield_file_directory(unshield, i)));
+
+    for (p = dirname + strlen(output_directory); *p != '\0'; p++)
+      if ('\\' == *p)
+        *p = '/';
+
+    if (dirname[0])
+      strcat(dirname, "/");
+
+    printf("%s%s\n",
+        dirname,
+        unshield_file_name(unshield, i)); 
   }
+
+  printf("-------\n%i files\n", count);
+
 
   return true;
 }
 
 int main(int argc, char** argv)
 {
-  int result = 1;
+  bool success = false;
   Unshield* unshield = NULL;
+  int last_optind = argc+1;
+  const char* cabfile;
 
-  unshield = unshield_open(argv[1]);
+  if (!handle_parameters(argc, argv, &last_optind))
+    goto exit;
 
-  list_directories(unshield);
-  list_files(unshield);
-  extract_all(unshield);
-  
+  if (last_optind >= argc)
+  {
+    fprintf(stderr, "Missing cabinet file on command line\n");
+    show_usage(argv[0]);
+    goto exit;
+  }
+
+  cabfile = argv[last_optind];
+
+  unshield = unshield_open(cabfile);
+  if (!unshield)
+  {
+    fprintf(stderr, "Failed to open %s as an InstallShield Cabinet File\n", cabfile);
+    goto exit;
+  }
+
+  printf("Cabinet: %s\n", cabfile);
+
+  switch (action)
+  {
+    case ACTION_EXTRACT:
+      success = extract_all(unshield);
+      break;
+
+    case ACTION_LIST:
+      success = list_files(unshield);
+      break;
+  }
+
+exit:
   unshield_close(unshield);
-
-  return result;
+  return success ? 0 : 1;
 }
 
