@@ -10,7 +10,6 @@ libunshield_la_SOURCES = \
 	unshield.c
 
 libunshield_la_LDFLAGS = -no-undefined -version-info 0:0:0
-libunshield_la_LIBADD  = @LTLIBICONV@ @LTLIBOBJS@
 
 include_HEADERS = unshield.h
 
