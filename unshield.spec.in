@@ -14,8 +14,7 @@ URL: http://synce.sourceforge.net/
 Distribution: SynCE RPM packages
 Vendor: The SynCE Project
 Packager: David Eriksson <twogood@users.sourceforge.net>
-#Buildroot: %{_tmppath}/%{name}-%{version}-%{release}-root
-Buildroot: %{_tmppath}/synce-root
+Buildroot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
 %description
 Cabinet (.CAB) files are a form of archive, which is used by
@@ -38,6 +37,7 @@ See http://synce.sourceforge.net/ for more information.
 
 
 %prep
+rm -rf $RPM_BUILD_ROOT
 %setup
 
 %build
