@@ -1,5 +1,5 @@
 ## useful flags
-AM_CFLAGS = -g -ansi -Wall -Wno-long-long -Werror @CFLAGS@ @APPLE_CFLAGS@ -I..
+AM_CFLAGS = -g -ansi -Wall -Wsign-compare -Wno-long-long -Werror @CFLAGS@ @APPLE_CFLAGS@ -I..
 
 ## create this library
 lib_LTLIBRARIES = libunshield.la
