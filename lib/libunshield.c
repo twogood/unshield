@@ -12,6 +12,11 @@
  */
 static bool unshield_create_filename_pattern(Unshield* unshield, const char* filename)/*{{{*/
 {
+  /* 
+     TODO
+     Correct his function so that it handles filenames with more than one dot ('.')! 
+   */
+  
   if (unshield && filename)
   {
     char pattern[256];
