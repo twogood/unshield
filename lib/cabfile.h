@@ -101,8 +101,14 @@ typedef struct
   P uint32_t unknown1;              /* 32 */
   P uint32_t unknown2;              /* 36 */
   P uint32_t name_offset;           /* 3a */
-  P uint8_t unknown3[0x19];         /* 3e */
+  P uint8_t unknown3[0x17];         /* 3e */
+  P uint16_t volume;                /* 55 */
 } FileDescriptor6;
+
+#define FILE_SPLIT			1L
+#define FILE_ENCRYPTED		2L
+#define FILE_COMPRESSED		4L
+#define FILE_INVALID		8L
 
 #undef P
 

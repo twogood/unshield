@@ -49,10 +49,10 @@ long unshield_fsize(FILE* file);
    Macros for safer development
  */
 
-#define FREE(ptr)       { if (ptr) { free(ptr); (ptr) = NULL; } }
+#define FREE(ptr)       { if (ptr) { free(ptr); ptr = NULL; } }
 #define STRDUP(str)     ((str) ? strdup(str) : NULL)
 #define NEW1(type)      ((type*)calloc(1, sizeof(type)))
-#define FCLOSE(file)    if (file) fclose(file)
+#define FCLOSE(file)    if (file) { fclose(file); file = NULL; }
 #define FSIZE(file)     (file ? unshield_fsize(file) : 0)
 
 #endif 
