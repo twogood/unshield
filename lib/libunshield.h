@@ -3,7 +3,7 @@
 #define __unshield_h__
 
 #include <stdbool.h>
-
+#include <stddef.h>
 
 #define UNSHIELD_LOG_LEVEL_LOWEST    0
 
@@ -81,6 +81,7 @@ const char* unshield_file_name          (Unshield* unshield, int index);
 bool        unshield_file_is_valid      (Unshield* unshield, int index);
 bool        unshield_file_save          (Unshield* unshield, int index, const char* filename);
 int         unshield_file_directory     (Unshield* unshield, int index);
+size_t      unshield_file_size          (Unshield* unshield, int index);
 
 #ifdef __cplusplus
 }

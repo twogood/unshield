@@ -370,7 +370,8 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
       if (dirname[0])
         strcat(dirname, "/");
 
-      printf("%s%s\n",
+      printf(" %8i  %s%s\n",
+          unshield_file_size(unshield, i),
           dirname,
           unshield_file_name(unshield, i)); 
     }
@@ -408,7 +409,7 @@ static bool do_action(Unshield* unshield, ActionHelper helper)
     }
   }
 
-  printf("-------\n%i files\n", count);
+  printf(" --------  -------\n          %i files\n", count);
 
   return true;
 }

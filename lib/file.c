@@ -12,13 +12,17 @@
 
 #define VERBOSE 0
 
+#define ror8(x,n)   (((x) >> ((int)(n))) | ((x) << (8 - (int)(n))))
+#define rol8(x,n)   (((x) << ((int)(n))) | ((x) >> (8 - (int)(n))))
+
+
 static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int index)
 {
   /* XXX: multi-volume support... */
   Header* header = unshield->header_list;
   uint8_t* p = NULL;
   uint8_t* saved_p = NULL;
-  FileDescriptor* fd = (FileDescriptor*)calloc(1, sizeof(FileDescriptor));
+  FileDescriptor* fd = NEW1(FileDescriptor);
 
   switch (header->major_version)
   {
@@ -221,6 +225,7 @@ typedef struct
   FILE*             volume_file;
   VolumeHeader      volume_header;
   unsigned          volume_bytes_left;
+  unsigned          obfuscation_offset;
 } UnshieldReader;
 
 static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{*/
@@ -391,23 +396,33 @@ exit:
   return success;
 }/*}}}*/
 
+static void unshield_reader_deobfuscate(UnshieldReader* reader, uint8_t* buffer, size_t size)
+{
+  for (; size > 0; size--, buffer++, reader->obfuscation_offset++)
+  {
+    *buffer = ror8(*buffer ^ 0xd5, 2) - (reader->obfuscation_offset % 0x47);
+  }
+}
+
 static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t size)/*{{{*/
 {
   bool success = false;
+  uint8_t* p = buffer;
+  size_t bytes_left = size;
 
   for (;;)
   {
     /* 
        Read as much as possible from this volume
      */
-    size_t bytes_to_read = MIN(size, reader->volume_bytes_left);
+    size_t bytes_to_read = MIN(bytes_left, reader->volume_bytes_left);
 
 #if VERBOSE && 0
     unshield_trace("Trying to read %i bytes from offset %08x in volume %i", 
         bytes_to_read, ftell(reader->volume_file), reader->volume);
 #endif
 
-    if (bytes_to_read != fread(buffer, 1, bytes_to_read, reader->volume_file))
+    if (bytes_to_read != fread(p, 1, bytes_to_read, reader->volume_file))
     {
       unshield_error("Failed to read 0x%08x bytes of file %i (%s) from volume %i. Current offset = 0x%08x",
           bytes_to_read, reader->index, 
@@ -416,13 +431,13 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
       goto exit;
     }
 
-    size -= bytes_to_read;
+    bytes_left -= bytes_to_read;
     reader->volume_bytes_left -= bytes_to_read;
 
-    if (!size)
+    if (!bytes_left)
       break;
 
-    buffer += bytes_to_read;
+    p += bytes_to_read;
 
     /*
        Open next volume
@@ -435,6 +450,9 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
       goto exit;
     }
   }
+
+  if (reader->file_descriptor->flags & FILE_OBFUSCATED)
+    unshield_reader_deobfuscate(reader, buffer, size);
 
   success = true;
 
@@ -449,7 +467,7 @@ static UnshieldReader* unshield_reader_create(/*{{{*/
 {
   bool success = false;
   
-  UnshieldReader* reader = calloc(1, sizeof(UnshieldReader));
+  UnshieldReader* reader = NEW1(UnshieldReader);
   if (!reader)
     return NULL;
 
@@ -533,13 +551,6 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
     goto exit;
   }
 
-	if (file_descriptor->flags & FILE_ENCRYPTED)
-	{
-		unshield_warning("File %i (%s) is encrypted and that's not yet supported.",
-				index, unshield_file_name(unshield, index));
-		goto exit;
-	}
-  
   reader = unshield_reader_create(unshield, index, file_descriptor);
   if (!reader)
   {
@@ -669,5 +680,16 @@ int unshield_file_directory(Unshield* unshield, int index)/*{{{*/
   }
   else
     return -1;
+}/*}}}*/
+
+size_t unshield_file_size(Unshield* unshield, int index)/*{{{*/
+{
+  FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
+  if (fd)
+  {
+    return fd->expanded_size;
+  }
+  else
+    return 0;
 }/*}}}*/
 
