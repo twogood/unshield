@@ -113,6 +113,7 @@ static bool unshield_get_file_descriptor(Unshield* unshield, int index, FileDesc
 
     default:
       unshield_error("Unknown major version: %i", unshield->major_version);
+      abort();
       goto exit;
   }
 

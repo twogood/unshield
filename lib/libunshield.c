@@ -128,12 +128,14 @@ static bool unshield_read_headers(Unshield* unshield)/*{{{*/
         goto error;
       }
 
-      unshield_trace("Version: 0x%08x", letoh32(header->common->version));
+      unshield->major_version = (letoh32(header->common->version) >> 12) & 0xf;
 
-      if (((letoh32(header->common->version) >> 12) & 0xf) == 6)
-        unshield->major_version = 6;
-      else
+      if (unshield->major_version < 6)
         unshield->major_version = 5;
+
+      unshield_trace("Version 0x%08x handled as major version %i", 
+          letoh32(header->common->version),
+          unshield->major_version);
 
       if (previous)
         previous->next = header;
