@@ -1,7 +1,7 @@
 dnl $Id$ vim: syntax=config
 dnl Check for libunshield
 
-AC_DEFUN(AM_PATH_LIBUNSHIELD, [
+AC_DEFUN([AM_PATH_LIBUNSHIELD], [
 
   AC_ARG_WITH(libunshield,
     AC_HELP_STRING(
