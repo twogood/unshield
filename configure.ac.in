@@ -1,0 +1,65 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(lib/unshield.h)
+
+AC_CANONICAL_HOST
+AC_CANONICAL_TARGET
+
+AM_INIT_AUTOMAKE(unshield, YOU_DID_NOT_RUN_THE_BOOTSTRAP_SCRIPT)
+AM_CONFIG_HEADER(lib/unshield_config.h)
+
+AC_SUBST(APPLE_CFLAGS)
+case $target in
+
+	powerpc-apple-*)
+		dnl Prevent "Undefined Macro argument list" error.
+		APPLE_CFLAGS="-no-cpp-precomp"
+		;;
+
+esac
+
+dnl Checks for programs.
+AC_PROG_AWK
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_LIBTOOL
+AC_PROG_MAKE_SET
+dnl AM_PATH_CHECK()
+
+dnl Checks for libraries.
+AC_LIB_RPATH
+
+dnl Checks for header files.
+
+dnl Check where uint16_t and uint32_t may be found
+AC_SUBST(INT_HEADER)
+
+dnl Old compilers
+AC_CHECK_HEADERS(inttypes.h,[INT_HEADER=inttypes.h])
+
+dnl C99 compliant compilers
+AC_CHECK_HEADERS(stdint.h,[INT_HEADER=stdint.h])
+
+if test -z "$INT_HEADER"; then
+	AC_MSG_ERROR([Don't know how to get uint16_t and uint32_t on your system])
+fi
+
+AC_CHECK_HEADERS(stdbool.h,,[
+  AC_MSG_ERROR([Don't know how to get bool values on your system])
+])
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+
+# http://www.gnu.org/manual/autoconf-2.53/html_node/AC_LIBOBJ-vs.-LIBOBJS.html
+# This is necessary so that .o files in LIBOBJS are also built via
+# the ANSI2KNR-filtering rules.
+LIB@&t@OBJS=`echo "$LIB@&t@OBJS" | sed 's,\.[[^.]]* ,$U&,g;s,\.[[^.]]*$,$U&,'`
+LTLIBOBJS=`echo "$LIB@&t@OBJS" | sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`
+AC_SUBST(LTLIBOBJS)
+
+AC_CHECK_LIB(z,inflate)
+
+AC_OUTPUT([Makefile
+           lib/Makefile])
+

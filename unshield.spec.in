@@ -1,0 +1,48 @@
+# vim: tw=60
+%define prefix   /usr
+%define name     unshield
+%define rel      1
+
+Summary: A program to extract InstallShield (R) cabinet files.
+Name: %{name}
+Version: YOU_DID_NOT_RUN_THE_BOOTSTRAP_SCRIPT
+Release: %{rel}
+License: MIT
+Group: Applications/Archiving
+Source: %{name}-%{version}.tar.gz
+URL: http://synce.sourceforge.net/
+Distribution: SynCE RPM packages
+Vendor: The SynCE Project
+Packager: David Eriksson <twogood@users.sourceforge.net>
+#Buildroot: %{_tmppath}/%{name}-%{version}-%{release}-root
+Buildroot: %{_tmppath}/synce-root
+
+%description
+Cabinet (.CAB) files are a form of archive, which is used by
+the InstallShield installer software. The unshield program
+simply unpacks such files.
+
+
+%prep
+%setup
+
+%build
+%configure
+make
+
+%install
+%makeinstall
+
+%files
+%defattr(-,root,root)
+%doc README LICENSE
+%{_bindir}/unshield
+%{_libdir}/libunshield.so.*
+
+%files devel
+%defattr(-,root,root)
+%{_includedir}/unshield.h
+%{_libdir}/libunshield.so
+%{_libdir}/libunshield.a
+%{_libdir}/libunshield.la
+

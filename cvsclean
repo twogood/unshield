@@ -1,0 +1,17 @@
+#!/bin/bash
+
+for d in `find . -type d`; do
+
+  if [ `basename "$d"` '!=' 'CVS' ]; then
+    if [ -d "$d" ]; then
+      pushd "$d"
+      FILES='*.o'
+      if [ -f ".cvsignore" ]; then
+        FILES="$FILES `cat .cvsignore`"
+      fi
+      for f in $FILES; do rm -rf $f; done
+      popd
+    fi
+  fi
+done
+
