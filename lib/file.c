@@ -562,11 +562,8 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
 
       if (Z_OK != result)
       {
-#if VERBOSE
         unshield_error("Decompression failed with code %i. bytes_to_read=%i, volume_bytes_left=%i, volume=%i", 
             result, bytes_to_read, reader->volume_bytes_left, file_descriptor->volume);
-#endif
-        abort();
         goto exit;
       }
 
