@@ -280,7 +280,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 
   if (!success)
   {
-    fprintf(stderr, "Failed to extract file '%s'. Run unshield again with -D 4 for more information.\n", 
+    fprintf(stderr, "Failed to extract file '%s'. Run unshield again with -D 3 for more information.\n", 
         unshield_file_name(unshield, index));
     unlink(filename);
   }
