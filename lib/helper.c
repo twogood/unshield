@@ -7,6 +7,8 @@
 #include <string.h>
 #include <errno.h>
 
+#define VERBOSE 0
+
 FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suffix)
 {
   if (unshield && unshield->filename_pattern)
