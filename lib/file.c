@@ -4,11 +4,130 @@
 #include "md5/md5.h"
 #include "cabfile.h"
 #include "log.h"
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/param.h>    /* for MIN(a,b) */
 #include <zlib.h>
 
+static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int index)
+{
+  /* XXX: multi-volume support... */
+  Header* header = unshield->header_list;
+  uint8_t* p = NULL;
+  uint8_t* saved_p = NULL;
+  FileDescriptor* fd = (FileDescriptor*)calloc(1, sizeof(FileDescriptor));
+
+  switch (unshield->major_version)
+  {
+    case 5:
+      saved_p = p = header->data +
+          header->common.cab_descriptor_offset +
+          header->cab.file_table_offset +
+          header->file_table[header->cab.directory_count + index];
+
+      unshield_trace("File descriptor offset: %08x", p - header->data);
+ 
+      fd->flags             = FILE_COMPRESSED;
+      fd->volume            = header->index;
+
+      fd->name_offset       = READ_UINT32(p); p += 4;
+      fd->directory_index   = READ_UINT32(p); p += 4;
+      p += 2;
+      fd->expanded_size     = READ_UINT32(p); p += 4;
+      fd->compressed_size   = READ_UINT32(p); p += 4;
+      p += 0x14;
+      fd->data_offset       = READ_UINT32(p); p += 4;
+      memcpy(fd->md5, p, 0x10); p += 0x10;
+
+      assert((p - saved_p) == 0x3a);
+      break;
+
+    case 6:
+      saved_p = p = header->data +
+          header->common.cab_descriptor_offset +
+          header->cab.file_table_offset +
+          header->cab.file_table_offset2 +
+          index * 0x57;
+      
+      /*unshield_trace("File descriptor offset: %08x", p - header->data);*/      
+      fd->flags             = READ_UINT16(p); p += 2;
+      fd->expanded_size     = READ_UINT32(p); p += 4;
+      p += 4;
+      fd->compressed_size   = READ_UINT32(p); p += 4;
+      p += 4;
+      fd->data_offset       = READ_UINT32(p); p += 4;
+      p += 4;
+      memcpy(fd->md5, p, 0x10); p += 0x10;
+      p += 0x10;
+      fd->name_offset       = READ_UINT32(p); p += 4;
+      fd->directory_index   = READ_UINT16(p); p += 2;
+
+      assert((p - saved_p) == 0x40);
+      
+      p += 0x15;
+      fd->volume            = READ_UINT16(p); p += 2;
+
+      assert((p - saved_p) == 0x57);
+      break;
+
+    case 7:
+      saved_p = p = header->data +
+          header->common.cab_descriptor_offset +
+          header->cab.file_table_offset +
+          header->cab.file_table_offset2 +
+          index * 0x57;
+      
+      unshield_trace("File descriptor offset: %08x", p - header->data);
+      fd->flags            = READ_UINT16(p); p += 2;
+      fd->expanded_size     = READ_UINT32(p); p += 4;
+      p += 4;
+      fd->compressed_size   = READ_UINT32(p); p += 4;
+      p += 4;
+      fd->data_offset       = READ_UINT32(p); p += 4;
+      p += 4;
+      memcpy(fd->md5, p, 0x10); p += 0x10;
+      p += 0x10;
+      fd->name_offset       = READ_UINT32(p); p += 4;
+      fd->directory_index   = READ_UINT16(p); p += 2;
+
+      assert((p - saved_p) == 0x40);
+      
+      p += 0x15;
+      fd->volume            = READ_UINT16(p); p += 2;
+
+      assert((p - saved_p) == 0x57);
+      break;
+
+    default:
+      unshield_error("Unknown major version: %i", unshield->major_version);
+      abort();
+  }
+
+  return fd;
+}
+
+static FileDescriptor* unshield_get_file_descriptor(Unshield* unshield, int index)
+{
+  /* XXX: multi-volume support... */
+  Header* header = unshield->header_list;
+
+  if (index < 0 || index >= (int)header->cab.file_count)
+  {
+    unshield_error("Invalid index");
+    return NULL;
+  }
+
+  if (!header->file_descriptors)
+    header->file_descriptors = calloc(header->cab.file_count, sizeof(FileDescriptor*));
+
+  if (!header->file_descriptors[index])
+    header->file_descriptors[index] = unshield_read_file_descriptor(unshield, index);
+
+  return header->file_descriptors[index];
+}
+
+#if 0
 static FileDescriptor5* unshield_file_descriptor5(Header* header, int index)/*{{{*/
 {
   return (FileDescriptor5*)(
@@ -38,7 +157,7 @@ static bool unshield_get_file_descriptor(Unshield* unshield, int index, FileDesc
       {
         FileDescriptor5* fd5 = unshield_file_descriptor5(header, index);
 
-        file_descriptor->status           = FILE_COMPRESSED;
+        file_descriptor->flags           = FILE_COMPRESSED;
         file_descriptor->name_offset      = letoh32(fd5->name_offset);
         file_descriptor->expanded_size    = letoh32(fd5->expanded_size);
         file_descriptor->compressed_size  = letoh32(fd5->compressed_size);
@@ -59,7 +178,7 @@ static bool unshield_get_file_descriptor(Unshield* unshield, int index, FileDesc
         /* TODO: convert to little endian */
   
 #if 0
-        LETOH16(file_descriptor->status);
+        LETOH16(file_descriptor->flags);
         LETOH32(file_descriptor->expanded_size);
         LETOH32(file_descriptor->compressed_size);
         LETOH32(file_descriptor->data_offset);
@@ -86,7 +205,7 @@ static bool unshield_get_file_descriptor(Unshield* unshield, int index, FileDesc
 #endif
 
 #if 0
-        if (!(file_descriptor->status & FILE_COMPRESSED))
+        if (!(file_descriptor->flags & FILE_COMPRESSED))
         {
           unshield_warning("File %i (%s) is not compressed. File descriptor offset 0x%08x. Volume %i offset 0x%08x.", 
               index, unshield_file_name(unshield, index),
@@ -95,7 +214,7 @@ static bool unshield_get_file_descriptor(Unshield* unshield, int index, FileDesc
         }
 #endif
 
-        if (file_descriptor->status & FILE_ENCRYPTED)
+        if (file_descriptor->flags & FILE_ENCRYPTED)
         {
           unshield_warning("File %i (%s) is encrypted", 
               index, unshield_file_name(unshield, index));
@@ -122,6 +241,7 @@ static bool unshield_get_file_descriptor(Unshield* unshield, int index, FileDesc
 exit:
   return success;
 }/*}}}*/
+#endif
 
 int unshield_file_count (Unshield* unshield)/*{{{*/
 {
@@ -130,7 +250,7 @@ int unshield_file_count (Unshield* unshield)/*{{{*/
     /* XXX: multi-volume support... */
     Header* header = unshield->header_list;
 
-    return header->cab->file_count;
+    return header->cab.file_count;
   }
   else
     return -1;
@@ -138,61 +258,42 @@ int unshield_file_count (Unshield* unshield)/*{{{*/
 
 const char* unshield_file_name (Unshield* unshield, int index)/*{{{*/
 {
-  if (unshield)
+  FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
+
+  if (fd)
   {
     /* XXX: multi-volume support... */
     Header* header = unshield->header_list;
 
-    switch (unshield->major_version)
-    {
-      case 5:
-        {
-          FileDescriptor5* fd = unshield_file_descriptor5(header, index);
-          if (fd->name_offset)
-            return (const char*)((uint8_t*)header->file_table + letoh32(fd->name_offset));
-          else
-            return NULL;
-        }
-        break;
-
-      case 6:
-        {
-          FileDescriptor6* fd = unshield_file_descriptor6(header, index);
-          if (fd->name_offset)
-            return (const char*)((uint8_t*)header->file_table + letoh32(fd->name_offset));
-          else
-            return NULL;
-        }
-        break;
-
-      default:
-        unshield_error("Unknown major version: %i", unshield->major_version);
-        return NULL;
-    }
-
+    return (const char*)(
+        header->data +
+        header->common.cab_descriptor_offset +
+        header->cab.file_table_offset +
+        fd->name_offset);
   }
-  else
-    return NULL;
+    
+  unshield_warning("Failed to get file descriptor %i", index);
+  return NULL;
 }/*}}}*/
 
 bool unshield_file_is_valid(Unshield* unshield, int index)
 {
   bool is_valid = false;
-  FileDescriptor6 fd;
+  FileDescriptor* fd;
 
   if (index < 0 || index >= unshield_file_count(unshield))
     goto exit;
 
-  if (!unshield_get_file_descriptor(unshield, index, &fd))
+  if (!(fd = unshield_get_file_descriptor(unshield, index)))
     goto exit;
 
-  if (fd.status & FILE_INVALID)
+  if (fd->flags & FILE_INVALID)
     goto exit;
 
-  if (!fd.name_offset)
+  if (!fd->name_offset)
     goto exit;
 
-  if (!fd.data_offset)
+  if (!fd->data_offset)
     goto exit;
 
   is_valid = true;
@@ -235,10 +336,10 @@ typedef struct
 {
   Unshield*         unshield;
   unsigned          index;
-  FileDescriptor6*  file_descriptor;
+  FileDescriptor*   file_descriptor;
   int               volume;
   FILE*             volume_file;
-  VolumeHeader6     volume_header;
+  VolumeHeader      volume_header;
   unsigned          volume_bytes_left;
 } UnshieldReader;
 
@@ -259,52 +360,79 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
     goto exit;
   }
 
-  if (sizeof(CommonHeader) != 
-      fread(&common_header, 1, sizeof(CommonHeader), reader->volume_file))
-    goto exit;
+  {
+    uint8_t tmp[COMMON_HEADER_SIZE];
+    uint8_t* p = tmp;
 
-  if (CAB_SIGNATURE != letoh32(common_header.signature))
-    goto exit;
+    if (COMMON_HEADER_SIZE != 
+        fread(&tmp, 1, COMMON_HEADER_SIZE, reader->volume_file))
+      goto exit;
+
+    if (!unshield_read_common_header(&p, &common_header))
+      goto exit;
+  }
+ 
+  memset(&reader->volume_header, 0, sizeof(VolumeHeader));
 
   switch (reader->unshield->major_version)
   {
     case 5:
       {
-        /* read version 5 header and convert to version 6 header */
-        VolumeHeader5 five_header;
-        if (sizeof(VolumeHeader5) != 
-            fread(&five_header, 1, sizeof(VolumeHeader5), reader->volume_file))
+        uint8_t five_header[VOLUME_HEADER_SIZE_V5];
+        uint8_t* p = five_header;
+
+        if (VOLUME_HEADER_SIZE_V5 != 
+            fread(&five_header, 1, VOLUME_HEADER_SIZE_V5, reader->volume_file))
           goto exit;
 
-        memset(&reader->volume_header, 0, sizeof(VolumeHeader6));
-
-        reader->volume_header.data_offset                = letoh32(five_header.data_offset);
-        reader->volume_header.first_file_index           = letoh32(five_header.first_file_index);
-        reader->volume_header.last_file_index            = letoh32(five_header.last_file_index);
-        reader->volume_header.first_file_offset          = letoh32(five_header.first_file_offset);
-        reader->volume_header.first_file_size_expanded   = letoh32(five_header.first_file_size_expanded);
-        reader->volume_header.first_file_size_compressed = letoh32(five_header.first_file_size_compressed);
-        reader->volume_header.last_file_offset           = letoh32(five_header.last_file_offset);
-        reader->volume_header.last_file_size_expanded    = letoh32(five_header.last_file_size_expanded);
-        reader->volume_header.last_file_size_compressed  = letoh32(five_header.last_file_size_compressed);
-
+        reader->volume_header.data_offset                = READ_UINT32(p); p += 4;
+        /* unknown */                                                      p += 4;
+        reader->volume_header.first_file_index           = READ_UINT32(p); p += 4;
+        reader->volume_header.last_file_index            = READ_UINT32(p); p += 4;
+        reader->volume_header.first_file_offset          = READ_UINT32(p); p += 4;
+        reader->volume_header.first_file_size_expanded   = READ_UINT32(p); p += 4;
+        reader->volume_header.first_file_size_compressed = READ_UINT32(p); p += 4;
+        reader->volume_header.last_file_offset           = READ_UINT32(p); p += 4;
+        reader->volume_header.last_file_size_expanded    = READ_UINT32(p); p += 4;
+        reader->volume_header.last_file_size_compressed  = READ_UINT32(p); p += 4;
       }
       break;
 
     case 6:
-      if (sizeof(VolumeHeader6) != 
-          fread(&reader->volume_header, 1, sizeof(VolumeHeader6), reader->volume_file))
+    case 7:
+      {
+        uint8_t six_header[VOLUME_HEADER_SIZE_V6];
+        uint8_t* p = six_header;
 
-        /* TODO: convert to little endian */
+        if (VOLUME_HEADER_SIZE_V6 != 
+            fread(&six_header, 1, VOLUME_HEADER_SIZE_V6, reader->volume_file))
+          goto exit;
 
-        goto exit;
+        reader->volume_header.data_offset                       = READ_UINT32(p); p += 4;
+        reader->volume_header.data_offset_high                  = READ_UINT32(p); p += 4;
+        reader->volume_header.first_file_index                  = READ_UINT32(p); p += 4;
+        reader->volume_header.last_file_index                   = READ_UINT32(p); p += 4;
+        reader->volume_header.first_file_offset                 = READ_UINT32(p); p += 4;
+        reader->volume_header.first_file_offset_high            = READ_UINT32(p); p += 4;
+        reader->volume_header.first_file_size_expanded          = READ_UINT32(p); p += 4;
+        reader->volume_header.first_file_size_expanded_high     = READ_UINT32(p); p += 4;
+        reader->volume_header.first_file_size_compressed        = READ_UINT32(p); p += 4;
+        reader->volume_header.first_file_size_compressed_high   = READ_UINT32(p); p += 4;
+        reader->volume_header.last_file_offset                  = READ_UINT32(p); p += 4;
+        reader->volume_header.last_file_offset_high             = READ_UINT32(p); p += 4;
+        reader->volume_header.last_file_size_expanded           = READ_UINT32(p); p += 4;
+        reader->volume_header.last_file_size_expanded_high      = READ_UINT32(p); p += 4;
+        reader->volume_header.last_file_size_compressed         = READ_UINT32(p); p += 4;
+        reader->volume_header.last_file_size_compressed_high    = READ_UINT32(p); p += 4;
+      }
       break;
 
     default:
+      abort();
       goto exit;
   }
 
-  if (reader->file_descriptor->status & FILE_SPLIT)  /* XXX: handle IS5 too */
+  if (reader->file_descriptor->flags & FILE_SPLIT)  /* XXX: handle IS5 too */
   {   
 #if 0
     unshield_trace("Total bytes left = 0x08%x, previous data offset = 0x08%x",
@@ -349,7 +477,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
     volume_bytes_left_compressed = reader->file_descriptor->compressed_size;
   }
 
-  if (reader->file_descriptor->status & FILE_COMPRESSED)
+  if (reader->file_descriptor->flags & FILE_COMPRESSED)
     reader->volume_bytes_left = volume_bytes_left_compressed;
   else
     reader->volume_bytes_left = volume_bytes_left_expanded;
@@ -412,7 +540,7 @@ exit:
 static UnshieldReader* unshield_reader_create(/*{{{*/
     Unshield* unshield, 
     int index,
-    FileDescriptor6* file_descriptor)
+    FileDescriptor* file_descriptor)
 {
   bool success = false;
   
@@ -461,7 +589,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
   int bytes_left;
   uLong total_written = 0;
   UnshieldReader* reader = NULL;
-  FileDescriptor6 file_descriptor;
+  FileDescriptor* file_descriptor;
 	MD5_CTX md5;
 
 	MD5Init(&md5);
@@ -469,19 +597,19 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
   if (!unshield || !filename)
     goto exit;
 
-  if (!unshield_get_file_descriptor(unshield, index, &file_descriptor))
+  if (!(file_descriptor = unshield_get_file_descriptor(unshield, index)))
   {
     unshield_error("Failed to get file descriptor for file %i", index);
     goto exit;
   }
 
-  if ((file_descriptor.status & FILE_INVALID) || 0 == file_descriptor.data_offset)
+  if ((file_descriptor->flags & FILE_INVALID) || 0 == file_descriptor->data_offset)
   {
     /* invalid file */
     goto exit;
   }
   
-  reader = unshield_reader_create(unshield, index, &file_descriptor);
+  reader = unshield_reader_create(unshield, index, file_descriptor);
   if (!reader)
   {
     unshield_error("Failed to create data reader for file %i", index);
@@ -495,17 +623,19 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
     goto exit;
   }
 
-  if (file_descriptor.status & FILE_COMPRESSED)
-    bytes_left = file_descriptor.compressed_size;
+  if (file_descriptor->flags & FILE_COMPRESSED)
+    bytes_left = file_descriptor->compressed_size;
   else
-    bytes_left = file_descriptor.expanded_size;
+    bytes_left = file_descriptor->expanded_size;
+
+  /*unshield_trace("Bytes to read: %i", bytes_left);*/
 
   while (bytes_left > 0)
   {
     uLong bytes_to_write = BUFFER_SIZE;
     int result;
 
-    if (file_descriptor.status & FILE_COMPRESSED)
+    if (file_descriptor->flags & FILE_COMPRESSED)
     {
       uint16_t bytes_to_read = 0;
 
@@ -572,9 +702,10 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
     total_written += bytes_to_write;
   }
 
-  if (file_descriptor.expanded_size != total_written)
+  if (file_descriptor->expanded_size != total_written)
   {
-    unshield_error("Expanded size expected to be %i, but was %i", file_descriptor.expanded_size, total_written);
+    unshield_error("Expanded size expected to be %i, but was %i", 
+        file_descriptor->expanded_size, total_written);
     goto exit;
   }
 
@@ -582,7 +713,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
     unsigned char md5result[16];
     MD5Final(md5result, &md5);
 
-    if (0 != memcmp(md5result, file_descriptor.md5, 16))
+    if (0 != memcmp(md5result, file_descriptor->md5, 16))
     {
       unshield_error("MD5 checksum failure for file %i (%s)", 
           index, unshield_file_name(unshield, index));
@@ -602,32 +733,10 @@ exit:
 
 int unshield_file_directory(Unshield* unshield, int index)/*{{{*/
 {
-  if (unshield)
+  FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
+  if (fd)
   {
-    /* XXX: multi-volume support... */
-    Header* header = unshield->header_list;
-
-    switch (unshield->major_version)
-    {
-      case 5:
-        {
-          FileDescriptor5* fd = unshield_file_descriptor5(header, index);
-          return fd->directory_index;
-        }
-        break;
-
-      case 6:
-        {
-          FileDescriptor6* fd = unshield_file_descriptor6(header, index);
-          return fd->directory_index;
-        }
-        break;
-
-      default:
-        unshield_error("Unknown major version: %i", unshield->major_version);
-        return -1;
-    }
-
+    return fd->directory_index;
   }
   else
     return -1;

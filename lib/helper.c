@@ -77,3 +77,31 @@ long unshield_fsize(FILE* file)
   fseek(file, previous, SEEK_SET);
   return result;
 }
+
+bool unshield_read_common_header(uint8_t** buffer, CommonHeader* common)
+{
+  uint8_t* p = *buffer;
+  common->signature              = READ_UINT32(p); p += 4;
+
+  if (CAB_SIGNATURE != common->signature)
+  {
+    unshield_error("Invalid file signature");
+    return false;
+  }
+
+  common->version                = READ_UINT32(p); p += 4;
+  common->volume_info            = READ_UINT32(p); p += 4;
+  common->cab_descriptor_offset  = READ_UINT32(p); p += 4;
+  common->cab_descriptor_size    = READ_UINT32(p); p += 4;
+
+  unshield_trace("Common header: %08x %08x %08x %08x",
+      common->version, 
+      common->volume_info, 
+      common->cab_descriptor_offset, 
+      common->cab_descriptor_size);
+
+  *buffer = p;
+  return true;
+}
+
+

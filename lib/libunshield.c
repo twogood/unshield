@@ -2,6 +2,7 @@
 #define _BSD_SOURCE 1
 #include "internal.h"
 #include "log.h"
+#include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,21 +40,69 @@ static bool unshield_create_filename_pattern(Unshield* unshield, const char* fil
     return false;
 }/*}}}*/
 
-static bool unshield_create_header_shortcuts(Header* header)
+static bool unshield_get_common_header(Header* header)
 {
-  header->common      = (CommonHeader*)header->data;
-  if (header->common->cab_descriptor_size)
+  uint8_t* p = header->data;
+  return unshield_read_common_header(&p, &header->common);
+}
+
+static bool unshield_get_cab_descriptor(Header* header)
+{  
+  if (header->common.cab_descriptor_size)
   {
-    header->cab         = (CabDescriptor*)(header->data + letoh32(header->common->cab_descriptor_offset));
-    header->file_table  = (uint32_t*)((uint8_t*)header->cab + letoh32(header->cab->file_table_offset));
+    uint8_t* p = header->data + header->common.cab_descriptor_offset;
+
+    p += 0xc;
+    header->cab.file_table_offset   = READ_UINT32(p); p += 4;
+    p += 4;
+    header->cab.file_table_size     = READ_UINT32(p); p += 4;
+    header->cab.file_table_size2    = READ_UINT32(p); p += 4;
+    header->cab.directory_count     = READ_UINT32(p); p += 4;
+    p += 8;
+    header->cab.file_count          = READ_UINT32(p); p += 4;
+    header->cab.file_table_offset2  = READ_UINT32(p); p += 4;
+
+    assert((p - (header->data + header->common.cab_descriptor_offset)) == 0x30);
+
+    if (header->cab.file_table_size != header->cab.file_table_size2)
+      unshield_warning("File table sizes do not match");
+          
+    unshield_trace("Cabinet descriptor: %08x %08x %08x %08x",
+        header->cab.file_table_offset,
+        header->cab.file_table_size,
+        header->cab.file_table_size2,
+        header->cab.file_table_offset2
+        );
+
+    unshield_trace("Directory count: %i", header->cab.directory_count);
+    unshield_trace("File count: %i", header->cab.file_count);
+    
     return true;
   }
   else
   {
-    unshield_error("No CAB header found!");
+    unshield_error("No CAB descriptor available!");
     return false;
   }
 }
+
+static bool unshield_get_file_table(Header* header)
+{
+  uint8_t* p = header->data +
+        header->common.cab_descriptor_offset +
+        header->cab.file_table_offset;
+  int count = header->cab.directory_count + header->cab.file_count;
+  int i;
+  
+  header->file_table = calloc(count, sizeof(uint32_t));
+
+  for (i = 0; i < count; i++)
+  {
+    header->file_table[i] = READ_UINT32(p); p += 4;
+  }
+  
+  return true;
+}  
 
 /**
   Read all header files
@@ -116,26 +165,32 @@ static bool unshield_read_headers(Unshield* unshield)/*{{{*/
         goto error;
       }
 
-      if (!unshield_create_header_shortcuts(header))
+      if (!unshield_get_common_header(header))
       {
-        unshield_error("Failed to create header shortcuts for header file %i", i);
+        unshield_error("Failed to read common header from header file %i", i);
         goto error;
       }
       
-      if (CAB_SIGNATURE != letoh32(header->common->signature))
+      unshield->major_version = (letoh32(header->common.version) >> 12) & 0xf;
+
+      /*if (unshield->major_version < 6)
+        unshield->major_version = 5;*/
+
+      unshield_trace("Version 0x%08x handled as major version %i", 
+          letoh32(header->common.version),
+          unshield->major_version);
+
+      if (!unshield_get_cab_descriptor(header))
       {
-        unshield_error("Invalid file signature for header file %i", i);
+        unshield_error("Failed to read CAB descriptor from header file %i", i);
         goto error;
       }
 
-      unshield->major_version = (letoh32(header->common->version) >> 12) & 0xf;
-
-      if (unshield->major_version < 6)
-        unshield->major_version = 5;
-
-      unshield_trace("Version 0x%08x handled as major version %i", 
-          letoh32(header->common->version),
-          unshield->major_version);
+      if (!unshield_get_file_table(header))
+      {
+        unshield_error("Failed to read file table from header file %i", i);
+        goto error;
+      }
 
       if (previous)
         previous->next = header;

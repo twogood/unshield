@@ -26,9 +26,10 @@ struct _Header
   size_t    size;
 
   /* shortcuts */
-  CommonHeader*   common;
-  CabDescriptor*  cab;
+  CommonHeader    common;
+  CabDescriptor   cab;
   uint32_t*       file_table;
+  FileDescriptor** file_descriptors;
 };
 
 struct _Unshield
@@ -44,6 +45,8 @@ struct _Unshield
 
 FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suffix);
 long unshield_fsize(FILE* file);
+bool unshield_read_common_header(uint8_t** buffer, CommonHeader* common);
+
 
 /*
    Constants
@@ -86,6 +89,12 @@ uint32_t bswap_32(uint32_t x);
 #define letoh32(x) (x)
 #define letoh16(x) (x)
 #endif
+
+#define READ_UINT16(p)   letoh16(*(uint16_t*)(p))
+#define READ_UINT32(p)   letoh32(*(uint32_t*)(p))
+
+#define READ_INT16(p)   ((int16_t)READ_UINT16(p))
+#define READ_INT32(p)   ((int32_t)READ_UINT32(p))
 
 
 #endif 
