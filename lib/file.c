@@ -233,7 +233,7 @@ static int unshield_uncompress (Byte *dest, uLong *destLen, Byte *source, uLong 
 typedef struct 
 {
   Unshield*         unshield;
-  int               index;
+  unsigned          index;
   FileDescriptor6*  file_descriptor;
   int               volume;
   FILE*             volume_file;
