@@ -10,7 +10,7 @@
 #include <sys/param.h>    /* for MIN(a,b) */
 #include <zlib.h>
 
-#define VERBOSE 0
+#define VERBOSE 1
 
 #define ror8(x,n)   (((x) >> ((int)(n))) | ((x) << (8 - (int)(n))))
 #define rol8(x,n)   (((x) << ((int)(n))) | ((x) >> (8 - (int)(n))))
@@ -37,12 +37,15 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       unshield_trace("File descriptor offset %i: %08x", index, p - header->data);
 #endif
  
-      fd->flags             = FILE_COMPRESSED;
       fd->volume            = header->index;
 
       fd->name_offset       = READ_UINT32(p); p += 4;
       fd->directory_index   = READ_UINT32(p); p += 4;
-      p += 2;
+
+      fd->flags             = READ_UINT16(p); p += 2;
+#if VERBOSE
+      unshield_trace("Flags? %04x", fd->flags);
+#endif
       fd->expanded_size     = READ_UINT32(p); p += 4;
       fd->compressed_size   = READ_UINT32(p); p += 4;
       p += 0x14;
