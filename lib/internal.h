@@ -63,10 +63,28 @@ long unshield_fsize(FILE* file);
 #define FSIZE(file)     (file ? unshield_fsize(file) : 0)
 
 #if WORDS_BIGENDIAN
-#error "Big endian not yet supported"
+
+#if HAVE_BYTESWAP_H
+#include <byteswap.h>
+#elif HAVE_SYS_BYTESWAP_H
+#include <sys/byteswap.h>
 #else
-#define letoh32(n) (n)
-#define letoh16(n) (n)
+
+/* use our own functions */
+#define IMPLEMENT_BSWAP_XX 1
+#define bswap_16 unshield_bswap_16
+#define bswap_32 unshield_bswap_32
+
+uint16_t bswap_16(uint16_t x);
+uint32_t bswap_32(uint32_t x);
+#endif
+
+#define letoh16(x)    bswap_16(x)
+#define letoh32(x)    bswap_32(x)
+
+#else
+#define letoh32(x) (x)
+#define letoh16(x) (x)
 #endif
 
 

@@ -6,6 +6,7 @@ lib_LTLIBRARIES = libunshield.la
 
 ## use these sources
 libunshield_la_SOURCES = \
+	bswap.c \
 	directory.c \
 	file.c \
 	helper.c \
