@@ -61,4 +61,5 @@ make
 %{_libdir}/libunshield.so
 %{_libdir}/libunshield.a
 %{_libdir}/libunshield.la
+%{_datadir}/aclocal
 
