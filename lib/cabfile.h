@@ -58,7 +58,8 @@ typedef struct
   P uint32_t unknown3;                      /* 20 */
   P uint32_t unknown4;                      /* 24 */
   P uint32_t file_count;                    /* 28 */
-  P uint8_t  stuff2[0x12];                        /* 2c */
+  P uint32_t file_table_offset2;  /* 2c */
+  P uint8_t  stuff2[0xe];                        /* 30 */
   P uint32_t file_group_offsets[OFFSET_COUNT];    /* 3e */
   P uint32_t component_offsets[OFFSET_COUNT];     /* 15a */
   /* 276 */
@@ -84,6 +85,24 @@ typedef struct
   P uint32_t unknown[2];
   P uint32_t data_offset;
 } FileDescriptor5;
+
+typedef struct
+{
+  P uint16_t status;                /* 0 */
+  P uint32_t expanded_size;         /* 2 */
+  P uint32_t expanded_size_high;    /* 6 */
+  P uint32_t compressed_size;       /* a */
+  P uint32_t compressed_size_high;  /* e */
+  P uint32_t data_offset;           /* 12 */
+  P uint32_t data_offset_high;      /* 16 */
+  P uint8_t md5[16];                /* 1a */
+  P uint32_t version_ms;            /* 2a */
+  P uint32_t version_ls;            /* 2e */
+  P uint32_t unknown1;              /* 32 */
+  P uint32_t unknown2;              /* 36 */
+  P uint32_t name_offset;           /* 3a */
+  P uint8_t unknown3[0x19];         /* 3e */
+} FileDescriptor6;
 
 #undef P
 

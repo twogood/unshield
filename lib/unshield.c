@@ -110,6 +110,9 @@ static bool unshield_read_headers(Unshield* unshield)/*{{{*/
         goto error;
       }
 
+      synce_trace("Version: 0x%08x", letoh32(header->common->version));
+      unshield->major_version = (letoh32(header->common->version) >> 12) & 0xf;
+
       if (previous)
         previous->next = header;
       else

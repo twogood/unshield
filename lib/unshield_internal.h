@@ -28,6 +28,7 @@ struct _Unshield
 {
   Header* header_list;
   char* filename_pattern;
+  int major_version;
 };
 
 /*
