@@ -20,6 +20,7 @@ extern "C" {
  
 typedef struct _Unshield Unshield;
 
+
 /*
    Logging
  */
@@ -38,6 +39,13 @@ void unshield_close(Unshield* unshield);
    Component functions
  */
 
+typedef struct
+{
+  const char* name;
+  unsigned file_group_count;
+  const char** file_group_names;
+} UnshieldComponent;
+
 int         unshield_component_count    (Unshield* unshield);
 const char* unshield_component_name     (Unshield* unshield, int index);
 
@@ -45,8 +53,17 @@ const char* unshield_component_name     (Unshield* unshield, int index);
    File group functions
  */
 
-int         unshield_file_group_count   (Unshield* unshield);
-const char* unshield_file_group_name    (Unshield* unshield, int index);
+typedef struct
+{
+  const char* name;
+  unsigned first_file;
+  unsigned last_file;
+} UnshieldFileGroup;
+
+int                 unshield_file_group_count (Unshield* unshield);
+UnshieldFileGroup*  unshield_file_group_get   (Unshield* unshield, int index);
+UnshieldFileGroup*  unshield_file_group_find  (Unshield* unshield, const char* name);
+const char*         unshield_file_group_name  (Unshield* unshield, int index);
 
 /*
    Directory functions

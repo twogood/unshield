@@ -1,117 +1,65 @@
 /* $Id$ */
 #include "internal.h"
 #include "log.h"
+#include <stdlib.h>
 #include <string.h>
-
-typedef bool (*ComponentCallback)
-  (Header* header, uint32_t name_offset, uint32_t descriptor_offset, void* cookie);
-
-
-static bool unshield_foreach_component(
-    Header* header, ComponentCallback callback, void* cookie)
-{
-  int i;
-  for (i = 0; i < MAX_COMPONENT_COUNT; i++)
-  {
-    if (header->cab.component_offsets[i])
-    {
-      OffsetList list;
-
-      /*unshield_trace("Component offset %08x", header->cab.component_offsets[i]);*/
-      list.next_offset = header->cab.component_offsets[i];
-
-      while (list.next_offset)
-      {
-        uint8_t* p =
-          header->data + 
-          header->common.cab_descriptor_offset +
-          list.next_offset;
-
-        list.name_offset       = READ_UINT32(p); p += 4;
-        list.descriptor_offset = READ_UINT32(p); p += 4;
-        list.next_offset       = READ_UINT32(p); p += 4;
-
-        if (!callback(header, list.name_offset, list.descriptor_offset, cookie))
-          return true;
-      }
-    }
-  }
-
-  return true;
-}
-
-static bool unshield_component_counter_callback(
-    Header* header, uint32_t name_offset, uint32_t descriptor_offset, void* cookie)
-{
-  int* counter = (int*)cookie;
-  (*counter)++;
-  return true;
-}
-
 
 int unshield_component_count(Unshield* unshield)
 {
   Header* header = unshield->header_list;
-  int counter = 0;
-  
-  unshield_foreach_component(header, unshield_component_counter_callback, &counter);
-
-  return counter;
+  return header->component_count;
 }
 
-typedef struct
-{
-  int current_index;
-  int wanted_index;
-  bool component_found;
-  uint32_t name_offset;
-  uint32_t descriptor_offset;
-} FindComponentData;
-
-static bool unshield_find_component_callback(
-    Header* header, uint32_t name_offset, uint32_t descriptor_offset, void* cookie)
-{
-  FindComponentData* data = (FindComponentData*)cookie;
-
-  if (data->wanted_index == data->current_index)
-  {
-    data->component_found = true;
-    data->name_offset = name_offset;
-    data->descriptor_offset = descriptor_offset;
-    return false;
-  }
-  
-  data->current_index++;
-  return true;
-}
-
-/* XXX: Index-based access is very slow */
 const char* unshield_component_name(Unshield* unshield, int index)
 {
   Header* header = unshield->header_list;
-  FindComponentData data;
-  const char* name = NULL;
 
-  memset(&data, 0, sizeof(FindComponentData));
-  data.wanted_index = index;
+  if (index >= 0 && index < header->component_count)
+    return header->components[index]->name;
+  else
+    return NULL;
+}
 
-  unshield_foreach_component(header, unshield_find_component_callback, &data);
+UnshieldComponent* unshield_component_new(Header* header, uint32_t offset)
+{
+  UnshieldComponent* self = NEW1(UnshieldComponent);
+  uint8_t* p = unshield_header_get_buffer(header, offset);
+  uint32_t file_group_table_offset;
+  unsigned i;
 
-  /*unshield_trace("data.name_offset = %08x", data.name_offset);*/
+  self->name = unshield_header_get_string(header, READ_UINT32(p)); p += 4;
 
-  if (data.component_found && data.name_offset)
+  if (header->major_version == 5)
+    p += 0x6c;
+  else
+    p += 0x6b;
+
+  self->file_group_count = READ_UINT16(p); p += 2;
+  if (self->file_group_count > MAX_FILE_GROUP_COUNT)
+    abort();
+
+  self->file_group_names = NEW(const char*, self->file_group_count);
+
+  file_group_table_offset = READ_UINT32(p); p += 4;
+
+  p = unshield_header_get_buffer(header, file_group_table_offset);
+
+  for (i = 0; i < self->file_group_count; i++)
   {
-    /*unshield_trace("cab_descriptor_offset = %08x", 
-        header->common.cab_descriptor_offset);*/
-
-    name = (const char*)(
-        header->data +
-        header->common.cab_descriptor_offset +
-        data.name_offset);
+    self->file_group_names[i] = unshield_header_get_string(header, READ_UINT32(p)); 
+    p += 4;
   }
 
-  /*unshield_trace("component name %i = '%s'", index, name);*/
-
-  return name;
+  return self;
 }
+
+void unshield_component_destroy(UnshieldComponent* self)
+{
+  if (self)
+  {
+    FREE(self->file_group_names);
+    free(self);
+  }
+}
+
 

@@ -47,7 +47,7 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
       {
         if (!(strcasecmp(q, dent->d_name)))
         {
-          unshield_trace("Found match %s\n",dent->d_name);
+          /*unshield_trace("Found match %s\n",dent->d_name);*/
           break;
         }
       }
@@ -63,7 +63,9 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
     else
       unshield_trace("Could not open directory %s error %s\n", dirname, strerror(errno));
 
+#if VERBOSE
     unshield_trace("Opening file '%s'", filename);
+#endif
     result = fopen(filename, "r");
 
 exit:
@@ -106,14 +108,38 @@ bool unshield_read_common_header(uint8_t** buffer, CommonHeader* common)
   common->cab_descriptor_offset  = READ_UINT32(p); p += 4;
   common->cab_descriptor_size    = READ_UINT32(p); p += 4;
 
+#if VERBOSE
   unshield_trace("Common header: %08x %08x %08x %08x",
       common->version, 
       common->volume_info, 
       common->cab_descriptor_offset, 
       common->cab_descriptor_size);
+#endif
 
   *buffer = p;
   return true;
+}
+
+/**
+  Get pointer at cab descriptor + offset
+  */
+uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset)
+{
+  if (offset)
+    return 
+      header->data +
+      header->common.cab_descriptor_offset +
+      offset;
+  else
+    return NULL;
+}
+
+/**
+  Get string at cab descriptor offset + string offset
+ */
+const char* unshield_header_get_string(Header* header, uint32_t offset)
+{
+  return (const char*)unshield_header_get_buffer(header, offset);
 }
 
 

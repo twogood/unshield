@@ -122,6 +122,68 @@ static bool unshield_get_file_table(Header* header)
   return true;
 }  
 
+static bool unshield_header_get_components(Header* header)/*{{{*/
+{
+  int count = 0;
+  int i;
+
+  for (i = 0; i < MAX_COMPONENT_COUNT; i++)
+  {
+    if (header->cab.component_offsets[i])
+    {
+      OffsetList list;
+
+      list.next_offset = header->cab.component_offsets[i];
+
+      while (list.next_offset)
+      {
+        uint8_t* p = unshield_header_get_buffer(header, list.next_offset);
+
+        list.name_offset       = READ_UINT32(p); p += 4;
+        list.descriptor_offset = READ_UINT32(p); p += 4;
+        list.next_offset       = READ_UINT32(p); p += 4;
+
+        header->components[count++] = unshield_component_new(header, list.descriptor_offset);
+      }
+    }
+  }
+
+  header->component_count = count;
+
+  return true;
+}  /*}}}*/
+
+static bool unshield_header_get_file_groups(Header* header)/*{{{*/
+{
+  int count = 0;
+  int i;
+
+  for (i = 0; i < MAX_FILE_GROUP_COUNT; i++)
+  {
+    if (header->cab.file_group_offsets[i])
+    {
+      OffsetList list;
+
+      list.next_offset = header->cab.file_group_offsets[i];
+
+      while (list.next_offset)
+      {
+        uint8_t* p = unshield_header_get_buffer(header, list.next_offset);
+
+        list.name_offset       = READ_UINT32(p); p += 4;
+        list.descriptor_offset = READ_UINT32(p); p += 4;
+        list.next_offset       = READ_UINT32(p); p += 4;
+
+        header->file_groups[count++] = unshield_file_group_new(header, list.descriptor_offset);
+      }
+    }
+  }
+
+  header->file_group_count = count;
+
+  return true;
+}  /*}}}*/
+
 /**
   Read all header files
  */
@@ -189,14 +251,14 @@ static bool unshield_read_headers(Unshield* unshield)/*{{{*/
         goto error;
       }
       
-      unshield->major_version = (letoh32(header->common.version) >> 12) & 0xf;
+      header->major_version = (letoh32(header->common.version) >> 12) & 0xf;
 
-      if (unshield->major_version < 5)
-        unshield->major_version = 5;
+      if (header->major_version < 5)
+        header->major_version = 5;
 
       unshield_trace("Version 0x%08x handled as major version %i", 
           letoh32(header->common.version),
-          unshield->major_version);
+          header->major_version);
 
       if (!unshield_get_cab_descriptor(header))
       {
@@ -207,6 +269,18 @@ static bool unshield_read_headers(Unshield* unshield)/*{{{*/
       if (!unshield_get_file_table(header))
       {
         unshield_error("Failed to read file table from header file %i", i);
+        goto error;
+      }
+
+      if (!unshield_header_get_components(header))
+      {
+        unshield_error("Failed to read components from header file %i", i);
+        goto error;
+      }
+
+      if (!unshield_header_get_file_groups(header))
+      {
+        unshield_error("Failed to read file groups from header file %i", i);
         goto error;
       }
 
@@ -267,7 +341,20 @@ void unshield_close(Unshield* unshield)/*{{{*/
     for(header = unshield->header_list; header; )
     {
       Header* next = header->next;
+      int i;
 
+      for (i = 0; i < header->component_count; i++)
+        unshield_component_destroy(header->components[i]);
+
+      for (i = 0; i < header->file_group_count; i++)
+        unshield_file_group_destroy(header->file_groups[i]);
+
+      for (i = 0; i < (int)header->cab.file_count; i++)
+        FREE(header->file_descriptors[i]);
+
+      FREE(header->file_table);
+      FREE(header->file_descriptors);
+      
       FREE(header->data);
       FREE(header);
 

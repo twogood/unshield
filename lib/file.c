@@ -10,6 +10,8 @@
 #include <sys/param.h>    /* for MIN(a,b) */
 #include <zlib.h>
 
+#define VERBOSE 1
+
 static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int index)
 {
   /* XXX: multi-volume support... */
@@ -18,7 +20,7 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
   uint8_t* saved_p = NULL;
   FileDescriptor* fd = (FileDescriptor*)calloc(1, sizeof(FileDescriptor));
 
-  switch (unshield->major_version)
+  switch (header->major_version)
   {
     case 5:
       saved_p = p = header->data +
@@ -73,7 +75,7 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       break;
 
     default:
-      unshield_error("Unknown major version: %i", unshield->major_version);
+      unshield_error("Unknown major version: %i", header->major_version);
       abort();
   }
 
@@ -99,122 +101,6 @@ static FileDescriptor* unshield_get_file_descriptor(Unshield* unshield, int inde
 
   return header->file_descriptors[index];
 }
-
-#if 0
-static FileDescriptor5* unshield_file_descriptor5(Header* header, int index)/*{{{*/
-{
-  return (FileDescriptor5*)(
-      (uint8_t*)header->file_table + 
-      header->file_table[header->cab->directory_count + index]
-      );
-}/*}}}*/
-
-static FileDescriptor6* unshield_file_descriptor6(Header* header, int index)/*{{{*/
-{
-  return ((FileDescriptor6*)
-    ((uint8_t*)header->file_table + letoh32(header->cab->file_table_offset2)))
-    + index;
-}/*}}}*/
-
-static bool unshield_get_file_descriptor(Unshield* unshield, int index, FileDescriptor6* file_descriptor)/*{{{*/
-{
-  bool success = false;
-  Header* header = NULL;
-
-  /* XXX: multi-volume support... */
-  header = unshield->header_list;
-
-  switch (unshield->major_version)
-  {
-    case 5:
-      {
-        FileDescriptor5* fd5 = unshield_file_descriptor5(header, index);
-
-        file_descriptor->flags           = FILE_COMPRESSED;
-        file_descriptor->name_offset      = letoh32(fd5->name_offset);
-        file_descriptor->expanded_size    = letoh32(fd5->expanded_size);
-        file_descriptor->compressed_size  = letoh32(fd5->compressed_size);
-        file_descriptor->data_offset      = letoh32(fd5->data_offset);
-        file_descriptor->volume           = header->index;
-
-        memcpy(file_descriptor->md5, fd5->md5, 16);
-
-        /* XXX: copy more */
-      }
-      break;
-
-    case 6:
-      {
-        FileDescriptor6* fd6 = unshield_file_descriptor6(header, index);
-        memcpy(file_descriptor, fd6, sizeof(FileDescriptor6));
-
-        /* TODO: convert to little endian */
-  
-#if 0
-        LETOH16(file_descriptor->flags);
-        LETOH32(file_descriptor->expanded_size);
-        LETOH32(file_descriptor->compressed_size);
-        LETOH32(file_descriptor->data_offset);
-        LETOH16(file_descriptor->volume);
-#endif
-
-        if (file_descriptor->previous_copy)
-        {
-          while (fd6->previous_copy)
-            fd6 = unshield_file_descriptor6(header, fd6->previous_copy);
-
-          file_descriptor->data_offset = letoh32(fd6->data_offset);
-          file_descriptor->volume      = letoh16(fd6->volume);
-        }
-
-#if 0
-        if (0 == strcmp(unshield_file_name(unshield, index), "start.htm"))
-        {
-          unshield_warning("File %i (%s) is start.htm. File descriptor offset 0x%08x. Volume %i offset 0x%08x.", 
-              index, unshield_file_name(unshield, index),
-              (void*)fd6 - (void*)header->data,
-              file_descriptor->volume, file_descriptor->data_offset);
-        }
-#endif
-
-#if 0
-        if (!(file_descriptor->flags & FILE_COMPRESSED))
-        {
-          unshield_warning("File %i (%s) is not compressed. File descriptor offset 0x%08x. Volume %i offset 0x%08x.", 
-              index, unshield_file_name(unshield, index),
-              (void*)fd6 - (void*)header->data,
-              file_descriptor->volume, file_descriptor->data_offset);
-        }
-#endif
-
-        if (file_descriptor->flags & FILE_ENCRYPTED)
-        {
-          unshield_warning("File %i (%s) is encrypted", 
-              index, unshield_file_name(unshield, index));
-        }
-        
-#if 0 
-        if (status & FILE_SPLIT)
-        {
-          unshield_trace("Split file in volume %i! Index = %i, Name = '%s', file descriptor offset: 0x%08x", 
-              volume, index, unshield_file_name(unshield, index), (uint8_t*)fd - header->data);
-        }
-#endif
-      }
-      break;
-
-    default:
-      unshield_error("Unknown major version: %i", unshield->major_version);
-      abort();
-      goto exit;
-  }
-
-  success = true;
-
-exit:
-  return success;
-}/*}}}*/
-#endif
 
 int unshield_file_count (Unshield* unshield)/*{{{*/
 {
@@ -347,7 +233,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
  
   memset(&reader->volume_header, 0, sizeof(VolumeHeader));
 
-  switch (reader->unshield->major_version)
+  switch (reader->unshield->header_list->major_version)
   {
     case 5:
       {
@@ -405,17 +291,36 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
       goto exit;
   }
 
-  if (reader->file_descriptor->flags & FILE_SPLIT)  /* XXX: handle IS5 too */
+  /* enable support for split archives for IS5 */
+  if (reader->unshield->header_list->major_version == 5)
+  {
+    if (reader->index < (reader->unshield->header_list->cab.file_count - 1) &&
+        reader->index == reader->volume_header.last_file_index && 
+        reader->volume_header.last_file_size_compressed != reader->file_descriptor->compressed_size)
+    {
+      unshield_trace("IS5 split file last in volume");
+      reader->file_descriptor->flags |= FILE_SPLIT;
+    }
+    else if (reader->index > 0 &&
+        reader->index == reader->volume_header.first_file_index && 
+        reader->volume_header.first_file_size_compressed != reader->file_descriptor->compressed_size)
+    {
+      unshield_trace("IS5 split file first in volume");
+      reader->file_descriptor->flags |= FILE_SPLIT;
+    }
+  }
+
+  if (reader->file_descriptor->flags & FILE_SPLIT)
   {   
-#if 0
-    unshield_trace("Total bytes left = 0x08%x, previous data offset = 0x08%x",
-        total_bytes_left, data_offset); 
+#if VERBOSE
+    unshield_trace(/*"Total bytes left = 0x08%x, "*/"previous data offset = 0x08%x",
+        /*total_bytes_left, */data_offset); 
 #endif
 
     if (reader->index == reader->volume_header.last_file_index)
     {
       /* can be first file too... */
-#if 0
+#if VERBOSE
       unshield_trace("Index %i is last file in cabinet file %i",
           reader->index, volume);
 #endif
@@ -426,7 +331,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
     }
     else if (reader->index == reader->volume_header.first_file_index)
     {
-#if 0
+#if VERBOSE
       unshield_trace("Index %i is first file in cabinet file %i",
           reader->index, volume);
 #endif
@@ -438,7 +343,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
     else
       abort();
 
-#if 0
+#if VERBOSE
     unshield_trace("Will read 0x%08x bytes from offset 0x%08x",
         volume_bytes_left_compressed, data_offset);
 #endif
@@ -498,8 +403,8 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
 
     if (!unshield_reader_open_volume(reader, reader->volume + 1))
     {
-      unshield_error("Failed to open volume %i",
-          bytes_to_read, reader->volume);
+      unshield_error("Failed to open volume %i to read %i more bytes",
+          reader->volume + 1, bytes_to_read);
       goto exit;
     }
   }

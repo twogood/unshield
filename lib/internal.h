@@ -24,20 +24,42 @@ struct _Header
   int       index;
   uint8_t*  data;
   size_t    size;
+  int       major_version;
 
   /* shortcuts */
   CommonHeader    common;
   CabDescriptor   cab;
   uint32_t*       file_table;
   FileDescriptor** file_descriptors;
+
+  int component_count;
+  UnshieldComponent* components[MAX_COMPONENT_COUNT];
+
+  int file_group_count;
+  UnshieldFileGroup* file_groups[MAX_FILE_GROUP_COUNT];
 };
 
 struct _Unshield
 {
   Header* header_list;
   char* filename_pattern;
-  int major_version;
 };
+
+/*
+   Internal component functions
+ */
+
+UnshieldComponent* unshield_component_new(Header* header, uint32_t offset);
+void unshield_component_destroy(UnshieldComponent* self);
+
+
+/* 
+   Internal file group functions
+ */
+
+UnshieldFileGroup* unshield_file_group_new(Header* header, uint32_t offset);
+void unshield_file_group_destroy(UnshieldFileGroup* self);
+
 
 /*
    Helpers
@@ -46,6 +68,9 @@ struct _Unshield
 FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suffix);
 long unshield_fsize(FILE* file);
 bool unshield_read_common_header(uint8_t** buffer, CommonHeader* common);
+
+const char* unshield_header_get_string(Header* header, uint32_t offset);
+uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset);
 
 
 /*
@@ -61,9 +86,11 @@ bool unshield_read_common_header(uint8_t** buffer, CommonHeader* common);
 
 #define FREE(ptr)       { if (ptr) { free(ptr); ptr = NULL; } }
 #define STRDUP(str)     ((str) ? strdup(str) : NULL)
+#define NEW(type, count)      ((type*)calloc(count, sizeof(type)))
 #define NEW1(type)      ((type*)calloc(1, sizeof(type)))
 #define FCLOSE(file)    if (file) { fclose(file); file = NULL; }
 #define FSIZE(file)     (file ? unshield_fsize(file) : 0)
+#define STREQ(s1,s2)    (0 == strcmp(s1,s2))
 
 #if WORDS_BIGENDIAN
 

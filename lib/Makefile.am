@@ -10,6 +10,7 @@ libunshield_la_SOURCES = \
 	component.c \
 	directory.c \
 	file.c \
+	file_group.c \
 	helper.c \
 	internal.h \
 	libunshield.h libunshield.c \
