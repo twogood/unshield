@@ -172,6 +172,8 @@ static bool extract(Unshield* unshield, int index)
   {
     if ('\\' == *p)
       *p = '/';
+    else if (*p == ' ' || !isprint(*p))
+      *p = '_';
     else if (make_lowercase)
       *p = tolower(*p);
   }
