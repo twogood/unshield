@@ -42,9 +42,17 @@ static bool unshield_create_filename_pattern(Unshield* unshield, const char* fil
 static bool unshield_create_header_shortcuts(Header* header)
 {
   header->common      = (CommonHeader*)header->data;
-  header->cab         = (CabDescriptor*)(header->data + letoh32(header->common->cab_descriptor_offset));
-  header->file_table  = (uint32_t*)((uint8_t*)header->cab + letoh32(header->cab->file_table_offset));
-  return true;
+  if (header->common->cab_descriptor_size)
+  {
+    header->cab         = (CabDescriptor*)(header->data + letoh32(header->common->cab_descriptor_offset));
+    header->file_table  = (uint32_t*)((uint8_t*)header->cab + letoh32(header->cab->file_table_offset));
+    return true;
+  }
+  else
+  {
+    unshield_error("No CAB header found!");
+    return false;
+  }
 }
 
 /**
@@ -67,9 +75,15 @@ static bool unshield_read_headers(Unshield* unshield)/*{{{*/
     FILE* file = unshield_fopen_for_reading(unshield, i, HEADER_SUFFIX);
     
     if (file)
+    {
+      unshield_trace("Reading header from .hdr file.");
       iterate = false;
+    }
     else
+    {
+      unshield_trace("Could not open .hdr file. Reading header from .cab file instead.");
       file = unshield_fopen_for_reading(unshield, i, CABINET_SUFFIX);
+    }
 
     if (file)
     {
