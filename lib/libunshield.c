@@ -126,6 +126,9 @@ static bool unshield_header_get_components(Header* header)/*{{{*/
 {
   int count = 0;
   int i;
+	int available = 16;
+
+	header->components = malloc(available * sizeof(UnshieldComponent*));
 
   for (i = 0; i < MAX_COMPONENT_COUNT; i++)
   {
@@ -143,6 +146,12 @@ static bool unshield_header_get_components(Header* header)/*{{{*/
         list.descriptor_offset = READ_UINT32(p); p += 4;
         list.next_offset       = READ_UINT32(p); p += 4;
 
+				if (count == available)
+				{
+					available <<= 1;
+					header->components = realloc(header->components, available * sizeof(UnshieldComponent*));
+				}
+
         header->components[count++] = unshield_component_new(header, list.descriptor_offset);
       }
     }
@@ -157,6 +166,9 @@ static bool unshield_header_get_file_groups(Header* header)/*{{{*/
 {
   int count = 0;
   int i;
+	int available = 16;
+
+	header->file_groups = malloc(available * sizeof(UnshieldFileGroup*));
 
   for (i = 0; i < MAX_FILE_GROUP_COUNT; i++)
   {
@@ -171,11 +183,17 @@ static bool unshield_header_get_file_groups(Header* header)/*{{{*/
         uint8_t* p = unshield_header_get_buffer(header, list.next_offset);
 
         list.name_offset       = READ_UINT32(p); p += 4;
-        list.descriptor_offset = READ_UINT32(p); p += 4;
-        list.next_offset       = READ_UINT32(p); p += 4;
+				list.descriptor_offset = READ_UINT32(p); p += 4;
+				list.next_offset       = READ_UINT32(p); p += 4;
 
-        header->file_groups[count++] = unshield_file_group_new(header, list.descriptor_offset);
-      }
+				if (count == available)
+				{
+					available <<= 1;
+					header->file_groups = realloc(header->file_groups, available * sizeof(UnshieldFileGroup*));
+				}
+
+				header->file_groups[count++] = unshield_file_group_new(header, list.descriptor_offset);
+			}
     }
   }
 
@@ -343,17 +361,25 @@ void unshield_close(Unshield* unshield)/*{{{*/
       Header* next = header->next;
       int i;
 
-      for (i = 0; i < header->component_count; i++)
-        unshield_component_destroy(header->components[i]);
+			if (header->components)
+			{
+				for (i = 0; i < header->component_count; i++)
+					unshield_component_destroy(header->components[i]);
+				free(header->components);
+			}
 
-      for (i = 0; i < header->file_group_count; i++)
-        unshield_file_group_destroy(header->file_groups[i]);
+			if (header->file_groups)
+			{
+				for (i = 0; i < header->file_group_count; i++)
+					unshield_file_group_destroy(header->file_groups[i]);
+				free(header->file_groups);
+			}
 
       if (header->file_descriptors)
       {
         for (i = 0; i < (int)header->cab.file_count; i++)
           FREE(header->file_descriptors[i]);
-        FREE(header->file_descriptors);
+        free(header->file_descriptors);
       }
 
       FREE(header->file_table);

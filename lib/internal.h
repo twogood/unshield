@@ -33,10 +33,10 @@ struct _Header
   FileDescriptor** file_descriptors;
 
   int component_count;
-  UnshieldComponent* components[MAX_COMPONENT_COUNT];
+  UnshieldComponent** components;
 
   int file_group_count;
-  UnshieldFileGroup* file_groups[MAX_FILE_GROUP_COUNT];
+  UnshieldFileGroup** file_groups;
 };
 
 struct _Unshield
