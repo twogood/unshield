@@ -6,6 +6,7 @@ lib_LTLIBRARIES = libunshield.la
 
 ## use these sources
 libunshield_la_SOURCES = \
+	directory.c \
 	file.c \
 	helper.c \
 	unshield.h unshield_internal.h \

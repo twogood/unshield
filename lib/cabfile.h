@@ -101,7 +101,8 @@ typedef struct
   P uint32_t unknown1;              /* 32 */
   P uint32_t unknown2;              /* 36 */
   P uint32_t name_offset;           /* 3a */
-  P uint8_t unknown3[0x17];         /* 3e */
+  P uint32_t directory_index;       /* 3e */
+  P uint8_t unknown3[0x13];         /* 42 */
   P uint16_t volume;                /* 55 */
 } FileDescriptor6;
 

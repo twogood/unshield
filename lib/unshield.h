@@ -45,6 +45,7 @@ const char* unshield_directory_name     (Unshield* unshield, int index);
 int         unshield_file_count         (Unshield* unshield);
 const char* unshield_file_name          (Unshield* unshield, int index);
 bool        unshield_file_save          (Unshield* unshield, int index, const char* filename);
+int         unshield_file_directory     (Unshield* unshield, int index);
 
 #ifdef __cplusplus
 }

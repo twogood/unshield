@@ -56,6 +56,7 @@ static bool unshield_create_header_shortcuts(Header* header)
 static bool unshield_read_headers(Unshield* unshield)/*{{{*/
 {
   int i;
+  bool iterate = true;
   Header* previous = NULL;
 
   if (unshield->header_list)
@@ -64,9 +65,14 @@ static bool unshield_read_headers(Unshield* unshield)/*{{{*/
     return true;
   }
 
-  for (i = 1; ; i++)
+  for (i = 1; iterate; i++)
   {
     FILE* file = unshield_fopen_for_reading(unshield, i, HEADER_SUFFIX);
+    
+    if (file)
+      iterate = false;
+    else
+      file = unshield_fopen_for_reading(unshield, i, CABINET_SUFFIX);
 
     if (file)
     {
@@ -111,7 +117,11 @@ static bool unshield_read_headers(Unshield* unshield)/*{{{*/
       }
 
       synce_trace("Version: 0x%08x", letoh32(header->common->version));
-      unshield->major_version = (letoh32(header->common->version) >> 12) & 0xf;
+
+      if (((letoh32(header->common->version) >> 12) & 0xf) == 6)
+        unshield->major_version = 6;
+      else
+        unshield->major_version = 5;
 
       if (previous)
         previous->next = header;
@@ -126,10 +136,10 @@ error:
       if (header)
         FREE(header->data);
       FREE(header);
-      break;
+      iterate = false;
     }
     else
-      break;
+      iterate = false;
   }
 
   return (unshield->header_list != NULL);

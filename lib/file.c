@@ -267,4 +267,36 @@ exit:
   return success;
 }/*}}}*/
 
+int unshield_file_directory(Unshield* unshield, int index)
+{
+  if (unshield)
+  {
+    /* XXX: multi-volume support... */
+    Header* header = unshield->header_list;
+
+    switch (unshield->major_version)
+    {
+      case 5:
+        {
+          FileDescriptor5* fd = unshield_file_descriptor5(header, index);
+          return fd->directory_index;
+        }
+        break;
+
+      case 6:
+        {
+          FileDescriptor6* fd = unshield_file_descriptor6(header, index);
+          return fd->directory_index;
+        }
+        break;
+
+      default:
+        synce_error("Unknown major version: %i", unshield->major_version);
+        return -1;
+    }
+
+  }
+  else
+    return -1;
+}
 
