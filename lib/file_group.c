@@ -9,9 +9,16 @@ UnshieldFileGroup* unshield_file_group_new(Header* header, uint32_t offset)/*{{{
   UnshieldFileGroup* self = NEW1(UnshieldFileGroup);
   uint8_t* p = unshield_header_get_buffer(header, offset);
 
+#if VERBOSE
+  unshield_trace("File group descriptor offset: %08x", offset);
+#endif
+
   self->name = unshield_header_get_string(header, READ_UINT32(p)); p += 4;
 
-  p += 0x48;
+  if (header->major_version == 5)
+    p += 0x48;
+  else
+    p += 0x12;
 
   self->first_file = READ_UINT32(p); p += 4;
   self->last_file  = READ_UINT32(p); p += 4;

@@ -349,11 +349,14 @@ void unshield_close(Unshield* unshield)/*{{{*/
       for (i = 0; i < header->file_group_count; i++)
         unshield_file_group_destroy(header->file_groups[i]);
 
-      for (i = 0; i < (int)header->cab.file_count; i++)
-        FREE(header->file_descriptors[i]);
+      if (header->file_descriptors)
+      {
+        for (i = 0; i < (int)header->cab.file_count; i++)
+          FREE(header->file_descriptors[i]);
+        FREE(header->file_descriptors);
+      }
 
       FREE(header->file_table);
-      FREE(header->file_descriptors);
       
       FREE(header->data);
       FREE(header);

@@ -10,7 +10,7 @@
 #include <sys/param.h>    /* for MIN(a,b) */
 #include <zlib.h>
 
-#define VERBOSE 1
+#define VERBOSE 0
 
 static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int index)
 {
@@ -28,7 +28,9 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
           header->cab.file_table_offset +
           header->file_table[header->cab.directory_count + index];
 
-      /*unshield_trace("File descriptor offset: %08x", p - header->data);*/
+#if VERBOSE
+      unshield_trace("File descriptor offset %i: %08x", index, p - header->data);
+#endif
  
       fd->flags             = FILE_COMPRESSED;
       fd->volume            = header->index;
@@ -380,6 +382,11 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
      */
     size_t bytes_to_read = MIN(size, reader->volume_bytes_left);
 
+#if VERBOSE && 0
+    unshield_trace("Trying to read %i bytes from offset %08x in volume %i", 
+        bytes_to_read, ftell(reader->volume_file), reader->volume);
+#endif
+
     if (bytes_to_read != fread(buffer, 1, bytes_to_read, reader->volume_file))
     {
       unshield_error("Failed to read 0x%08x bytes of file %i (%s) from volume %i. Current offset = 0x%08x",
@@ -430,12 +437,25 @@ static UnshieldReader* unshield_reader_create(/*{{{*/
   reader->index             = index;
   reader->file_descriptor   = file_descriptor;
 
-  if (!unshield_reader_open_volume(reader, file_descriptor->volume))
+  for (;;)
   {
-    unshield_error("Failed to open volume %i",
-        file_descriptor->volume);
-    goto exit;
-  }
+    if (!unshield_reader_open_volume(reader, file_descriptor->volume))
+    {
+      unshield_error("Failed to open volume %i",
+          file_descriptor->volume);
+      goto exit;
+    }
+
+    /* Start with the correct volume for IS5 cabinets */
+    if (reader->unshield->header_list->major_version == 5 &&
+        index > (int)reader->volume_header.last_file_index)
+    {
+      file_descriptor->volume++;
+      continue;
+    }
+      
+    break;  
+  };
 
   success = true;
 
@@ -519,9 +539,9 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
 
       if (!unshield_reader_read(reader, &bytes_to_read, sizeof(bytes_to_read)))
       {
-#if 0
+#if VERBOSE
         unshield_error("Failed to read %i bytes of file %i (%s) from input cabinet file %i", 
-            sizeof(bytes_to_read), index, unshield_file_name(unshield, index), volume);
+            sizeof(bytes_to_read), index, unshield_file_name(unshield, index), file_descriptor->volume);
 #endif
         goto exit;
       }
@@ -529,9 +549,9 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
       bytes_to_read = letoh16(bytes_to_read);
       if (!unshield_reader_read(reader, input_buffer, bytes_to_read))
       {
-#if 0
+#if VERBOSE
         unshield_error("Failed to read %i bytes of file %i (%s) from input cabinet file %i", 
-            bytes_to_read, index, unshield_file_name(unshield, index), volume);
+            bytes_to_read, index, unshield_file_name(unshield, index), file_descriptor->volume);
 #endif
         goto exit;
       }
@@ -542,11 +562,11 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
 
       if (Z_OK != result)
       {
-#if 0
-        unshield_error("Decompression failed with code %i. bytes_to_read=%i, volume_bytes_left=%i", 
-            result, bytes_to_read, volume_bytes_left);
+#if VERBOSE
+        unshield_error("Decompression failed with code %i. bytes_to_read=%i, volume_bytes_left=%i, volume=%i", 
+            result, bytes_to_read, reader->volume_bytes_left, file_descriptor->volume);
 #endif
-        /*      abort();*/
+        abort();
         goto exit;
       }
 
@@ -559,9 +579,9 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
 
       if (!unshield_reader_read(reader, input_buffer, bytes_to_write))
       {
-#if 0
+#if VERBOSE
         unshield_error("Failed to read %i bytes from input cabinet file %i", 
-            bytes_to_write, volume);
+            bytes_to_write, file_descriptor->volume);
 #endif
         goto exit;
       }

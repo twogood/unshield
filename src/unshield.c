@@ -33,7 +33,6 @@ static const char* component_name     = NULL;
 static bool junk_paths                = false;
 static bool make_lowercase            = false;
 static bool verbose                   = false;
-static bool group_name_prefix         = false;
 static ACTION action                  = ACTION_EXTRACT;
 static OVERWRITE overwrite            = OVERWRITE_ASK;
 
@@ -97,7 +96,6 @@ static void show_usage(const char* name)
       "\t                2 - Errors and warnings\n"
       "\t                3 - Errors, warnings and debug messages\n"
       "\t-g GROUP      Only list/extract this file group\n"
-      "\t-G            Prefix filenames with group name\n"
       "\t-h            Show this help message\n"
       "\t-j            Junk paths (do not make directories)\n"
       "\t-L            Make file and directory names lowercase\n"
@@ -128,7 +126,7 @@ static bool handle_parameters(
 	int c;
 	int log_level = UNSHIELD_LOG_LEVEL_LOWEST;
 
-	while ((c = getopt(argc, argv, "c:d:D:g:GhjLno")) != -1)
+	while ((c = getopt(argc, argv, "c:d:D:g:hjLno")) != -1)
 	{
 		switch (c)
     {
@@ -146,10 +144,6 @@ static bool handle_parameters(
 
       case 'g':
         file_group_name = optarg;
-        break;
-
-      case 'G':
-        group_name_prefix = true;
         break;
 
       case 'j':
@@ -226,7 +220,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   strcpy(dirname, output_directory);
   strcat(dirname, "/");
 
-  if (group_name_prefix && prefix && prefix[0])
+  if (prefix && prefix[0])
   {
     strcat(dirname, prefix);
     strcat(dirname, "/");
@@ -240,12 +234,27 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 
   for (p = dirname + strlen(output_directory); *p != '\0'; p++)
   {
-    if ('\\' == *p)
-      *p = '/';
-    else if (*p == ' ' || !isprint(*p))
-      *p = '_';
-    else if (make_lowercase)
-      *p = tolower(*p);
+    switch (*p)
+    {
+      case '\\':
+        *p = '/';
+        break;
+
+      case ' ':
+      case '<':
+      case '>':
+      case '[':
+      case ']':
+        *p = '_';
+        break;
+
+      default:
+        if (!isprint(*p))
+          *p = '_';
+        else if (make_lowercase)
+          *p = tolower(*p);
+        break;;
+    }
   }
 
 #if 0
@@ -344,7 +353,7 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
     {
       valid_count++;
 
-      if (group_name_prefix && prefix && prefix[0])
+      if (prefix && prefix[0])
         strcpy(dirname, prefix);
       else
         dirname[0] = '\0';
@@ -387,7 +396,7 @@ static bool do_action(Unshield* unshield, ActionHelper helper)
     if (file_group)
       count = helper(unshield, file_group_name, file_group->first_file, file_group->last_file);
   }
-  else if (group_name_prefix)
+  else
   {
     int i;
 
@@ -397,10 +406,6 @@ static bool do_action(Unshield* unshield, ActionHelper helper)
       if (file_group)
         count += helper(unshield, file_group->name, file_group->first_file, file_group->last_file);
     }
-  }
-  else
-  {
-    count = list_files_helper(unshield, NULL, 0, unshield_file_count(unshield) - 1);
   }
 
   printf("-------\n%i files\n", count);
