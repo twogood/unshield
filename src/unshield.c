@@ -20,7 +20,8 @@ typedef enum
 typedef enum
 {
   ACTION_EXTRACT,
-  ACTION_LIST
+  ACTION_LIST_COMPONENTS,
+  ACTION_LIST_FILES
 } ACTION;
 
 static const char* output_directory   = ".";
@@ -72,8 +73,9 @@ static void show_usage(const char* name)
   fprintf(stderr,
       "Syntax:\n"
       "\n"
-      "\t%s [-d DIRECTORY] [-D LEVEL] [-h] [-l] CABFILE\n"
+      "\t%s [-c] [-d DIRECTORY] [-D LEVEL] [-h] [-l] CABFILE\n"
       "\n"
+      "\t-C            List components\n"         
       "\t-d DIRECTORY  Extract files to DIRECTORY\n"
       "\t-D LEVEL      Set debug log level\n"
       "\t                0 - No logging (default)\n"
@@ -103,10 +105,14 @@ static bool handle_parameters(
 	int c;
 	int log_level = UNSHIELD_LOG_LEVEL_LOWEST;
 
-	while ((c = getopt(argc, argv, "d:D:hjlLno")) != -1)
+	while ((c = getopt(argc, argv, "Cd:D:hjlLno")) != -1)
 	{
 		switch (c)
 		{
+      case 'C':
+        action = ACTION_LIST_COMPONENTS;
+        break;
+      
 			case 'd':
 				output_directory = optarg;
 				break;
@@ -120,7 +126,7 @@ static bool handle_parameters(
         break;
 
       case 'l':
-        action = ACTION_LIST;
+        action = ACTION_LIST_FILES;
         break;
 
       case 'L':
@@ -200,7 +206,7 @@ static bool extract(Unshield* unshield, int index)
   return success;
 }
 
-static bool extract_all(Unshield* unshield)
+static bool extract_all(Unshield* unshield)/*{{{*/
 {
   int i;
   int count = unshield_file_count(unshield);
@@ -215,9 +221,53 @@ static bool extract_all(Unshield* unshield)
   }
 
   return true;
+}/*}}}*/
+
+static bool list_components(Unshield* unshield)
+{
+  int i;
+  int count = unshield_component_count(unshield);
+/*  int valid_count = 0;*/
+
+  if (count < 0)
+    return false;
+  
+  for (i = 0; i < count; i++)
+  {
+    printf("%s\n", unshield_component_name(unshield, i));
+#if 0
+    char dirname[256];
+
+    if (unshield_file_is_valid(unshield, i))
+    {
+      valid_count++;
+
+      strcpy(dirname,
+          unshield_directory_name(unshield, unshield_file_directory(unshield, i)));
+
+#if 0
+      for (p = dirname + strlen(output_directory); *p != '\0'; p++)
+        if ('\\' == *p)
+          *p = '/';
+#endif
+
+      if (dirname[0])
+        strcat(dirname, "\\");
+
+      printf("%s%s\n",
+          dirname,
+          unshield_file_name(unshield, i)); 
+    }
+#endif
+  }
+
+  printf("-------\n%i components\n", count);
+
+
+  return true;
 }
 
-static bool list_files(Unshield* unshield)
+static bool list_files(Unshield* unshield)/*{{{*/
 {
   int i;
   int count = unshield_file_count(unshield);
@@ -256,7 +306,7 @@ static bool list_files(Unshield* unshield)
 
 
   return true;
-}
+}/*}}}*/
 
 int main(int argc, char** argv)
 {
@@ -292,7 +342,11 @@ int main(int argc, char** argv)
       success = extract_all(unshield);
       break;
 
-    case ACTION_LIST:
+    case ACTION_LIST_COMPONENTS:
+      success = list_components(unshield);
+      break;
+
+    case ACTION_LIST_FILES:
       success = list_files(unshield);
       break;
   }

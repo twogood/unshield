@@ -56,6 +56,7 @@ static bool unshield_get_cab_descriptor(Header* header)
   if (header->common.cab_descriptor_size)
   {
     uint8_t* p = header->data + header->common.cab_descriptor_offset;
+    int i;
 
     p += 0xc;
     header->cab.file_table_offset   = READ_UINT32(p); p += 4;
@@ -71,7 +72,7 @@ static bool unshield_get_cab_descriptor(Header* header)
 
     if (header->cab.file_table_size != header->cab.file_table_size2)
       unshield_warning("File table sizes do not match");
-          
+
     unshield_trace("Cabinet descriptor: %08x %08x %08x %08x",
         header->cab.file_table_offset,
         header->cab.file_table_size,
@@ -81,7 +82,19 @@ static bool unshield_get_cab_descriptor(Header* header)
 
     unshield_trace("Directory count: %i", header->cab.directory_count);
     unshield_trace("File count: %i", header->cab.file_count);
-    
+
+    p += 0xe;
+
+    for (i = 0; i < MAX_FILE_GROUP_COUNT; i++)
+    {
+      header->cab.file_group_offsets[i] = READ_UINT32(p); p += 4;
+    }
+
+    for (i = 0; i < MAX_COMPONENT_COUNT; i++)
+    {
+      header->cab.component_offsets[i] = READ_UINT32(p); p += 4;
+    }
+
     return true;
   }
   else

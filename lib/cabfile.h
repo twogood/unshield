@@ -7,9 +7,14 @@
 #define OFFSET_COUNT 0x47
 #define CAB_SIGNATURE 0x28635349
 
+#define MSCF_SIGNATURE 0x4643534d
+
 #define COMMON_HEADER_SIZE      20
 #define VOLUME_HEADER_SIZE_V5   40
 #define VOLUME_HEADER_SIZE_V6   64
+
+#define MAX_FILE_GROUP_COUNT    71
+#define MAX_COMPONENT_COUNT     71
 
 typedef struct
 {
@@ -50,6 +55,9 @@ typedef struct
   uint32_t directory_count;               /* 1c */
   uint32_t file_count;                    /* 28 */
   uint32_t file_table_offset2;  /* 2c */
+
+  uint32_t file_group_offsets[MAX_FILE_GROUP_COUNT];  /* 0x3e  */
+  uint32_t component_offsets [MAX_COMPONENT_COUNT];   /* 0x15a */
 } CabDescriptor;
 
 #define FILE_SPLIT			1L
@@ -69,6 +77,12 @@ typedef struct
   uint16_t volume;
 } FileDescriptor;
 
+typedef struct
+{
+  uint32_t name_offset;
+  uint32_t descriptor_offset;
+  uint32_t next_offset;
+} OffsetList;
 
 #endif
 
