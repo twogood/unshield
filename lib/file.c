@@ -664,7 +664,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
     goto exit;
   }
 
-  if (unshield->header_list->major_version != 0)
+  if (unshield->header_list->major_version >= 6)
   {
     unsigned char md5result[16];
     MD5Final(md5result, &md5);
