@@ -29,24 +29,8 @@ dnl AM_PATH_CHECK()
 dnl Checks for libraries.
 AC_LIB_RPATH
 
-dnl Checks for header files.
-
-dnl Check where uint16_t and uint32_t may be found
-AC_SUBST(INT_HEADER)
-
-dnl Old compilers
-AC_CHECK_HEADERS(inttypes.h,[INT_HEADER=inttypes.h])
-
-dnl C99 compliant compilers
-AC_CHECK_HEADERS(stdint.h,[INT_HEADER=stdint.h])
-
-if test -z "$INT_HEADER"; then
-	AC_MSG_ERROR([Don't know how to get uint16_t and uint32_t on your system])
-fi
-
-AC_CHECK_HEADERS(stdbool.h,,[
-  AC_MSG_ERROR([Don't know how to get bool values on your system])
-])
+dnl Check for libsynce
+AM_PATH_LIBSYNCE
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -61,5 +45,6 @@ AC_SUBST(LTLIBOBJS)
 AC_CHECK_LIB(z,inflate)
 
 AC_OUTPUT([Makefile
-           lib/Makefile])
+           lib/Makefile
+           src/Makefile])
 

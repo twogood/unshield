@@ -1,11 +1,13 @@
 ## useful flags
-AM_CFLAGS = -g -Wall -Wno-long-long -ansi @CFLAGS@ @APPLE_CFLAGS@ -I..
+AM_CFLAGS = -g -ansi -Wall -Wno-long-long -Werror @CFLAGS@ @APPLE_CFLAGS@ -I..
 
 ## create this library
 lib_LTLIBRARIES = libunshield.la
 
 ## use these sources
 libunshield_la_SOURCES = \
+	file.c \
+	helper.c \
 	unshield.h unshield_internal.h \
 	unshield.c
 
