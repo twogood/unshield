@@ -32,10 +32,13 @@ typedef enum
   ACTION_EXTRACT,
   ACTION_LIST_COMPONENTS,
   ACTION_LIST_FILE_GROUPS,
-  ACTION_LIST_FILES
+  ACTION_LIST_FILES,
+  ACTION_TEST
 } ACTION;
 
-static const char* output_directory   = ".";
+#define DEFAULT_OUTPUT_DIRECTORY  "."
+
+static const char* output_directory   = DEFAULT_OUTPUT_DIRECTORY;
 static const char* file_group_name    = NULL;
 static const char* component_name     = NULL;
 static bool junk_paths                = false;
@@ -44,6 +47,7 @@ static bool verbose                   = false;
 static ACTION action                  = ACTION_EXTRACT;
 static OVERWRITE overwrite            = OVERWRITE_ASK;
 static int log_level                  = UNSHIELD_LOG_LEVEL_LOWEST;
+static int exit_status                = 0;
 
 static bool make_sure_directory_exists(const char* directory)/*{{{*/
 {
@@ -114,6 +118,7 @@ static void show_usage(const char* name)
       "\tc             List components\n"         
       "\tg             List file groups\n"         
       "\tl             List files\n"
+      "\tt             Test files\n"
       "\tx             Extract files\n"
       "\n"
       "Other:\n"
@@ -210,6 +215,10 @@ static bool handle_parameters(
       action = ACTION_LIST_FILES;
       break;
 
+    case 't':
+      action = ACTION_TEST;
+      break;
+
     case 'x':
       action = ACTION_EXTRACT;
       break;
@@ -304,6 +313,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
         unshield_file_name(unshield, index),
         (log_level < 3) ? "Run unshield again with -D 3 for more information." : "");
     unlink(filename);
+    exit_status = 1;
   }
 
   return success;
@@ -317,6 +327,38 @@ static int extract_helper(Unshield* unshield, const char* prefix, int first, int
   for (i = first; i <= last; i++)
   {
     if (unshield_file_is_valid(unshield, i) && extract_file(unshield, prefix, i))
+      count++;
+  }
+
+  return count;
+}/*}}}*/
+
+static bool test_file(Unshield* unshield, int index)
+{
+  bool success;
+
+  printf("  testing: %s\n", unshield_file_name(unshield, index));
+  success = unshield_file_save(unshield, index, NULL);
+
+  if (!success)
+  {
+    fprintf(stderr, "Failed to extract file '%s'.%s\n", 
+        unshield_file_name(unshield, index),
+        (log_level < 3) ? "Run unshield again with -D 3 for more information." : "");
+    exit_status = 1;
+  }
+
+  return success;
+}
+
+static int test_helper(Unshield* unshield, const char* prefix, int first, int last)/*{{{*/
+{
+  int i;
+  int count = 0;
+  
+  for (i = first; i <= last; i++)
+  {
+    if (unshield_file_is_valid(unshield, i) && test_file(unshield, i))
       count++;
   }
 
@@ -482,10 +524,20 @@ int main(int argc, char** argv)
     case ACTION_LIST_FILES:
       success = do_action(unshield, list_files_helper);
       break;
+      
+    case ACTION_TEST:
+      if (strcmp(output_directory, DEFAULT_OUTPUT_DIRECTORY) != 0)
+        fprintf(stderr, "Output directory (-d) option has no effect with test (t) command.\n");
+      if (make_lowercase)
+        fprintf(stderr, "Make lowercase (-L) option has no effect with test (t) command.\n");
+      success = do_action(unshield, test_helper);
+      break;
   }
 
 exit:
   unshield_close(unshield);
-  return success ? 0 : 1;
+  if (!success)
+    exit_status = 1;
+  return exit_status;
 }
 

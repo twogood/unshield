@@ -548,6 +548,9 @@ static void unshield_reader_destroy(UnshieldReader* reader)/*{{{*/
 
 #define BUFFER_SIZE (64*1024+1)
 
+/*
+ * If filename is NULL, just throw away the result
+ */
 bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{{{*/
 {
   bool success = false;
@@ -562,7 +565,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
 
 	MD5Init(&md5);
 
-  if (!unshield || !filename)
+  if (!unshield)
     goto exit;
 
   if (!(file_descriptor = unshield_get_file_descriptor(unshield, index)))
@@ -596,11 +599,14 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
     goto exit;
   }
 
-  output = fopen(filename, "w");
-  if (!output)
+  if (filename) 
   {
-    unshield_error("Failed to open output file '%s'", filename);
-    goto exit;
+    output = fopen(filename, "w");
+    if (!output)
+    {
+      unshield_error("Failed to open output file '%s'", filename);
+      goto exit;
+    }
   }
 
   if (file_descriptor->flags & FILE_COMPRESSED)
@@ -670,10 +676,13 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
 
     MD5Update(&md5, output_buffer, bytes_to_write);
 
-    if (bytes_to_write != fwrite(output_buffer, 1, bytes_to_write, output))
+    if (output)
     {
-      unshield_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
-      goto exit;
+      if (bytes_to_write != fwrite(output_buffer, 1, bytes_to_write, output))
+      {
+        unshield_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
+        goto exit;
+      }
     }
 
     total_written += bytes_to_write;
