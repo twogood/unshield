@@ -72,7 +72,7 @@ LIB@&t@OBJS=`echo "$LIB@&t@OBJS" | sed 's,\.[[^.]]* ,$U&,g;s,\.[[^.]]*$,$U&,'`
 LTLIBOBJS=`echo "$LIB@&t@OBJS" | sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`
 AC_SUBST(LTLIBOBJS)
 
-AC_CHECK_LIB(z,inflate)
+CHECK_ZLIB()
 
 AC_OUTPUT([Makefile
            lib/md5/Makefile
