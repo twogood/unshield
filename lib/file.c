@@ -10,7 +10,7 @@
 #include <sys/param.h>    /* for MIN(a,b) */
 #include <zlib.h>
 
-#define VERBOSE 1
+#define VERBOSE 0
 
 #define ror8(x,n)   (((x) >> ((int)(n))) | ((x) << (8 - (int)(n))))
 #define rol8(x,n)   (((x) << ((int)(n))) | ((x) >> (8 - (int)(n))))
@@ -43,13 +43,15 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       fd->directory_index   = READ_UINT32(p); p += 4;
 
       fd->flags             = READ_UINT16(p); p += 2;
-#if VERBOSE
-      unshield_trace("Flags? %04x", fd->flags);
-#endif
+
       fd->expanded_size     = READ_UINT32(p); p += 4;
       fd->compressed_size   = READ_UINT32(p); p += 4;
       p += 0x14;
       fd->data_offset       = READ_UINT32(p); p += 4;
+      
+#if VERBOSE && 0
+      unshield_trace("Data offset: %08x", fd->data_offset);
+#endif
 
       if (header->major_version == 5)
       {
@@ -105,6 +107,13 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
     default:
       unshield_error("Unknown major version: %i", header->major_version);
       abort();
+  }
+
+  if (!(fd->flags & FILE_COMPRESSED) &&
+      fd->compressed_size != fd->expanded_size)
+  {
+    unshield_warning("File is not compressed but compressed size is %08x and expanded size is %08x",
+        fd->compressed_size, fd->expanded_size);
   }
 
   return fd;
@@ -238,6 +247,10 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
   unsigned volume_bytes_left_compressed;
   unsigned volume_bytes_left_expanded;
   CommonHeader common_header;
+
+#if VERBOSE && 0
+  unshield_trace("Open volume %i", volume);
+#endif
   
   FCLOSE(reader->volume_file);
 
@@ -621,7 +634,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
     {
       bytes_to_write = MIN(bytes_left, BUFFER_SIZE);
 
-      if (!unshield_reader_read(reader, input_buffer, bytes_to_write))
+      if (!unshield_reader_read(reader, output_buffer, bytes_to_write))
       {
 #if VERBOSE
         unshield_error("Failed to read %i bytes from input cabinet file %i", 
