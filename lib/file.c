@@ -49,8 +49,13 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       p += 0x14;
       fd->data_offset       = READ_UINT32(p); p += 4;
       
-#if VERBOSE && 0
-      unshield_trace("Data offset: %08x", fd->data_offset);
+#if VERBOSE >= 2
+      unshield_trace("Name offset:      %08x", fd->name_offset);
+      unshield_trace("Directory index:  %08x", fd->directory_index);
+      unshield_trace("Flags:            %04x", fd->flags);
+      unshield_trace("Expanded size:    %08x", fd->expanded_size);
+      unshield_trace("Compressed size:  %08x", fd->compressed_size);
+      unshield_trace("Data offset:      %08x", fd->data_offset);
 #endif
 
       if (header->major_version == 5)
@@ -248,7 +253,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
   unsigned volume_bytes_left_expanded;
   CommonHeader common_header;
 
-#if VERBOSE && 0
+#if VERBOSE >= 2
   unshield_trace("Open volume %i", volume);
 #endif
   
@@ -288,6 +293,10 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
           goto exit;
 
         reader->volume_header.data_offset                = READ_UINT32(p); p += 4;
+#if VERBOSE
+        if (READ_UINT32(p))
+          unshield_trace("Unknown = %08x", READ_UINT32(p));
+#endif
         /* unknown */                                                      p += 4;
         reader->volume_header.first_file_index           = READ_UINT32(p); p += 4;
         reader->volume_header.last_file_index            = READ_UINT32(p); p += 4;
@@ -333,6 +342,13 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
       abort();
       goto exit;
   }
+  
+#if VERBOSE >= 2
+  unshield_trace("First file index = %i, last file index = %i",
+      reader->volume_header.first_file_index, reader->volume_header.last_file_index);
+  unshield_trace("First file offset = %08x, last file offset = %08x",
+      reader->volume_header.first_file_offset, reader->volume_header.last_file_offset);
+#endif
 
   /* enable support for split archives for IS5 */
   if (reader->unshield->header_list->major_version == 5)
@@ -571,6 +587,12 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
   if (!reader)
   {
     unshield_error("Failed to create data reader for file %i", index);
+    goto exit;
+  }
+
+  if (unshield_fsize(reader->volume_file) == (long)file_descriptor->data_offset)
+  {
+    unshield_error("File %i is not inside the cabinet.", index);
     goto exit;
   }
 
