@@ -36,6 +36,7 @@ static bool make_lowercase            = false;
 static bool verbose                   = false;
 static ACTION action                  = ACTION_EXTRACT;
 static OVERWRITE overwrite            = OVERWRITE_ASK;
+static int log_level                  = UNSHIELD_LOG_LEVEL_LOWEST;
 
 static bool make_sure_directory_exists(const char* directory)/*{{{*/
 {
@@ -125,7 +126,6 @@ static bool handle_parameters(
     int* end_optind)
 {
 	int c;
-	int log_level = UNSHIELD_LOG_LEVEL_LOWEST;
 
 	while ((c = getopt(argc, argv, "c:d:D:g:hjLno")) != -1)
 	{
@@ -178,6 +178,7 @@ static bool handle_parameters(
 
   if (optind == argc || !argv[optind])
   {
+    fprintf(stderr, "No file name provided on command line.\n\n");
     show_usage(argv[0]);
     return false;
   }
@@ -201,6 +202,7 @@ static bool handle_parameters(
       break;
 
     default:
+      fprintf(stderr, "Unknown action '%c' on command line.\n\n", argv[optind][0]);
       show_usage(argv[0]);
       return false;
   }
@@ -285,8 +287,9 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 
   if (!success)
   {
-    fprintf(stderr, "Failed to extract file '%s'. Run unshield again with -D 3 for more information.\n", 
-        unshield_file_name(unshield, index));
+    fprintf(stderr, "Failed to extract file '%s'.%s\n", 
+        unshield_file_name(unshield, index),
+        (log_level < 3) ? "Run unshield again with -D 3 for more information." : "");
     unlink(filename);
   }
 
