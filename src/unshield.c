@@ -3,6 +3,7 @@
 #define _POSIX_C_SOURCE 2
 #include <libunshield.h>
 #include <ctype.h>
+#include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -424,6 +425,8 @@ int main(int argc, char** argv)
   Unshield* unshield = NULL;
   int last_optind = argc+1;
   const char* cabfile;
+
+  setlocale(LC_ALL, "");
 
   if (!handle_parameters(argc, argv, &last_optind))
     goto exit;
