@@ -29,10 +29,21 @@ UnshieldComponent* unshield_component_new(Header* header, uint32_t offset)
 
   self->name = unshield_header_get_string(header, READ_UINT32(p)); p += 4;
 
-  if (header->major_version == 5)
-    p += 0x6c;
-  else
-    p += 0x6b;
+  switch (header->major_version)
+  {
+    case 0:
+    case 5:
+      p += 0x6c;
+      break;
+
+    case 6:
+    case 7:
+      p += 0x6b;
+      break;
+
+    default:
+      abort();
+  }
 
   self->file_group_count = READ_UINT16(p); p += 2;
   if (self->file_group_count > MAX_FILE_GROUP_COUNT)

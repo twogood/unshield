@@ -22,6 +22,7 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
 
   switch (header->major_version)
   {
+    case 0:
     case 5:
       saved_p = p = header->data +
           header->common.cab_descriptor_offset +
@@ -42,9 +43,13 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       fd->compressed_size   = READ_UINT32(p); p += 4;
       p += 0x14;
       fd->data_offset       = READ_UINT32(p); p += 4;
-      memcpy(fd->md5, p, 0x10); p += 0x10;
 
-      assert((p - saved_p) == 0x3a);
+      if (header->major_version == 5)
+      {
+        memcpy(fd->md5, p, 0x10); p += 0x10;
+        assert((p - saved_p) == 0x3a);
+      }
+
       break;
 
     case 6:
@@ -251,6 +256,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
 
   switch (reader->unshield->header_list->major_version)
   {
+    case 0:
     case 5:
       {
         uint8_t five_header[VOLUME_HEADER_SIZE_V5];
@@ -631,6 +637,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
     goto exit;
   }
 
+  if (unshield->header_list->major_version != 0)
   {
     unsigned char md5result[16];
     MD5Final(md5result, &md5);
