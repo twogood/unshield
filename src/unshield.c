@@ -1,7 +1,7 @@
 /* $Id$ */
 #define _BSD_SOURCE 1
 #define _POSIX_C_SOURCE 2
-#include <libunshield.h>
+#include "../lib/libunshield.h"
 #include <ctype.h>
 #include <locale.h>
 #include <stdio.h>
@@ -10,6 +10,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#ifdef HAVE_CONFIG_H
+#include "../lib/unshield_config.h"
+#endif
+
+#ifndef VERSION
+#define VERSION "Unknown"
+#endif
 
 #define FREE(ptr)       { if (ptr) { free(ptr); ptr = NULL; } }
 
@@ -87,7 +94,7 @@ static void show_usage(const char* name)
   fprintf(stderr,
       "Syntax:\n"
       "\n"
-      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-G] [-h] [-l] c|l|x CABFILE\n"
+      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-G] [-h] [-l] [-V] c|l|x CABFILE\n"
       "\n"
       "Options:\n"
       "\t-c COMPONENT  Only list/extract this component\n"
@@ -101,6 +108,7 @@ static void show_usage(const char* name)
       "\t-h            Show this help message\n"
       "\t-j            Junk paths (do not make directories)\n"
       "\t-L            Make file and directory names lowercase\n"
+      "\t-V            Print copyright and version information\n"
       "\n"
       "Commands:\n"
       "\tc             List components\n"         
@@ -127,7 +135,7 @@ static bool handle_parameters(
 {
 	int c;
 
-	while ((c = getopt(argc, argv, "c:d:D:g:hjLno")) != -1)
+	while ((c = getopt(argc, argv, "c:d:D:g:hjLnoV")) != -1)
 	{
 		switch (c)
     {
@@ -165,6 +173,11 @@ static bool handle_parameters(
 
       case 'v':
         verbose = true;
+        break;
+
+      case 'V':
+        printf("Unshield version " VERSION ". Copyright (C) 2003-2004 David Eriksson.\n");
+        exit(0);
         break;
 
       case 'h':
