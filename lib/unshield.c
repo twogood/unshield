@@ -128,8 +128,6 @@ static bool unshield_read_headers(Unshield* unshield)/*{{{*/
       else
         previous = unshield->header_list = header;
 
-      synce_trace("Got header file %i", i);
-
       continue;
 
 error:

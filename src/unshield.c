@@ -209,7 +209,8 @@ static bool extract_all(Unshield* unshield)
   
   for (i = 0; i < count; i++)
   {
-    extract(unshield, i);
+    if (unshield_file_is_valid(unshield, i))
+      extract(unshield, i);
   }
 
   return true;
@@ -219,31 +220,38 @@ static bool list_files(Unshield* unshield)
 {
   int i;
   int count = unshield_file_count(unshield);
+  int valid_count = 0;
 
   if (count < 0)
     return false;
   
   for (i = 0; i < count; i++)
   {
-    char *p;
     char dirname[256];
 
-    strcpy(dirname,
-        unshield_directory_name(unshield, unshield_file_directory(unshield, i)));
+    if (unshield_file_is_valid(unshield, i))
+    {
+      valid_count++;
 
-    for (p = dirname + strlen(output_directory); *p != '\0'; p++)
-      if ('\\' == *p)
-        *p = '/';
+      strcpy(dirname,
+          unshield_directory_name(unshield, unshield_file_directory(unshield, i)));
 
-    if (dirname[0])
-      strcat(dirname, "/");
+#if 0
+      for (p = dirname + strlen(output_directory); *p != '\0'; p++)
+        if ('\\' == *p)
+          *p = '/';
+#endif
 
-    printf("%s%s\n",
-        dirname,
-        unshield_file_name(unshield, i)); 
+      if (dirname[0])
+        strcat(dirname, "\\");
+
+      printf("%s%s\n",
+          dirname,
+          unshield_file_name(unshield, i)); 
+    }
   }
 
-  printf("-------\n%i files\n", count);
+  printf("-------\n%i files\n", valid_count);
 
 
   return true;

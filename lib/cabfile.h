@@ -11,11 +11,11 @@
 
 typedef struct
 {
-  uint32_t signature;
+  uint32_t signature;               /* 00 */
   uint32_t version;
   uint32_t volume_info;
   uint32_t cab_descriptor_offset;
-  uint32_t cab_descriptor_size;
+  uint32_t cab_descriptor_size;     /* 10 */
 } CommonHeader;
 
 
@@ -27,25 +27,31 @@ typedef struct
   uint32_t last_file_index;
   uint32_t first_file_offset;
   uint32_t first_file_size_expanded;
-  uint32_t first_file_size_here;
+  uint32_t first_file_size_compressed;
   uint32_t last_file_offset;
   uint32_t last_file_size_expanded;
-  uint32_t last_file_size_here;
-} FiveHeader;
+  uint32_t last_file_size_compressed;
+} VolumeHeader5;
 
 typedef struct
 {
-  uint64_t data_offset;
-  uint32_t unknown3;
-  uint32_t first_file_index;
-  uint32_t last_file_index;
-  uint64_t first_file_offset;
-  uint64_t first_file_size_expanded;
-  uint64_t first_file_size_here;
-  uint64_t last_file_offset;
-  uint64_t last_file_size_expanded;
-  uint64_t last_file_size_here;
-} SixHeader;
+  uint32_t data_offset;                     /* 14 */
+  uint32_t data_offset_high;                /* 18 */
+  uint32_t first_file_index;                /* 1c */
+  uint32_t last_file_index;                 /* 20 */
+  uint32_t first_file_offset;               /* 24 */
+  uint32_t first_file_offset_high;
+  uint32_t first_file_size_expanded;        /* 2c */
+  uint32_t first_file_size_expanded_high;
+  uint32_t first_file_size_compressed;      /* 34 */
+  uint32_t first_file_size_compressed_high;
+  uint32_t last_file_offset;                /* 3c */
+  uint32_t last_file_offset_high;
+  uint32_t last_file_size_expanded;         /* 44 */
+  uint32_t last_file_size_expanded_high;
+  uint32_t last_file_size_compressed;       /* 4c */
+  uint32_t last_file_size_compressed_high;
+} VolumeHeader6;
 
 typedef struct
 {
@@ -84,6 +90,7 @@ typedef struct
   P uint32_t time;
   P uint32_t unknown[2];
   P uint32_t data_offset;
+  P uint8_t md5[16];
 } FileDescriptor5;
 
 typedef struct
@@ -102,7 +109,10 @@ typedef struct
   P uint32_t unknown2;              /* 36 */
   P uint32_t name_offset;           /* 3a */
   P uint16_t directory_index;       /* 3e */
-  P uint8_t unknown3[0x15];         /* 40 */
+  P uint8_t unknown3[0xc];          /* 40 */
+  P uint32_t previous_copy;         /* 4c */
+  P uint32_t next_copy;             /* 50 */
+  P uint8_t link_flags;             /* 54 */
   P uint16_t volume;                /* 55 */
 } FileDescriptor6;
 

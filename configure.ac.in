@@ -45,6 +45,7 @@ AC_SUBST(LTLIBOBJS)
 AC_CHECK_LIB(z,inflate)
 
 AC_OUTPUT([Makefile
+           lib/md5/Makefile
            lib/Makefile
            src/Makefile])
 

@@ -13,6 +13,8 @@ libunshield_la_SOURCES = \
 	unshield.c
 
 libunshield_la_LDFLAGS = -no-undefined -version-info 0:0:0
+libunshield_la_LIBADD  = md5/libmd5.la
 
 include_HEADERS = unshield.h
 
+SUBDIRS = md5 .
