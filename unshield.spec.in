@@ -16,7 +16,6 @@ Vendor: The SynCE Project
 Packager: David Eriksson <twogood@users.sourceforge.net>
 #Buildroot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Buildroot: %{_tmppath}/synce-root
-Requires: synce
 
 %description
 Cabinet (.CAB) files are a form of archive, which is used by
@@ -29,7 +28,6 @@ See http://synce.sourceforge.net/ for more information.
 Summary:  A library to extract InstallShield cabinet files
 Group:    Development/Libraries
 Requires: %{name} = %{version}
-BuildRequires: synce-devel
 
 %description devel
 Cabinet (.CAB) files are a form of archive, which is used by
@@ -57,7 +55,7 @@ make
 
 %files devel
 %defattr(-,root,root)
-%{_includedir}/unshield.h
+%{_includedir}/libunshield.h
 %{_libdir}/libunshield.so
 %{_libdir}/libunshield.a
 %{_libdir}/libunshield.la
