@@ -277,7 +277,7 @@ static bool unshield_read_headers(Unshield* unshield)/*{{{*/
 #endif
 
       unshield_trace("Version 0x%08x handled as major version %i", 
-          letoh32(header->common.version),
+          header->common.version,
           header->major_version);
 
       if (!unshield_get_cab_descriptor(header))
