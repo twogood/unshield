@@ -1,6 +1,7 @@
 /* $Id$ */
 #define _BSD_SOURCE 1
 #include "internal.h"
+#include "log.h"
 
 FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suffix)
 {
@@ -8,6 +9,7 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
   {
     char filename[256];
     snprintf(filename, sizeof(filename), unshield->filename_pattern, index, suffix);
+    unshield_trace("Opening file '%s'", filename);
     return fopen(filename, "r");
   }
   else

@@ -76,12 +76,13 @@ static bool unshield_read_headers(Unshield* unshield)/*{{{*/
     
     if (file)
     {
-      unshield_trace("Reading header from .hdr file.");
+      unshield_trace("Reading header from .hdr file %i.", i);
       iterate = false;
     }
     else
     {
-      unshield_trace("Could not open .hdr file. Reading header from .cab file instead.");
+      unshield_trace("Could not open .hdr file %i. Reading header from .cab file %i instead.", 
+          i, i);
       file = unshield_fopen_for_reading(unshield, i, CABINET_SUFFIX);
     }
 
