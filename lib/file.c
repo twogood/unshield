@@ -68,6 +68,8 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
 
     case 6:
     case 7:
+    case 8:
+    case 9:
       saved_p = p = header->data +
           header->common.cab_descriptor_offset +
           header->cab.file_table_offset +
@@ -311,6 +313,8 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
 
     case 6:
     case 7:
+    case 8:
+    case 9:
       {
         uint8_t six_header[VOLUME_HEADER_SIZE_V6];
         uint8_t* p = six_header;

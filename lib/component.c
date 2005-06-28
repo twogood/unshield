@@ -38,6 +38,8 @@ UnshieldComponent* unshield_component_new(Header* header, uint32_t offset)
 
     case 6:
     case 7:
+    case 8:
+    case 9:
       p += 0x6b;
       break;
 

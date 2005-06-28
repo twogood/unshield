@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define VERBOSE 1
+
 UnshieldFileGroup* unshield_file_group_new(Header* header, uint32_t offset)/*{{{*/
 {
   UnshieldFileGroup* self = NEW1(UnshieldFileGroup);
@@ -22,6 +24,11 @@ UnshieldFileGroup* unshield_file_group_new(Header* header, uint32_t offset)/*{{{
 
   self->first_file = READ_UINT32(p); p += 4;
   self->last_file  = READ_UINT32(p); p += 4;
+
+#if VERBOSE
+  unshield_trace("File group %08x first file = %i, last file = %i", 
+      offset, self->first_file, self->last_file);
+#endif
 
   return self;
 }/*}}}*/
