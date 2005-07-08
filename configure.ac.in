@@ -83,7 +83,7 @@ AC_TRY_COMPILE([#include <stdio.h>],
 AC_MSG_RESULT([${SIZE_FORMAT}])
 AC_DEFINE_UNQUOTED(SIZE_FORMAT, 
                    ["${SIZE_FORMAT}"],
-                   [printf format that works with size_t values})
+                   [printf format that works with size_t values])
 CFLAGS="$SAVED_CFLAGS"
 
 
