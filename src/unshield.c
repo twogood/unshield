@@ -433,7 +433,7 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
       if (dirname[strlen(dirname)-1] != '/')
         strcat(dirname, "/");
 
-      printf(" %8i  %s%s\n",
+      printf(" %8" SIZE_FORMAT "  %s%s\n",
           unshield_file_size(unshield, i),
           dirname,
           unshield_file_name(unshield, i)); 

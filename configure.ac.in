@@ -64,6 +64,28 @@ AC_CHECK_HEADERS(stdbool.h,,[
   AC_MSG_ERROR([Don't know how to get bool values on your system])
 ])
 
+AC_MSG_CHECKING([for printf format string that works with size_t values])
+SAVED_CFLAGS="$CFLAGS"
+CFLAGS="-ansi -Wall -Werror"
+AC_TRY_COMPILE([#include <stdio.h>],
+               [size_t value = 0; printf("%zi", value);],
+               [SIZE_FORMAT="zi"],
+               [AC_TRY_COMPILE([#include <stdio.h>],
+                               [size_t value = 0; printf("%i", value);],
+                               [SIZE_FORMAT="i"],
+                               [AC_TRY_COMPILE([#include <stdio.h>],
+                                               [size_t value = 0; printf("%li", value);],
+                                               [SIZE_FORMAT="li"],
+                                               [AC_MSG_RESULT([Failed!])
+                                                AC_MSG_ERROR([You must be using a really weird platform!])])
+                                ])
+               ])
+AC_MSG_RESULT([${SIZE_FORMAT}])
+AC_DEFINE_UNQUOTED(SIZE_FORMAT, 
+                   ["${SIZE_FORMAT}"],
+                   [printf format that works with size_t values})
+CFLAGS="$SAVED_CFLAGS"
+
 
 # http://www.gnu.org/manual/autoconf-2.53/html_node/AC_LIBOBJ-vs.-LIBOBJS.html
 # This is necessary so that .o files in LIBOBJS are also built via
