@@ -30,7 +30,10 @@ dnl Checks for libraries.
 AC_LIB_RPATH
 
 dnl Checks for typedefs, structures, and compiler characteristics.
+SAVED_CFLAGS="$CFLAGS"
+CFLAGS=""
 AC_C_CONST
+CFLAGS="$SAVED_CFLAGS"
 
 dnl Big-endian stuff
 AC_SUBST(WORDS_BIGENDIAN)
@@ -95,6 +98,15 @@ LTLIBOBJS=`echo "$LIB@&t@OBJS" | sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`
 AC_SUBST(LTLIBOBJS)
 
 CHECK_ZLIB()
+
+CHECK_SSL()
+if test x$HAVE_SSL = xyes; then
+  USE_OUR_OWN_MD5=0
+else
+  USE_OUR_OWN_MD5=1
+fi
+AC_DEFINE_UNQUOTED([USE_OUR_OWN_MD5], [$USE_OUR_OWN_MD5], [Defined if we should use our own MD5 routines.])
+AM_CONDITIONAL([USE_OUR_OWN_MD5], [test x$HAVE_SSL != xyes])
 
 AC_OUTPUT([Makefile
            lib/md5/Makefile
