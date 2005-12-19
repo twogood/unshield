@@ -106,7 +106,7 @@ else
   USE_OUR_OWN_MD5=1
 fi
 AC_DEFINE_UNQUOTED([USE_OUR_OWN_MD5], [$USE_OUR_OWN_MD5], [Defined if we should use our own MD5 routines.])
-AM_CONDITIONAL([USE_OUR_OWN_MD5], [test x$HAVE_SSL != xyes])
+AM_CONDITIONAL(USE_OUR_OWN_MD5, [test x$HAVE_SSL != xyes])
 
 AC_OUTPUT([Makefile
            lib/md5/Makefile

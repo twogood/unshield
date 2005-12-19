@@ -25,7 +25,7 @@ libunshield_la_SOURCES = \
 	log.h log.c
 
 libunshield_la_LDFLAGS = -no-undefined -version-info 0:0:0
-libunshield_la_LIBADD  = $(MD5_LIBADD)
+libunshield_la_LIBADD  = $(MD5_LIBS)
 
 include_HEADERS = libunshield.h
 
