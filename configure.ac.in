@@ -7,12 +7,13 @@ AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE(unshield, YOU_DID_NOT_RUN_THE_BOOTSTRAP_SCRIPT)
 AM_CONFIG_HEADER(lib/unshield_config.h)
 
-AC_SUBST(APPLE_CFLAGS)
+CFLAGS="-Wall -Wsign-compare -Wno-long-long $CFLAGS"
+
 case $target in
 
 	powerpc-apple-*)
 		dnl Prevent "Undefined Macro argument list" error.
-		APPLE_CFLAGS="-no-cpp-precomp"
+		CFLAGS="-no-cpp-precomp $CFLAGS"
 		;;
 
 esac
@@ -108,8 +109,8 @@ fi
 AC_DEFINE_UNQUOTED([USE_OUR_OWN_MD5], [$USE_OUR_OWN_MD5], [Defined if we should use our own MD5 routines.])
 AM_CONDITIONAL(USE_OUR_OWN_MD5, [test x$HAVE_SSL != xyes])
 
-AC_OUTPUT([Makefile
+AC_OUTPUT([libunshield.pc
+           Makefile
            lib/md5/Makefile
            lib/Makefile
            src/Makefile])
-

@@ -4,10 +4,15 @@
 ## don't complain about missing AUTHORS, NEWS, ChangeLog, etc
 AUTOMAKE_OPTIONS = foreign 1.4
 
-m4datadir = $(datadir)/aclocal
-m4data_DATA = unshield.m4
+pcfiles = libunshield.pc
 
-EXTRA_DIST = $(m4data_DATA)
+all_local: $(pcfiles)
 
-SUBDIRS = lib src .
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = $(pcfiles)
 
+EXTRA_DIST = libunshield.pc.in
+
+CLEANFILES = $(pcfiles)
+
+SUBDIRS = lib src

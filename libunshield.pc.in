@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libunshield
+Description: Library to extract CAB files from InstallShield installers
+Version: @VERSION@
+Libs: -L${libdir} -lunshield
+Cflags: -I${includedir}

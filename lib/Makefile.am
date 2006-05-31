@@ -7,7 +7,7 @@ MD5_LIBS =
 endif
 
 ## useful flags
-AM_CFLAGS = -ansi -Wsign-compare -Wno-long-long @APPLE_CFLAGS@ -I..
+INCLUDES = -I..
 
 ## create this library
 lib_LTLIBRARIES = libunshield.la

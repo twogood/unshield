@@ -1,5 +1,4 @@
-## useful flags
-AM_CFLAGS = -Wsign-compare -Wno-long-long -ansi @APPLE_CFLAGS@ -I..
+INCLUDES = -I..
 
 ## create this library
 noinst_LTLIBRARIES = libmd5.la
