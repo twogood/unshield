@@ -17,7 +17,7 @@
 #include <sys/param.h>    /* for MIN(a,b) */
 #include <zlib.h>
 
-#define VERBOSE 0
+#define VERBOSE 2
 
 #define ror8(x,n)   (((x) >> ((int)(n))) | ((x) << (8 - (int)(n))))
 #define rol8(x,n)   (((x) << ((int)(n))) | ((x) >> (8 - (int)(n))))
@@ -750,4 +750,98 @@ size_t unshield_file_size(Unshield* unshield, int index)/*{{{*/
   else
     return 0;
 }/*}}}*/
+
+bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
+{
+  /* XXX: Thou Shalt Not Cut & Paste... */
+  bool success = false;
+  FILE* output = NULL;
+  unsigned char* input_buffer   = (unsigned char*)malloc(BUFFER_SIZE);
+  unsigned char* output_buffer  = (unsigned char*)malloc(BUFFER_SIZE);
+  int bytes_left;
+  UnshieldReader* reader = NULL;
+  FileDescriptor* file_descriptor;
+
+  if (!unshield)
+    goto exit;
+
+  if (!(file_descriptor = unshield_get_file_descriptor(unshield, index)))
+  {
+    unshield_error("Failed to get file descriptor for file %i", index);
+    goto exit;
+  }
+
+  if ((file_descriptor->flags & FILE_INVALID) || 0 == file_descriptor->data_offset)
+  {
+    /* invalid file */
+    goto exit;
+  }
+
+  if (file_descriptor->link_flags & LINK_PREV)
+  {
+    success = unshield_file_save_raw(unshield, file_descriptor->link_previous, filename);
+    goto exit;
+  }
+
+  reader = unshield_reader_create(unshield, index, file_descriptor);
+  if (!reader)
+  {
+    unshield_error("Failed to create data reader for file %i", index);
+    goto exit;
+  }
+
+  if (unshield_fsize(reader->volume_file) == (long)file_descriptor->data_offset)
+  {
+    unshield_error("File %i is not inside the cabinet.", index);
+    goto exit;
+  }
+
+  if (filename) 
+  {
+    output = fopen(filename, "w");
+    if (!output)
+    {
+      unshield_error("Failed to open output file '%s'", filename);
+      goto exit;
+    }
+  }
+
+  if (file_descriptor->flags & FILE_COMPRESSED)
+    bytes_left = file_descriptor->compressed_size;
+  else
+    bytes_left = file_descriptor->expanded_size;
+
+  /*unshield_trace("Bytes to read: %i", bytes_left);*/
+
+  while (bytes_left > 0)
+  {
+    uLong bytes_to_write = MIN(bytes_left, BUFFER_SIZE);
+
+    if (!unshield_reader_read(reader, output_buffer, bytes_to_write))
+    {
+#if VERBOSE
+      unshield_error("Failed to read %i bytes from input cabinet file %i", 
+          bytes_to_write, file_descriptor->volume);
+#endif
+      goto exit;
+    }
+
+    bytes_left -= bytes_to_write;
+
+    if (bytes_to_write != fwrite(output_buffer, 1, bytes_to_write, output))
+    {
+      unshield_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
+      goto exit;
+    }
+  }
+
+  success = true;
+  
+exit:
+  unshield_reader_destroy(reader);
+  FCLOSE(output);
+  FREE(input_buffer);
+  FREE(output_buffer);
+  return success;
+}
 

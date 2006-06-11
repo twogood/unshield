@@ -48,6 +48,7 @@ static ACTION action                  = ACTION_EXTRACT;
 static OVERWRITE overwrite            = OVERWRITE_ASK;
 static int log_level                  = UNSHIELD_LOG_LEVEL_LOWEST;
 static int exit_status                = 0;
+static bool raw                       = false;
 
 static bool make_sure_directory_exists(const char* directory)/*{{{*/
 {
@@ -98,7 +99,7 @@ static void show_usage(const char* name)
   fprintf(stderr,
       "Syntax:\n"
       "\n"
-      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-G] [-h] [-l] [-V] c|l|x CABFILE\n"
+      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-G] [-h] [-l] [-r] [-V] c|g|l|t|x CABFILE\n"
       "\n"
       "Options:\n"
       "\t-c COMPONENT  Only list/extract this component\n"
@@ -112,6 +113,7 @@ static void show_usage(const char* name)
       "\t-h            Show this help message\n"
       "\t-j            Junk paths (do not make directories)\n"
       "\t-L            Make file and directory names lowercase\n"
+      "\t-r            Save raw data (do not decompress)\n"
       "\t-V            Print copyright and version information\n"
       "\n"
       "Commands:\n"
@@ -140,7 +142,7 @@ static bool handle_parameters(
 {
 	int c;
 
-	while ((c = getopt(argc, argv, "c:d:D:g:hjLnoV")) != -1)
+	while ((c = getopt(argc, argv, "c:d:D:g:hjLnorV")) != -1)
 	{
 		switch (c)
     {
@@ -174,6 +176,10 @@ static bool handle_parameters(
 
       case 'o':
         overwrite = OVERWRITE_ALWAYS;
+        break;
+        
+      case 'r':
+        raw = true;
         break;
 
       case 'v':
@@ -305,7 +311,10 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   }
 
   printf("  extracting: %s\n", filename);
-  success = unshield_file_save(unshield, index, filename);
+  if (raw)
+    success = unshield_file_save_raw(unshield, index, filename);
+  else
+    success = unshield_file_save(unshield, index, filename);
 
   if (!success)
   {
