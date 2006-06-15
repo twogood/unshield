@@ -17,7 +17,7 @@
 #include <sys/param.h>    /* for MIN(a,b) */
 #include <zlib.h>
 
-#define VERBOSE 2
+#define VERBOSE 3
 
 #define ror8(x,n)   (((x) >> ((int)(n))) | ((x) << (8 - (int)(n))))
 #define rol8(x,n)   (((x) << ((int)(n))) | ((x) >> (8 - (int)(n))))
@@ -213,7 +213,7 @@ exit:
 }
 
 
-static int unshield_uncompress (Byte *dest, uLong *destLen, Byte *source, uLong sourceLen)/*{{{*/
+static int unshield_uncompress (Byte *dest, uLong *destLen, Byte *source, uLong *sourceLen)/*{{{*/
 {
     z_stream stream;
     int err;
@@ -236,7 +236,45 @@ static int unshield_uncompress (Byte *dest, uLong *destLen, Byte *source, uLong 
         inflateEnd(&stream);
         return err;
     }
+
     *destLen = stream.total_out;
+    *sourceLen = stream.total_in;
+
+    err = inflateEnd(&stream);
+    return err;
+}/*}}}*/
+
+static int unshield_uncompress_old(Byte *dest, uLong *destLen, Byte *source, uLong *sourceLen)/*{{{*/
+{
+    z_stream stream;
+    int err;
+
+    stream.next_in = source;
+    stream.avail_in = (uInt)sourceLen;
+
+    stream.next_out = dest;
+    stream.avail_out = (uInt)*destLen;
+
+    stream.zalloc = (alloc_func)0;
+    stream.zfree = (free_func)0;
+
+    *destLen = 0;
+    *sourceLen = 0;
+
+    /* make second parameter negative to disable checksum verification */
+    err = inflateInit2(&stream, -MAX_WBITS);
+    if (err != Z_OK) 
+      return err;
+
+    err = inflate(&stream, Z_BLOCK);
+    if (err != Z_OK) 
+    {
+      inflateEnd(&stream);
+      return err;
+    }
+
+    *destLen = stream.total_out;
+    *sourceLen = stream.total_in;
 
     err = inflateEnd(&stream);
     return err;
@@ -315,6 +353,9 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
         reader->volume_header.last_file_offset           = READ_UINT32(p); p += 4;
         reader->volume_header.last_file_size_expanded    = READ_UINT32(p); p += 4;
         reader->volume_header.last_file_size_compressed  = READ_UINT32(p); p += 4;
+
+        if (reader->volume_header.last_file_offset == 0)
+          reader->volume_header.last_file_offset = INT32_MAX;
       }
       break;
 
@@ -453,6 +494,11 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
   uint8_t* p = buffer;
   size_t bytes_left = size;
 
+#if VERBOSE >= 3
+    unshield_trace("unshield_reader_read start: bytes_left = 0x%x, volume_bytes_left = 0x%x", 
+        bytes_left, reader->volume_bytes_left);
+#endif
+
   for (;;)
   {
     /* 
@@ -460,8 +506,8 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
      */
     size_t bytes_to_read = MIN(bytes_left, reader->volume_bytes_left);
 
-#if VERBOSE && 0
-    unshield_trace("Trying to read %i bytes from offset %08x in volume %i", 
+#if VERBOSE >= 3
+    unshield_trace("Trying to read 0x%x bytes from offset %08x in volume %i", 
         bytes_to_read, ftell(reader->volume_file), reader->volume);
 #endif
 
@@ -476,6 +522,11 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
 
     bytes_left -= bytes_to_read;
     reader->volume_bytes_left -= bytes_to_read;
+
+#if VERBOSE >= 3
+    unshield_trace("bytes_left = %i, volume_bytes_left = %i", 
+        bytes_left, reader->volume_bytes_left);
+#endif
 
     if (!bytes_left)
       break;
@@ -531,6 +582,7 @@ static UnshieldReader* unshield_reader_create(/*{{{*/
     if (reader->unshield->header_list->major_version == 5 &&
         index > (int)reader->volume_header.last_file_index)
     {
+      unshield_trace("Trying next volume...");
       file_descriptor->volume++;
       continue;
     }
@@ -557,7 +609,7 @@ static void unshield_reader_destroy(UnshieldReader* reader)/*{{{*/
   }
 }/*}}}*/
 
-#define BUFFER_SIZE (64*1024+1)
+#define BUFFER_SIZE (64*1024)
 
 /*
  * If filename is NULL, just throw away the result
@@ -566,7 +618,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
 {
   bool success = false;
   FILE* output = NULL;
-  unsigned char* input_buffer   = (unsigned char*)malloc(BUFFER_SIZE);
+  unsigned char* input_buffer   = (unsigned char*)malloc(BUFFER_SIZE+1);
   unsigned char* output_buffer  = (unsigned char*)malloc(BUFFER_SIZE);
   int bytes_left;
   uLong total_written = 0;
@@ -634,6 +686,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
 
     if (file_descriptor->flags & FILE_COMPRESSED)
     {
+      uLong read_bytes;
       uint16_t bytes_to_read = 0;
 
       if (!unshield_reader_read(reader, &bytes_to_read, sizeof(bytes_to_read)))
@@ -657,14 +710,20 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
 
       /* add a null byte to make inflate happy */
       input_buffer[bytes_to_read] = 0;
-      result = unshield_uncompress(output_buffer, &bytes_to_write, input_buffer, bytes_to_read+1);
+      read_bytes = bytes_to_read+1;
+      result = unshield_uncompress(output_buffer, &bytes_to_write, input_buffer, &read_bytes);
 
       if (Z_OK != result)
       {
-        unshield_error("Decompression failed with code %i. bytes_to_read=%i, volume_bytes_left=%i, volume=%i", 
-            result, bytes_to_read, reader->volume_bytes_left, file_descriptor->volume);
+        unshield_error("Decompression failed with code %i. bytes_to_read=%i, volume_bytes_left=%i, volume=%i, read_bytes=%i", 
+            result, bytes_to_read, reader->volume_bytes_left, file_descriptor->volume, read_bytes);
         goto exit;
       }
+
+#if VERBOSE >= 3
+    unshield_trace("read_bytes = %i", 
+        read_bytes);
+#endif
 
       bytes_left -= 2;
       bytes_left -= bytes_to_read;
@@ -844,4 +903,218 @@ exit:
   FREE(output_buffer);
   return success;
 }
+
+static uint8_t* find_bytes(
+    const uint8_t* buffer, size_t bufferSize, 
+    const uint8_t* pattern, size_t patternSize)
+{
+  const void *p = buffer;
+  size_t buffer_left = bufferSize;
+  while ((p = memchr(p, pattern[0], buffer_left)) != NULL)
+  {
+    if (patternSize > buffer_left)
+      break;
+
+    if (memcmp(p, pattern, patternSize) == 0)
+      return (uint8_t*)p;
+
+    ++p;
+    --buffer_left;
+  }
+
+  return NULL;
+}
+
+bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)/*{{{*/
+{
+  /* XXX: Thou Shalt Not Cut & Paste... */
+  bool success = false;
+  FILE* output = NULL;
+  size_t input_buffer_size = BUFFER_SIZE;
+  unsigned char* input_buffer   = (unsigned char*)malloc(BUFFER_SIZE);
+  unsigned char* output_buffer  = (unsigned char*)malloc(BUFFER_SIZE);
+  int bytes_left;
+  uLong total_written = 0;
+  UnshieldReader* reader = NULL;
+  FileDescriptor* file_descriptor;
+
+  if (!unshield)
+    goto exit;
+
+  if (!(file_descriptor = unshield_get_file_descriptor(unshield, index)))
+  {
+    unshield_error("Failed to get file descriptor for file %i", index);
+    goto exit;
+  }
+
+  if ((file_descriptor->flags & FILE_INVALID) || 0 == file_descriptor->data_offset)
+  {
+    /* invalid file */
+    goto exit;
+  }
+
+  if (file_descriptor->link_flags & LINK_PREV)
+  {
+    success = unshield_file_save(unshield, file_descriptor->link_previous, filename);
+    goto exit;
+  }
+
+  reader = unshield_reader_create(unshield, index, file_descriptor);
+  if (!reader)
+  {
+    unshield_error("Failed to create data reader for file %i", index);
+    goto exit;
+  }
+
+  if (unshield_fsize(reader->volume_file) == (long)file_descriptor->data_offset)
+  {
+    unshield_error("File %i is not inside the cabinet.", index);
+    goto exit;
+  }
+
+  if (filename) 
+  {
+    output = fopen(filename, "w");
+    if (!output)
+    {
+      unshield_error("Failed to open output file '%s'", filename);
+      goto exit;
+    }
+  }
+
+  if (file_descriptor->flags & FILE_COMPRESSED)
+    bytes_left = file_descriptor->compressed_size;
+  else
+    bytes_left = file_descriptor->expanded_size;
+
+  /*unshield_trace("Bytes to read: %i", bytes_left);*/
+
+  while (bytes_left > 0)
+  {
+    uLong bytes_to_write = 0;
+    int result;
+
+    if (file_descriptor->flags & FILE_COMPRESSED)
+    {
+      static const uint8_t END_OF_CHUNK[4] = { 0x00, 0x00, 0xff, 0xff };
+      uLong read_bytes;
+      size_t input_size = reader->volume_bytes_left;
+      uint8_t* chunk_buffer;
+
+      while (input_size > input_buffer_size) 
+      {
+        input_buffer_size *= 2;
+#if VERBOSE >= 3
+        unshield_trace("increased input_buffer_size to 0x%x", input_buffer_size);
+#endif
+
+        input_buffer = realloc(input_buffer, input_buffer_size);
+        assert(input_buffer);
+      }
+
+      if (!unshield_reader_read(reader, input_buffer, input_size))
+      {
+#if VERBOSE
+        unshield_error("Failed to read 0x%x bytes of file %i (%s) from input cabinet file %i", 
+            input_size, index, unshield_file_name(unshield, index), file_descriptor->volume);
+#endif
+        goto exit;
+      }
+
+      bytes_left -= input_size;
+
+      for (chunk_buffer = input_buffer; input_size; )
+      {
+        size_t chunk_size;
+        uint8_t* match = find_bytes(chunk_buffer, input_size, END_OF_CHUNK, sizeof(END_OF_CHUNK));
+        if (!match)
+        {
+          unshield_error("Could not find end of chunk for file %i (%s) from input cabinet file %i", 
+              index, unshield_file_name(unshield, index), file_descriptor->volume);
+          goto exit;
+        }
+
+        chunk_size = match - chunk_buffer;
+
+#if VERBOSE >= 3
+        unshield_trace("chunk_size = 0x%x", chunk_size);
+#endif
+
+        /* add a null byte to make inflate happy */
+        chunk_buffer[chunk_size] = 0;
+
+        bytes_to_write = BUFFER_SIZE;
+        read_bytes = chunk_size;
+        result = unshield_uncompress_old(output_buffer, &bytes_to_write, chunk_buffer, &read_bytes);
+
+        if (Z_OK != result)
+        {
+          unshield_error("Decompression failed with code %i. input_size=%i, volume_bytes_left=%i, volume=%i, read_bytes=%i", 
+              result, input_size, reader->volume_bytes_left, file_descriptor->volume, read_bytes);
+          goto exit;
+        }
+
+#if VERBOSE >= 3
+        unshield_trace("read_bytes = 0x%x", read_bytes);
+#endif
+
+        chunk_buffer += chunk_size;
+        chunk_buffer += sizeof(END_OF_CHUNK);
+
+        input_size -= chunk_size;
+        input_size -= sizeof(END_OF_CHUNK);
+
+        if (output)
+          if (bytes_to_write != fwrite(output_buffer, 1, bytes_to_write, output))
+          {
+            unshield_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
+            goto exit;
+          }
+
+        total_written += bytes_to_write;
+      }
+    }
+    else
+    {
+      bytes_to_write = MIN(bytes_left, BUFFER_SIZE);
+
+      if (!unshield_reader_read(reader, output_buffer, bytes_to_write))
+      {
+#if VERBOSE
+        unshield_error("Failed to read %i bytes from input cabinet file %i", 
+            bytes_to_write, file_descriptor->volume);
+#endif
+        goto exit;
+      }
+
+      bytes_left -= bytes_to_write;
+
+      if (output)
+        if (bytes_to_write != fwrite(output_buffer, 1, bytes_to_write, output))
+        {
+          unshield_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
+          goto exit;
+        }
+
+      total_written += bytes_to_write;
+    }
+  }
+
+  if (file_descriptor->expanded_size != total_written)
+  {
+    unshield_error("Expanded size expected to be %i, but was %i", 
+        file_descriptor->expanded_size, total_written);
+    goto exit;
+  }
+
+  success = true;
+  
+exit:
+  unshield_reader_destroy(reader);
+  FCLOSE(output);
+  FREE(input_buffer);
+  FREE(output_buffer);
+  return success;
+}/*}}}*/
+
 
