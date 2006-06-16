@@ -213,13 +213,13 @@ exit:
 }
 
 
-static int unshield_uncompress (Byte *dest, uLong *destLen, Byte *source, uLong *sourceLen)/*{{{*/
+static int unshield_uncompress (Byte *dest, uLong* destLen, Byte *source, uLong *sourceLen)/*{{{*/
 {
     z_stream stream;
     int err;
 
     stream.next_in = source;
-    stream.avail_in = (uInt)sourceLen;
+    stream.avail_in = (uInt)*sourceLen;
 
     stream.next_out = dest;
     stream.avail_out = (uInt)*destLen;
@@ -250,7 +250,7 @@ static int unshield_uncompress_old(Byte *dest, uLong *destLen, Byte *source, uLo
     int err;
 
     stream.next_in = source;
-    stream.avail_in = (uInt)sourceLen;
+    stream.avail_in = (uInt)*sourceLen;
 
     stream.next_out = dest;
     stream.avail_out = (uInt)*destLen;
