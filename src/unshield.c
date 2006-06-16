@@ -1,15 +1,17 @@
 /* $Id$ */
+#ifdef __linux__
 #define _BSD_SOURCE 1
 #define _POSIX_C_SOURCE 2
-#include "../lib/libunshield.h"
+#endif
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <ctype.h>
 #include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <unistd.h>
+#include "../lib/libunshield.h"
 #ifdef HAVE_CONFIG_H
 #include "../lib/unshield_config.h"
 #endif
