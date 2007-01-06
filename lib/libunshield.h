@@ -83,7 +83,7 @@ bool        unshield_file_save          (Unshield* unshield, int index, const ch
 int         unshield_file_directory     (Unshield* unshield, int index);
 size_t      unshield_file_size          (Unshield* unshield, int index);
 
-/** For investigation of PKWARE Data Compression Library encoded data */
+/** For investigation of compressed data */
 bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename);
 
 /** Maybe it's just gzip without size? */
