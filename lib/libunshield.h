@@ -89,6 +89,9 @@ bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
 /** Maybe it's just gzip without size? */
 bool unshield_file_save_old(Unshield* unshield, int index, const char* filename);
 
+/** Deobfuscate a buffer. Seed is 0 at file start */
+void unshield_deobfuscate(unsigned char* buffer, size_t size, unsigned* seed);
+
 #ifdef __cplusplus
 }
 #endif

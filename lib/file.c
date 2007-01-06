@@ -480,12 +480,21 @@ exit:
   return success;
 }/*}}}*/
 
+void unshield_deobfuscate(unsigned char* buffer, size_t size, unsigned* seed)
+{
+  unsigned tmp_seed = *seed;
+  
+  for (; size > 0; size--, buffer++, tmp_seed++)
+  {
+    *buffer = ror8(*buffer ^ 0xd5, 2) - (tmp_seed % 0x47);
+  }
+
+  *seed = tmp_seed;
+}
+
 static void unshield_reader_deobfuscate(UnshieldReader* reader, uint8_t* buffer, size_t size)
 {
-  for (; size > 0; size--, buffer++, reader->obfuscation_offset++)
-  {
-    *buffer = ror8(*buffer ^ 0xd5, 2) - (reader->obfuscation_offset % 0x47);
-  }
+  unshield_deobfuscate(buffer, size, &reader->obfuscation_offset);
 }
 
 static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t size)/*{{{*/
