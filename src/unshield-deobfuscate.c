@@ -5,7 +5,6 @@
 
 int main(int argc, char** argv)
 {
-  bool success = false;
   unsigned seed = 0;
   FILE* input = NULL;
   FILE* output = NULL;
@@ -31,7 +30,7 @@ int main(int argc, char** argv)
   }
 
   output = fopen(argv[2], "w");
-  if (!input)
+  if (!output)
   {
     fprintf(stderr, 
         "Failed to open %s for writing\n",
