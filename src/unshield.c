@@ -448,7 +448,10 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
       valid_count++;
 
       if (prefix && prefix[0])
+      {
         strcpy(dirname, prefix);
+        strcat(dirname, "\\");
+      }
       else
         dirname[0] = '\0';
 
@@ -461,8 +464,8 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
           *p = '/';
 #endif
 
-      if (dirname[strlen(dirname)-1] != '/')
-        strcat(dirname, "/");
+      if (dirname[strlen(dirname)-1] != '\\')
+        strcat(dirname, "\\");
 
       printf(" %8" SIZE_FORMAT "  %s%s\n",
           unshield_file_size(unshield, i),
