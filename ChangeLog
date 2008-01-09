@@ -1,0 +1,6 @@
+2008-01-09  Mark Ellis <mark@mpellis.org.uk>
+
+	* started changelog
+	* added LICENSE to EXTRA_DIST
+	* added cabfile.h to libunshield_la_SOURCES
+

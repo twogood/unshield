@@ -22,7 +22,8 @@ libunshield_la_SOURCES = \
 	helper.c \
 	internal.h \
 	libunshield.h libunshield.c \
-	log.h log.c
+	log.h log.c \
+	cabfile.h
 
 libunshield_la_LDFLAGS = -no-undefined -version-info 0:0:0
 libunshield_la_LIBADD  = $(MD5_LIBS)
