@@ -111,6 +111,7 @@ AM_CONDITIONAL(USE_OUR_OWN_MD5, [test x$HAVE_SSL != xyes])
 
 AC_OUTPUT([libunshield.pc
            Makefile
+           man/Makefile
            lib/md5/Makefile
            lib/Makefile
            src/Makefile])

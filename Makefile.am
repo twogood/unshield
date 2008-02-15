@@ -15,4 +15,4 @@ EXTRA_DIST = libunshield.pc.in LICENSE
 
 CLEANFILES = $(pcfiles)
 
-SUBDIRS = lib src
+SUBDIRS = lib src man
