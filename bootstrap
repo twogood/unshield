@@ -21,21 +21,6 @@ else
 	exit 1
 fi
 
-# create .spec file with correct version number
-for SPEC_IN in "*.spec.in"; do
-	SPEC=`basename $SPEC_IN .in`
-	if [ -f $SPEC ]; then
-		rm $SPEC
-	fi
-	echo -n "Creating $SPEC..."
-	cat $SPEC_IN | sed "s/^\\(Version:\\).*/\\1 $VERSION/" > $SPEC
-	if [ -s $SPEC ]; then
-		echo "done."
-	else
-		exit 1
-	fi
-done
-
 rm -f config.cache
 if [ -d "m4" ]; then
 	INCLUDES="-I m4"
