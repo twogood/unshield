@@ -1,3 +1,7 @@
+2009-06-18  Mark Ellis <mark@mpellis.org.uk>
+
+	* src/unshield.c - fix use of -L (lowercase) option with -d 
+
 2008-05-06  Jonny Lamb  <jonnylamb@jonnylamb.com>
 
 	* .cvsignore:

@@ -316,7 +316,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   snprintf(filename, sizeof(filename), "%s%s", 
       dirname, unshield_file_name(unshield, index));
 
-  for (p = filename; *p != '\0'; p++)
+  for (p = filename + strlen(dirname); *p != '\0'; p++)
   {
     if (!isprint(*p))
       *p = '_';
