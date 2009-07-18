@@ -271,6 +271,9 @@ static bool unshield_read_headers(Unshield* unshield)/*{{{*/
       
       header->major_version = (header->common.version >> 12) & 0xf;
 
+      if (header->common.version == 0x020004b0)
+        header->major_version = 9;
+
 #if 0
       if (header->major_version < 5)
         header->major_version = 5;
