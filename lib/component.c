@@ -40,11 +40,13 @@ UnshieldComponent* unshield_component_new(Header* header, uint32_t offset)
     case 7:
     case 8:
     case 9:
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+    default:
       p += 0x6b;
       break;
-
-    default:
-      abort();
   }
 
   self->file_group_count = READ_UINT16(p); p += 2;

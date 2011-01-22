@@ -205,7 +205,7 @@ static bool unshield_header_get_file_groups(Header* header)/*{{{*/
 /**
   Read all header files
  */
-static bool unshield_read_headers(Unshield* unshield)/*{{{*/
+static bool unshield_read_headers(Unshield* unshield, int version)/*{{{*/
 {
   int i;
   bool iterate = true;
@@ -268,11 +268,21 @@ static bool unshield_read_headers(Unshield* unshield)/*{{{*/
         unshield_error("Failed to read common header from header file %i", i);
         goto error;
       }
-      
-      header->major_version = (header->common.version >> 12) & 0xf;
 
-      if (header->common.version == 0x020004b0)
-        header->major_version = 9;
+      if (version != -1)
+      {
+        header->major_version = version;
+      }
+      else if (header->common.version >> 24 == 1)
+      {
+        header->major_version = (header->common.version >> 12) & 0xf;
+      }
+      else if (header->common.version >> 24 == 2)
+      {
+        header->major_version = (header->common.version & 0xffff);
+        if (header->major_version != 0)
+          header->major_version = header->major_version / 100;
+      }
 
 #if 0
       if (header->major_version < 5)
@@ -329,6 +339,11 @@ error:
 
 Unshield* unshield_open(const char* filename)/*{{{*/
 {
+  return unshield_open_force_version(filename, -1);
+}/*}}}*/
+
+Unshield* unshield_open_force_version(const char* filename, int version)/*{{{*/
+{
   Unshield* unshield = NEW1(Unshield);
   if (!unshield)
   {
@@ -342,7 +357,7 @@ Unshield* unshield_open(const char* filename)/*{{{*/
     goto error;
   }
 
-  if (!unshield_read_headers(unshield))
+  if (!unshield_read_headers(unshield, version))
   {
     unshield_error("Failed to read header files");
     goto error;

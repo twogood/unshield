@@ -77,6 +77,11 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
     case 7:
     case 8:
     case 9:
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+    default:
       saved_p = p = header->data +
           header->common.cab_descriptor_offset +
           header->cab.file_table_offset +
@@ -117,10 +122,6 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
 
       assert((p - saved_p) == 0x57);
       break;
-
-    default:
-      unshield_error("Unknown major version: %i", header->major_version);
-      abort();
   }
 
   if (!(fd->flags & FILE_COMPRESSED) &&
@@ -363,6 +364,11 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
     case 7:
     case 8:
     case 9:
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+    default:
       {
         uint8_t six_header[VOLUME_HEADER_SIZE_V6];
         uint8_t* p = six_header;
@@ -389,10 +395,6 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
         reader->volume_header.last_file_size_compressed_high    = READ_UINT32(p); p += 4;
       }
       break;
-
-    default:
-      abort();
-      goto exit;
   }
   
 #if VERBOSE >= 2

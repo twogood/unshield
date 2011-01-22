@@ -33,6 +33,7 @@ void unshield_set_log_level(int level);
  */
 
 Unshield* unshield_open(const char* filename);
+Unshield* unshield_open_force_version(const char* filename, int version);
 void unshield_close(Unshield* unshield);
 
 /*

@@ -58,6 +58,7 @@ static OVERWRITE overwrite            = OVERWRITE_ASK;
 static int log_level                  = UNSHIELD_LOG_LEVEL_LOWEST;
 static int exit_status                = 0;
 static FORMAT format                  = FORMAT_NEW;
+static int is_version                 = -1;
 
 static bool make_sure_directory_exists(const char* directory)/*{{{*/
 {
@@ -108,7 +109,7 @@ static void show_usage(const char* name)
   fprintf(stderr,
       "Syntax:\n"
       "\n"
-      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-GhlOrV] c|g|l|t|x CABFILE\n"
+      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-i VERSION] [-GhlOrV] c|g|l|t|x CABFILE\n"
       "\n"
       "Options:\n"
       "\t-c COMPONENT  Only list/extract this component\n"
@@ -120,6 +121,7 @@ static void show_usage(const char* name)
       "\t                3 - Errors, warnings and debug messages\n"
       "\t-g GROUP      Only list/extract this file group\n"
       "\t-h            Show this help message\n"
+      "\t-i VERSION    Force InstallShield version number (don't autodetect)\n"
       "\t-j            Junk paths (do not make directories)\n"
       "\t-L            Make file and directory names lowercase\n"
       "\t-O            Use old compression\n"
@@ -152,7 +154,7 @@ static bool handle_parameters(
 {
 	int c;
 
-	while ((c = getopt(argc, argv, "c:d:D:g:hjLnoOrV")) != -1)
+	while ((c = getopt(argc, argv, "c:d:D:g:hi:jLnoOrV")) != -1)
 	{
 		switch (c)
     {
@@ -170,6 +172,10 @@ static bool handle_parameters(
 
       case 'g':
         file_group_name = optarg;
+        break;
+
+      case 'i':
+        is_version = atoi(optarg);
         break;
 
       case 'j':
@@ -532,7 +538,7 @@ int main(int argc, char** argv)
 
   cabfile = argv[last_optind];
 
-  unshield = unshield_open(cabfile);
+  unshield = unshield_open_force_version(cabfile, is_version);
   if (!unshield)
   {
     fprintf(stderr, "Failed to open %s as an InstallShield Cabinet File\n", cabfile);
