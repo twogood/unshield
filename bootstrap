@@ -32,9 +32,8 @@ autoheader
 # Check For OSX
 # rhcp011235@gmail.com
 
-OSX=`uname -s`
-if [ "$OSX" == "Darwin" ];
-then
+KERNEL_NAME=`uname -s`
+if [ "$KERNEL_NAME" = "Darwin" ]; then
 	glibtoolize --copy --automake
 else
 	libtoolize --copy --automake
