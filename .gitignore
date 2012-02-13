@@ -1,0 +1,16 @@
+Makefile.in
+aclocal.m4
+autom4te.cache/
+config.guess
+config.sub
+configure
+configure.ac
+depcomp
+install-sh
+lib/Makefile.in
+lib/md5/Makefile.in
+lib/unshield_config.h.in
+ltmain.sh
+man/Makefile.in
+missing
+src/Makefile.in
