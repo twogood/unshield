@@ -23,11 +23,18 @@ const char* unshield_directory_name(Unshield* unshield, int index)
     Header* header = unshield->header_list;
 
     if (index < (int)header->cab.directory_count)
-      return (const char*)(
+    {
+      const char *name = (const char*)(
           header->data +
           header->common.cab_descriptor_offset +
           header->cab.file_table_offset +
           header->file_table[index]);
+
+      if(header->major_version == 18)
+        name = unshield_simple_unicode_to_ascii(name);
+
+      return name;
+    }
   }
 
   unshield_warning("Failed to get directory name %i", index);

@@ -72,6 +72,7 @@ bool unshield_read_common_header(uint8_t** buffer, CommonHeader* common);
 const char* unshield_header_get_string(Header* header, uint32_t offset);
 uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset);
 
+const char* unshield_simple_unicode_to_ascii(const char *string);
 
 /*
    Constants

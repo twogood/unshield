@@ -277,7 +277,7 @@ static bool unshield_read_headers(Unshield* unshield, int version)/*{{{*/
       {
         header->major_version = (header->common.version >> 12) & 0xf;
       }
-      else if (header->common.version >> 24 == 2 || 
+      else if (header->common.version >> 24 == 2 ||
                header->common.version >> 24 == 4)
       {
         header->major_version = (header->common.version & 0xffff);
