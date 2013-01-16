@@ -430,7 +430,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
         /*total_bytes_left, */data_offset); 
 #endif
 
-    if (reader->index == reader->volume_header.last_file_index)
+    if (reader->index == reader->volume_header.last_file_index && reader->volume_header.last_file_offset != 0x7FFFFFFF)
     {
       /* can be first file too... */
 #if VERBOSE
@@ -454,7 +454,10 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
       volume_bytes_left_compressed  = reader->volume_header.first_file_size_compressed;
     }
     else
-      abort();
+    {
+      success = true;
+      goto exit;
+    }
 
 #if VERBOSE
     unshield_trace("Will read 0x%08x bytes from offset 0x%08x",
