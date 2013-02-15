@@ -25,3 +25,5 @@ missing
 src/unshield
 src/unshield-deobfuscate
 *.core
+.*.swp
+.gdb_history
