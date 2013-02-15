@@ -1,4 +1,4 @@
-INCLUDES = -I../lib
+AM_CPPFLAGS = -I../lib
 LDADD = ../lib/libunshield.la
 
 bin_PROGRAMS = unshield

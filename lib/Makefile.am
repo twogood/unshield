@@ -7,7 +7,7 @@ MD5_LIBS =
 endif
 
 ## useful flags
-INCLUDES = -I..
+AM_CPPFLAGS = -I..
 
 ## create this library
 lib_LTLIBRARIES = libunshield.la

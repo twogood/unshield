@@ -1,4 +1,4 @@
-INCLUDES = -I..
+AM_CPPFLAGS = -I..
 
 ## create this library
 noinst_LTLIBRARIES = libmd5.la
