@@ -1,10 +1,11 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(lib/libunshield.h)
+AC_INIT([unshield], [YOU_DID_NOT_RUN_THE_BOOTSTRAP_SCRIPT])
+AC_CONFIG_SRCDIR([lib/libunshield.h])
 
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
-AM_INIT_AUTOMAKE(unshield, YOU_DID_NOT_RUN_THE_BOOTSTRAP_SCRIPT)
+AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(lib/unshield_config.h)
 
 CFLAGS="-Wall -Wsign-compare -Wno-long-long $CFLAGS"

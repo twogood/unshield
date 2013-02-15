@@ -14,7 +14,7 @@ if [ -f $ACFILE ]; then
 	rm $ACFILE
 fi
 echo -n "Creating $ACFILE..."
-cat $ACFILE_IN | sed "s/\\(AM_INIT_AUTOMAKE(.*,\\).*)/\\1 $VERSION)/" > $ACFILE
+cat $ACFILE_IN | sed "s/\\(AM_INIT(.*,\\).*)/\\1 $VERSION)/" > $ACFILE
 if [ -s $ACFILE ]; then
 	echo "done."
 else
