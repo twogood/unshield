@@ -122,6 +122,25 @@ bool unshield_read_common_header(uint8_t** buffer, CommonHeader* common)
   return true;
 }
 
+const char *unshield_simple_unicode_to_ascii(const char *unicode)
+{
+  char *ascii = malloc(1024);
+  char *pa = ascii, last = *unicode;
+
+  memset(ascii, 0, 1024);
+
+  while(last != 0 || *unicode != 0) 
+  {
+    last = *unicode;
+    if(*unicode != 0)
+      *(pa++) = *(unicode++);
+    else
+      unicode++;
+  }
+
+  return ascii;
+}
+
 /**
   Get pointer at cab descriptor + offset
   */
@@ -141,7 +160,12 @@ uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset)
  */
 const char* unshield_header_get_string(Header* header, uint32_t offset)
 {
-  return (const char*)unshield_header_get_buffer(header, offset);
+  const char *string = unshield_header_get_buffer(header, offset);
+
+  if(header->major_version == 18)
+    string = unshield_simple_unicode_to_ascii(string);
+
+  return string;
 }
 
 

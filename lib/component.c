@@ -15,7 +15,14 @@ const char* unshield_component_name(Unshield* unshield, int index)
   Header* header = unshield->header_list;
 
   if (index >= 0 && index < header->component_count)
-    return header->components[index]->name;
+  {
+    const char *name = header->components[index]->name;
+
+    if(header->major_version == 18)
+      name = unshield_simple_unicode_to_ascii(name);
+
+    return name;
+  }
   else
     return NULL;
 }

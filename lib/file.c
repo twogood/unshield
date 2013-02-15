@@ -176,11 +176,18 @@ const char* unshield_file_name (Unshield* unshield, int index)/*{{{*/
     /* XXX: multi-volume support... */
     Header* header = unshield->header_list;
 
-    return (const char*)(
-        header->data +
-        header->common.cab_descriptor_offset +
-        header->cab.file_table_offset +
-        fd->name_offset);
+    const char *name = (const char *)(
+      header->data +
+      header->common.cab_descriptor_offset +
+      header->cab.file_table_offset +
+      fd->name_offset
+    );
+
+    if(header->major_version == 18)
+      name = unshield_simple_unicode_to_ascii(name);
+
+
+    return name;
   }
     
   unshield_warning("Failed to get file descriptor %i", index);
