@@ -24,3 +24,4 @@ missing
 *.o
 src/unshield
 src/unshield-deobfuscate
+*.core
