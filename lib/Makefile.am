@@ -26,8 +26,8 @@ libunshield_la_SOURCES = \
 	cabfile.h
 
 libunshield_la_LDFLAGS = -no-undefined -version-info 0:0:0
-libunshield_la_LIBADD  = $(MD5_LIBS)
+libunshield_la_LIBADD  = convert_utf/libconvert_utf.la $(MD5_LIBS) 
 
 include_HEADERS = libunshield.h
 
-SUBDIRS = $(MD5_SUBDIR) .
+SUBDIRS = convert_utf $(MD5_SUBDIR) .

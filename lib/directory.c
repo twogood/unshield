@@ -23,7 +23,7 @@ const char* unshield_directory_name(Unshield* unshield, int index)
     Header* header = unshield->header_list;
 
     if (index < (int)header->cab.directory_count)
-      return (const char*)(
+      return unshield_get_utf8_string(header, 
           header->data +
           header->common.cab_descriptor_offset +
           header->cab.file_table_offset +

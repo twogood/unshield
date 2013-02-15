@@ -277,7 +277,8 @@ static bool unshield_read_headers(Unshield* unshield, int version)/*{{{*/
       {
         header->major_version = (header->common.version >> 12) & 0xf;
       }
-      else if (header->common.version >> 24 == 2)
+      else if (header->common.version >> 24 == 2
+               || header->common.version >> 24 == 4)
       {
         header->major_version = (header->common.version & 0xffff);
         if (header->major_version != 0)
@@ -370,6 +371,21 @@ error:
   return NULL;
 }/*}}}*/
 
+
+static void unshield_free_string_buffers(Header* header)
+{
+  StringBuffer* current = header->string_buffer;
+  header->string_buffer = NULL;
+
+  while (current != NULL)
+  {
+    StringBuffer* next = current->next;
+    FREE(current->string);
+    FREE(current);
+    current = next;
+  }
+}
+
 void unshield_close(Unshield* unshield)/*{{{*/
 {
   if (unshield)
@@ -380,6 +396,8 @@ void unshield_close(Unshield* unshield)/*{{{*/
     {
       Header* next = header->next;
       int i;
+
+      unshield_free_string_buffers(header);
 
 			if (header->components)
 			{

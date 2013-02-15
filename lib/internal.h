@@ -16,6 +16,14 @@
 
 #include "cabfile.h"
 
+typedef struct _StringBuffer StringBuffer;
+
+struct _StringBuffer
+{
+  StringBuffer* next;
+  char* string;
+};
+
 typedef struct _Header Header;
 
 struct _Header
@@ -37,6 +45,8 @@ struct _Header
 
   int file_group_count;
   UnshieldFileGroup** file_groups;
+
+  StringBuffer* string_buffer;
 };
 
 struct _Unshield
@@ -69,6 +79,7 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
 long unshield_fsize(FILE* file);
 bool unshield_read_common_header(uint8_t** buffer, CommonHeader* common);
 
+const char* unshield_get_utf8_string(Header* header, const void* buffer);
 const char* unshield_header_get_string(Header* header, uint32_t offset);
 uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset);
 

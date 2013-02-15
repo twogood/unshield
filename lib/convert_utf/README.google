@@ -1,0 +1,10 @@
+This is a utf8/16/32 conversion functions downloaded from unicode.org website
+from url: ftp://www.unicode.org/Public/PROGRAMS/CVTUTF/
+
+Only ConvertUTF.h and ConvertUTF.c files were downloaded. The rest of files
+related to UTF7 and testing harness were not downloaded.
+
+No modifications have been done.
+
+
+

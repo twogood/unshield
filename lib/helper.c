@@ -1,9 +1,10 @@
-/* $Id$ */
 #define _BSD_SOURCE 1
 #include "internal.h"
 #include "log.h"
+#include "convert_utf/ConvertUTF.h"
 #include <sys/types.h>
 #include <dirent.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 
@@ -136,12 +137,59 @@ uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset)
     return NULL;
 }
 
+
+static int unshield_strlen_utf16(const uint16_t* utf16)
+{
+  const uint16_t* current = utf16;
+  while (*current++)
+    ;
+  return current - utf16;
+}
+
+
+static StringBuffer* unshield_add_string_buffer(Header* header)
+{
+  StringBuffer* result = NEW1(StringBuffer);
+  result->next = header->string_buffer;
+  return header->string_buffer = result;
+}
+
+
+static const char* unshield_utf16_to_utf8(Header* header, const uint16_t* utf16)
+{
+  StringBuffer* string_buffer = unshield_add_string_buffer(header); 
+  int length = unshield_strlen_utf16(utf16);
+  int buffer_size = 2 * length + 1;
+  char* target = string_buffer->string = NEW(char, buffer_size);
+  ConversionResult result = ConvertUTF16toUTF8(
+      (const UTF16**)&utf16, utf16 + length + 1, 
+      (UTF8**)&target, (UTF8*)(target + buffer_size), lenientConversion);
+  if (result != conversionOK)
+  {
+    /* fail fast */
+    abort();
+  }
+  return string_buffer->string;
+}
+
+const char* unshield_get_utf8_string(Header* header, const void* buffer)
+{
+  if (header->major_version == 18 && buffer != NULL)
+  {
+    return unshield_utf16_to_utf8(header, (const uint16_t*)buffer);
+  }
+  else
+  {
+    return (const char*)buffer;
+  }
+}
+
 /**
   Get string at cab descriptor offset + string offset
  */
 const char* unshield_header_get_string(Header* header, uint32_t offset)
 {
-  return (const char*)unshield_header_get_buffer(header, offset);
+  return unshield_get_utf8_string(header, unshield_header_get_buffer(header, offset));
 }
 
 

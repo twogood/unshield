@@ -176,7 +176,7 @@ const char* unshield_file_name (Unshield* unshield, int index)/*{{{*/
     /* XXX: multi-volume support... */
     Header* header = unshield->header_list;
 
-    return (const char*)(
+    return unshield_get_utf8_string(header, 
         header->data +
         header->common.cab_descriptor_offset +
         header->cab.file_table_offset +
