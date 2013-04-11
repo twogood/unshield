@@ -15,6 +15,9 @@
 #ifdef HAVE_CONFIG_H
 #include "../lib/unshield_config.h"
 #endif
+#if HAVE_FNMATCH
+#include <fnmatch.h>
+#endif
 
 #ifndef VERSION
 #define VERSION "Unknown"
@@ -59,6 +62,9 @@ static int log_level                  = UNSHIELD_LOG_LEVEL_LOWEST;
 static int exit_status                = 0;
 static FORMAT format                  = FORMAT_NEW;
 static int is_version                 = -1;
+static const char* cab_file_name      = NULL;
+static char* const* path_names        = NULL;
+static int path_name_count            = 0;
 
 static bool make_sure_directory_exists(const char* directory)/*{{{*/
 {
@@ -109,7 +115,7 @@ static void show_usage(const char* name)
   fprintf(stderr,
       "Syntax:\n"
       "\n"
-      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-i VERSION] [-GhlOrV] c|g|l|t|x CABFILE\n"
+      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-i VERSION] [-GhlOrV] c|g|l|t|x CABFILE [FILENAME...]\n"
       "\n"
       "Options:\n"
       "\t-c COMPONENT  Only list/extract this component\n"
@@ -149,8 +155,7 @@ static void show_usage(const char* name)
 
 static bool handle_parameters(
     int argc, 
-    char** argv, 
-    int* end_optind)
+    char* const argv[])
 {
 	int c;
 
@@ -222,12 +227,13 @@ static bool handle_parameters(
 
   if (optind == argc || !argv[optind])
   {
-    fprintf(stderr, "No file name provided on command line.\n\n");
+    fprintf(stderr, "No action provided on command line.\n\n");
     show_usage(argv[0]);
     return false;
   }
 
-  switch (argv[optind][0])
+  char action_char = argv[optind++][0];
+  switch (action_char)
   {
     case 'c':
       action = ACTION_LIST_COMPONENTS;
@@ -250,12 +256,22 @@ static bool handle_parameters(
       break;
 
     default:
-      fprintf(stderr, "Unknown action '%c' on command line.\n\n", argv[optind][0]);
+      fprintf(stderr, "Unknown action '%c' on command line.\n\n", action_char);
       show_usage(argv[0]);
       return false;
   }
 
-  *end_optind = optind + 1;
+  cab_file_name = argv[optind++];
+
+  if (cab_file_name == NULL)
+  {
+    fprintf(stderr, "No InstallShield Cabinet File name provided on command line.\n\n");
+    show_usage(argv[0]);
+    return false;
+  }
+
+  path_name_count = argc - optind;
+  path_names = &argv[optind];
 
 	return true;
 }
@@ -356,6 +372,27 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   return success;
 }
 
+static bool should_process_file(Unshield* unshield, int index)
+{
+  int i;
+
+  if (path_name_count == 0)
+    return true;
+
+  for (i = 0; i < path_name_count; i++)
+  {
+#if HAVE_FNMATCH
+    if (fnmatch(path_names[i], unshield_file_name(unshield, index), 0) == 0)
+      return true;
+#else
+    if (strcmp(path_names[i], unshield_file_name(unshield, index)) == 0)
+      return true;
+#endif
+  }
+
+  return false;
+}
+
 static int extract_helper(Unshield* unshield, const char* prefix, int first, int last)/*{{{*/
 {
   int i;
@@ -363,7 +400,9 @@ static int extract_helper(Unshield* unshield, const char* prefix, int first, int
   
   for (i = first; i <= last; i++)
   {
-    if (unshield_file_is_valid(unshield, i) && extract_file(unshield, prefix, i))
+    if (unshield_file_is_valid(unshield, i) 
+        && should_process_file(unshield, i) 
+        && extract_file(unshield, prefix, i))
       count++;
   }
 
@@ -449,7 +488,7 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
   {
     char dirname[256];
 
-    if (unshield_file_is_valid(unshield, i))
+    if (unshield_file_is_valid(unshield, i) && should_process_file(unshield, i))
     {
       valid_count++;
 
@@ -517,35 +556,24 @@ static bool do_action(Unshield* unshield, ActionHelper helper)
   return true;
 }
 
-int main(int argc, char** argv)
+int main(int argc, char* const argv[])
 {
   bool success = false;
   Unshield* unshield = NULL;
-  int last_optind = argc+1;
-  const char* cabfile;
 
   setlocale(LC_ALL, "");
 
-  if (!handle_parameters(argc, argv, &last_optind))
+  if (!handle_parameters(argc, argv))
     goto exit;
 
-  if (last_optind >= argc)
-  {
-    fprintf(stderr, "Missing cabinet file on command line\n");
-    show_usage(argv[0]);
-    goto exit;
-  }
-
-  cabfile = argv[last_optind];
-
-  unshield = unshield_open_force_version(cabfile, is_version);
+  unshield = unshield_open_force_version(cab_file_name, is_version);
   if (!unshield)
   {
-    fprintf(stderr, "Failed to open %s as an InstallShield Cabinet File\n", cabfile);
+    fprintf(stderr, "Failed to open %s as an InstallShield Cabinet File\n", cab_file_name);
     goto exit;
   }
 
-  printf("Cabinet: %s\n", cabfile);
+  printf("Cabinet: %s\n", cab_file_name);
 
   switch (action)
   {
