@@ -143,6 +143,11 @@ static void show_usage(const char* name)
       "\n"
       "Other:\n"
       "\tCABFILE       The file to list or extract contents of\n"
+      "\tFILENAME...   Optionally specify names of specific files to extract"
+#if HAVE_FNMATCH
+      " (wildcards are supported)"
+#endif
+      "\n"
       ,
       name);
 
