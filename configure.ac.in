@@ -6,7 +6,7 @@ AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
 AM_INIT_AUTOMAKE
-AM_CONFIG_HEADER(lib/unshield_config.h)
+AC_CONFIG_HEADERS(lib/unshield_config.h)
 
 CFLAGS="-Wall -Wsign-compare -Wno-long-long $CFLAGS"
 
