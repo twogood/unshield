@@ -128,8 +128,18 @@ uint32_t bswap_32(uint32_t x);
 #define letoh16(x) (x)
 #endif
 
-#define READ_UINT16(p)   letoh16(*(uint16_t*)(p))
-#define READ_UINT32(p)   letoh32(*(uint32_t*)(p))
+static inline uint16_t get_unaligned_le16(const uint8_t *p)
+{
+    return p[0] | p[1] << 8;
+}
+
+static inline uint32_t get_unaligned_le32(const uint8_t *p)
+{
+    return p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24;
+}
+
+#define READ_UINT16(p)   get_unaligned_le16(p)
+#define READ_UINT32(p)   get_unaligned_le32(p)
 
 #define READ_INT16(p)   ((int16_t)READ_UINT16(p))
 #define READ_INT32(p)   ((int32_t)READ_UINT32(p))
