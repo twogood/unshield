@@ -28,9 +28,6 @@ AC_PROG_LIBTOOL
 AC_PROG_MAKE_SET
 dnl AM_PATH_CHECK()
 
-dnl Checks for libraries.
-AC_LIB_RPATH
-
 dnl Checks for typedefs, structures, and compiler characteristics.
 SAVED_CFLAGS="$CFLAGS"
 CFLAGS=""
