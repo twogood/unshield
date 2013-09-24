@@ -104,7 +104,7 @@ PKG_CHECK_MODULES([ZLIB], [zlib])
 
 AC_ARG_WITH([ssl], AS_HELP_STRING([--with-ssl], [Build with SSL support.]), [], [with_ssl=no])
 if test x$with_ssl != xno; then
-  PKG_CHECK_MODULES([SSL], [libssl], [HAVE_SSL=yes], [HAVE_SSL=no])
+  PKG_CHECK_MODULES([SSL], [libcrypto], [HAVE_SSL=yes], [HAVE_SSL=no])
   if test x$HAVE_SSL = xyes; then
     USE_OUR_OWN_MD5=0
   else
