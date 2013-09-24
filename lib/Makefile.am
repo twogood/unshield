@@ -7,7 +7,7 @@ MD5_LIBS =
 endif
 
 ## useful flags
-AM_CPPFLAGS = -I..
+AM_CPPFLAGS = -I.. $(ZLIB_CFLAGS) $(SSL_CFLAGS)
 
 ## create this library
 lib_LTLIBRARIES = libunshield.la
