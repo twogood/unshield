@@ -7,7 +7,7 @@ MD5_LIBS =
 endif
 
 ## useful flags
-AM_CPPFLAGS = -I..
+AM_CPPFLAGS = -I.. $(ZLIB_CFLAGS) $(SSL_CFLAGS)
 
 ## create this library
 lib_LTLIBRARIES = libunshield.la
@@ -26,7 +26,7 @@ libunshield_la_SOURCES = \
 	cabfile.h
 
 libunshield_la_LDFLAGS = -no-undefined -version-info 0:0:0
-libunshield_la_LIBADD  = convert_utf/libconvert_utf.la $(MD5_LIBS) 
+libunshield_la_LIBADD  = convert_utf/libconvert_utf.la $(MD5_LIBS) $(ZLIB_LIBS) $(SSL_LIBS)
 
 include_HEADERS = libunshield.h
 
