@@ -19,6 +19,10 @@ case $target in
 
 esac
 
+dnl Check for pkg-config/pkg.m4.
+m4_pattern_forbid([^PKG_[A-Z_]+$], [pkg.m4 missing, please install pkg-config])
+PKG_PROG_PKG_CONFIG
+
 dnl Checks for programs.
 AC_PROG_AWK
 AC_PROG_CC
@@ -96,11 +100,16 @@ LIB@&t@OBJS=`echo "$LIB@&t@OBJS" | sed 's,\.[[^.]]* ,$U&,g;s,\.[[^.]]*$,$U&,'`
 LTLIBOBJS=`echo "$LIB@&t@OBJS" | sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`
 AC_SUBST(LTLIBOBJS)
 
-CHECK_ZLIB()
+PKG_CHECK_MODULES([ZLIB], [zlib])
 
-CHECK_SSL()
-if test x$HAVE_SSL = xyes; then
-  USE_OUR_OWN_MD5=0
+AC_ARG_WITH([ssl], AS_HELP_STRING([--with-ssl], [Build with SSL support.]), [], [with_ssl=no])
+if test x$with_ssl != xno; then
+  PKG_CHECK_MODULES([SSL], [libcrypto], [HAVE_SSL=yes], [HAVE_SSL=no])
+  if test x$HAVE_SSL = xyes; then
+    USE_OUR_OWN_MD5=0
+  else
+    USE_OUR_OWN_MD5=1
+  fi
 else
   USE_OUR_OWN_MD5=1
 fi
