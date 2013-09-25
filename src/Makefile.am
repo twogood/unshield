@@ -1,5 +1,5 @@
 AM_CPPFLAGS = -I../lib
-LDADD = ../lib/libunshield.la $(ZLIB_LIBS) $(SSL_LIBS)
+LDADD = ../lib/libunshield.la
 
 bin_PROGRAMS = unshield
 noinst_PROGRAMS = unshield-deobfuscate
