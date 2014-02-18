@@ -72,7 +72,9 @@ AC_CHECK_HEADERS(stdbool.h,,[
 
 AC_MSG_CHECKING([for printf format string that works with size_t values])
 SAVED_CFLAGS="$CFLAGS"
+SAVED_CPPFLAGS="$CPPFLAGS"
 CFLAGS="-ansi -Wall -Werror"
+CPPFLAGS=""
 AC_TRY_COMPILE([#include <stdio.h>],
                [size_t value = 0; printf("%zi", value);],
                [SIZE_FORMAT="zi"],
@@ -91,6 +93,7 @@ AC_DEFINE_UNQUOTED(SIZE_FORMAT,
                    ["${SIZE_FORMAT}"],
                    [printf format that works with size_t values])
 CFLAGS="$SAVED_CFLAGS"
+CPPFLAGS="$SAVED_CPPFLAGS"
 
 
 # http://www.gnu.org/manual/autoconf-2.53/html_node/AC_LIBOBJ-vs.-LIBOBJS.html
