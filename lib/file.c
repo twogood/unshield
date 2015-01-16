@@ -15,6 +15,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/param.h>    /* for MIN(a,b) */
+#ifndef MIN /* missing in some platforms */
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#endif
 #include <zlib.h>
 
 #define VERBOSE 3
