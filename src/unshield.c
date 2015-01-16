@@ -91,7 +91,11 @@ static bool make_sure_directory_exists(const char* directory)/*{{{*/
 
       if (stat(current, &dir_stat) < 0)
       {
+      	#ifdef __MINGW32__
+      	if (mkdir(current) < 0)
+      	#else
         if (mkdir(current, 0700) < 0)
+        #endif
         {
           fprintf(stderr, "Failed to create directory %s\n", directory);
           goto exit;
