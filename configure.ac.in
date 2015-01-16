@@ -70,6 +70,8 @@ AC_CHECK_HEADERS(stdbool.h,,[
   AC_MSG_ERROR([Don't know how to get bool values on your system])
 ])
 
+AC_DEFINE_UNQUOTED([__USE_MINGW_ANSI_STDIO], 1, [Enable GNU style printf formatters])
+
 AC_MSG_CHECKING([for printf format string that works with size_t values])
 SAVED_CFLAGS="$CFLAGS"
 SAVED_CPPFLAGS="$CPPFLAGS"
