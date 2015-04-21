@@ -1,7 +1,5 @@
-vim: tw=65 wrap
-
 CONTENTS
-========
+--------
 
 Dictionary
 About Unshield
@@ -9,7 +7,7 @@ License
 
 
 DICTIONARY
-==========
+----------
 
 InstallShield (IS): see www.installshield.com
 
@@ -19,7 +17,7 @@ Microsoft Cabinet File (MSCF): A .cab file used by Microsoft.
 
 
 ABOUT UNSHIELD
-==============
+--------------
 
 To install a Pocket PC application remotely, an installable
 Microsoft Cabinet File is copied to the /Windows/AppMgr/Install
@@ -71,7 +69,7 @@ implementation are:
 
 
 LICENSE
-=======
+-------
 
 Unshield uses the MIT license. The short version is "do as you
 like, but don't blame me if anything goes wrong".
