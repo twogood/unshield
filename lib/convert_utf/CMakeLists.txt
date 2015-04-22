@@ -1,0 +1,9 @@
+set(LIBCONVERT_UTF_HEADES
+    "ConvertUTF.h"
+)
+
+set(LIBCONVERT_UTF_SOURCES
+    "ConvertUTF.c"
+)
+
+add_library(convert_utf ${LIBCONVERT_UTF_HEADES} ${LIBCONVERT_UTF_SOURCES})
