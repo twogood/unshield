@@ -174,7 +174,7 @@ static const char* unshield_utf16_to_utf8(Header* header, const uint16_t* utf16)
 
 const char* unshield_get_utf8_string(Header* header, const void* buffer)
 {
-  if (header->major_version >= 18 && buffer != NULL)
+  if (header->major_version >= 17 && buffer != NULL)
   {
     return unshield_utf16_to_utf8(header, (const uint16_t*)buffer);
   }
