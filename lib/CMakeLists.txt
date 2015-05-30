@@ -36,7 +36,7 @@ else()
     target_link_libraries(libunshield ${ZLIB_LIBRARY} ${OPENSSL_LIBRARIES} convert_utf)
 endif()
 
-set_target_properties(libunshield PROPERTIES OUTPUT_NAME unshiled)
+set_target_properties(libunshield PROPERTIES OUTPUT_NAME unshield)
 set_target_properties(libunshield PROPERTIES SOVERSION ${PROJECT_VERSION})
 
 install(TARGETS libunshield RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
