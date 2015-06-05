@@ -14,7 +14,6 @@ install-sh
 lib/stamp-h1
 libtool
 lib/unshield_config.h
-lib/unshield_config.h.in
 libunshield.pc
 *.lo
 ltmain.sh
@@ -28,3 +27,9 @@ src/unshield-deobfuscate
 .*.swp
 .gdb_history
 compile
+
+# CMake ignore
+**/CMakeFiles/
+**/CMakeScripts/
+*cmake_install.cmake
+**/CMakeCache.txt
