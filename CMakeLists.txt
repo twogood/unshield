@@ -58,6 +58,7 @@ message(STATUS "BUILD_STATIC: ${BUILD_STATIC}")
 add_definitions(-DHAVE_CONFIG_H)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/lib/unshield_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/lib/unshield_config.h)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libunshield.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libunshield.pc @ONLY)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # To force position independent code for static libs on Linux x64
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
@@ -68,4 +69,4 @@ add_subdirectory(lib)
 add_subdirectory(src)
 
 install(FILES man/unshield.1 DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/man/man1)
-install(FILES libunshield.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libunshield.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
