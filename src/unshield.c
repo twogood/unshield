@@ -13,7 +13,7 @@
 #include <unistd.h>
 #include "../lib/libunshield.h"
 #ifdef HAVE_CONFIG_H
-#include "../lib/unshield_config.h"
+#include "lib/unshield_config.h"
 #endif
 #if HAVE_FNMATCH
 #include <fnmatch.h>

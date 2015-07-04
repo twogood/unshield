@@ -3,7 +3,7 @@
 #define __internal_h__
 
 #include "libunshield.h"
-#include "unshield_config.h"
+#include "lib/unshield_config.h"
 
 #if HAVE_STDINT_H
 #include <stdint.h>
