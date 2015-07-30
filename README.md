@@ -1,17 +1,17 @@
-UNSHIELD
+Unshield
 ========
 
 [![Build Status](https://travis-ci.org/twogood/unshield.png?branch=master)](https://travis-ci.org/twogood/unshield)
 
 
-SUPPORT UNSHIELD DEVELOPMENT
+Support Unshield development
 ----------------------------
 
 - [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=SQ7PEFMJK36AU)
 - [Pledgie](https://pledgie.com/campaigns/29872)
 
 
-DICTIONARY
+Dictionary
 ----------
 
 InstallShield (IS): see www.installshield.com
@@ -21,7 +21,7 @@ InstallShield Cabinet File (ISCF): A .cab file used by IS.
 Microsoft Cabinet File (MSCF): A .cab file used by Microsoft.
 
 
-ABOUT UNSHIELD
+About Unshield
 --------------
 
 To install a Pocket PC application remotely, an installable
@@ -73,7 +73,7 @@ implementation are:
 - Be able to extract files from InstallShield Cabinet Files
 
 
-LICENSE
+License
 -------
 
 Unshield uses the MIT license. The short version is "do as you
