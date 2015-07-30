@@ -4,6 +4,13 @@ UNSHIELD
 [![Build Status](https://travis-ci.org/twogood/unshield.png?branch=master)](https://travis-ci.org/twogood/unshield)
 
 
+SUPPORT UNSHIELD DEVELOPMENT
+----------------------------
+
+- [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=SQ7PEFMJK36AU)
+- [Pledgie](https://pledgie.com/campaigns/29872)
+
+
 DICTIONARY
 ----------
 
