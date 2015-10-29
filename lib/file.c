@@ -270,11 +270,14 @@ static int unshield_uncompress_old(Byte *dest, uLong *destLen, Byte *source, uLo
     if (err != Z_OK) 
       return err;
 
-    err = inflate(&stream, Z_BLOCK);
-    if (err != Z_OK) 
+    while (stream.avail_in > 1)
     {
-      inflateEnd(&stream);
-      return err;
+      err = inflate(&stream, Z_BLOCK);
+      if (err != Z_OK)
+      {
+        inflateEnd(&stream);
+        return err;
+      }
     }
 
     *destLen = stream.total_out;
