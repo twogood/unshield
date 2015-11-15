@@ -1,3 +1,5 @@
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+
 add_executable(unshield "unshield.c")
 target_link_libraries(unshield libunshield)
 

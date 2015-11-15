@@ -55,6 +55,7 @@ static const char* file_group_name    = NULL;
 static const char* component_name     = NULL;
 static bool junk_paths                = false;
 static bool make_lowercase            = false;
+static bool raw_filename              = false;
 static bool verbose                   = false;
 static ACTION action                  = ACTION_EXTRACT;
 static OVERWRITE overwrite            = OVERWRITE_ASK;
@@ -136,6 +137,7 @@ static void show_usage(const char* name)
       "\t-L            Make file and directory names lowercase\n"
       "\t-O            Use old compression\n"
       "\t-r            Save raw data (do not decompress)\n"
+      "\t-R            Don't do any conversion to file and directory names when extracting.\n"
       "\t-V            Print copyright and version information\n"
       "\n"
       "Commands:\n"
@@ -168,7 +170,7 @@ static bool handle_parameters(
 {
 	int c;
 
-	while ((c = getopt(argc, argv, "c:d:D:g:hi:jLnoOrV")) != -1)
+	while ((c = getopt(argc, argv, "c:d:D:g:hi:jLnoOrRV")) != -1)
 	{
 		switch (c)
     {
@@ -198,6 +200,10 @@ static bool handle_parameters(
 
       case 'L':
         make_lowercase = true;
+        break;
+        
+      case 'R':
+        raw_filename = true;
         break;
 
       case 'n':
@@ -329,10 +335,13 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
         break;
 
       default:
-        if (!isprint(*p))
-          *p = '_';
-        else if (make_lowercase)
-          *p = tolower(*p);
+        if (!raw_filename)
+        {  
+          if (!isprint(*p))
+            *p = '_';
+          else if (make_lowercase)
+            *p = tolower(*p);
+        }
         break;;
     }
   }
@@ -349,10 +358,13 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 
   for (p = filename + strlen(dirname); *p != '\0'; p++)
   {
-    if (!isprint(*p))
-      *p = '_';
-    else if (make_lowercase)
-      *p = tolower(*p);
+    if (!raw_filename)
+    {
+      if (!isprint(*p))
+        *p = '_';
+      else if (make_lowercase)
+        *p = tolower(*p);
+    }
   }
 
   printf("  extracting: %s\n", filename);

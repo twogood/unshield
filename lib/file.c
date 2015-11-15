@@ -270,11 +270,14 @@ static int unshield_uncompress_old(Byte *dest, uLong *destLen, Byte *source, uLo
     if (err != Z_OK) 
       return err;
 
-    err = inflate(&stream, Z_BLOCK);
-    if (err != Z_OK) 
+    while (stream.avail_in > 1)
     {
-      inflateEnd(&stream);
-      return err;
+      err = inflate(&stream, Z_BLOCK);
+      if (err != Z_OK)
+      {
+        inflateEnd(&stream);
+        return err;
+      }
     }
 
     *destLen = stream.total_out;
@@ -1052,6 +1055,33 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
         }
 
         chunk_size = match - chunk_buffer;
+
+        /*
+           Detect when the chunk actually contains the end of chunk marker.
+
+           Needed by Qtime.smk from "The Feeble Files - spanish version".
+
+           The first bit of a compressed block is always zero, so we apply this
+           workaround if it's a one.
+
+           A possibly more proper fix for this would be to have
+           unshield_uncompress_old eat compressed data and discard chunk
+           markers inbetween.
+           */
+        while ((chunk_size + sizeof(END_OF_CHUNK)) < input_size &&
+            chunk_buffer[chunk_size + sizeof(END_OF_CHUNK)] & 1)
+        {
+          unshield_warning("It seems like we have an end of chunk marker inside of a chunk.");
+          chunk_size += sizeof(END_OF_CHUNK);
+          match = find_bytes(chunk_buffer + chunk_size, input_size - chunk_size, END_OF_CHUNK, sizeof(END_OF_CHUNK));
+          if (!match)
+          {
+            unshield_error("Could not find end of chunk for file %i (%s) from input cabinet file %i",
+                index, unshield_file_name(unshield, index), file_descriptor->volume);
+            goto exit;
+          }
+          chunk_size = match - chunk_buffer;
+        }
 
 #if VERBOSE >= 3
         unshield_trace("chunk_size = 0x%x", chunk_size);

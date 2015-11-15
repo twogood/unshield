@@ -1,15 +1,26 @@
+*.a
 aclocal.m4
 autom4te.cache/
+**/CMakeCache.txt
+**/CMakeFiles/
+# CMake ignore
+*cmake_install.cmake
+**/CMakeScripts/
+compile
 config.guess
 config.log
 config.status
 config.sub
 configure
 configure.ac
+*.core
 depcomp
 .deps/
+.gdb_history
+install_manifest.txt
 install-sh
 *.la
+lib/libunshield.so*
 .libs
 lib/stamp-h1
 libtool
@@ -23,13 +34,4 @@ missing
 *.o
 src/unshield
 src/unshield-deobfuscate
-*.core
 .*.swp
-.gdb_history
-compile
-
-# CMake ignore
-**/CMakeFiles/
-**/CMakeScripts/
-*cmake_install.cmake
-**/CMakeCache.txt
