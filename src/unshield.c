@@ -18,6 +18,10 @@
 #if HAVE_FNMATCH
 #include <fnmatch.h>
 #endif
+#ifdef HAVE_ICONV
+#include <iconv.h>
+#include <errno.h>
+#endif
 
 #ifndef VERSION
 #define VERSION "Unknown"
@@ -66,6 +70,8 @@ static int is_version                 = -1;
 static const char* cab_file_name      = NULL;
 static char* const* path_names        = NULL;
 static int path_name_count            = 0;
+static const char* encoding           = NULL;
+iconv_t encoding_descriptor           = (iconv_t)-1;
 
 static bool make_sure_directory_exists(const char* directory)/*{{{*/
 {
@@ -115,12 +121,48 @@ exit:
   return success;
 }/*}}}*/
 
+#ifdef HAVE_ICONV
+static bool convert_encoding(char *buffer, size_t size)
+{
+  bool success = false;
+  char *newbuf, *inbuf, *outbuf;
+  size_t inbytesleft, outbytesleft, newsize;
+
+  if (encoding_descriptor == (iconv_t)-1)
+    return true;
+
+  inbuf = buffer;
+  inbytesleft = strlen(buffer);
+  newbuf = outbuf = malloc(size);
+  outbytesleft = size - 1;
+
+  if (iconv(encoding_descriptor,
+          &inbuf, &inbytesleft,
+          &outbuf, &outbytesleft) == (size_t)-1)
+  {
+    fprintf(stderr, "Could not encode text to '%s' error %s\n",
+        encoding, strerror(errno));
+    goto exit;
+  }
+
+  newsize = (size_t)(outbuf - newbuf);
+  memcpy(buffer, newbuf, newsize);
+  buffer[newsize] = '\0';
+
+  success = true;
+
+exit:
+  free(newbuf);
+  return success;
+}
+#endif
+
 static void show_usage(const char* name)
 {
   fprintf(stderr,
       "Syntax:\n"
       "\n"
-      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-i VERSION] [-GhlOrV] c|g|l|t|x CABFILE [FILENAME...]\n"
+      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-i VERSION] [-e ENCODING] [-GhlOrV] c|g|l|t|x CABFILE [FILENAME...]\n"
       "\n"
       "Options:\n"
       "\t-c COMPONENT  Only list/extract this component\n"
@@ -133,6 +175,7 @@ static void show_usage(const char* name)
       "\t-g GROUP      Only list/extract this file group\n"
       "\t-h            Show this help message\n"
       "\t-i VERSION    Force InstallShield version number (don't autodetect)\n"
+      "\t-e ENCODING   Convert filename character encoding to local codepage from ENCODING (implicitly sets -R)\n"
       "\t-j            Junk paths (do not make directories)\n"
       "\t-L            Make file and directory names lowercase\n"
       "\t-O            Use old compression\n"
@@ -170,7 +213,7 @@ static bool handle_parameters(
 {
 	int c;
 
-	while ((c = getopt(argc, argv, "c:d:D:g:hi:jLnoOrRV")) != -1)
+	while ((c = getopt(argc, argv, "c:d:D:g:hi:e:jLnoOrRV")) != -1)
 	{
 		switch (c)
     {
@@ -192,6 +235,16 @@ static bool handle_parameters(
 
       case 'i':
         is_version = atoi(optarg);
+        break;
+
+      case 'e':
+#ifdef HAVE_ICONV
+        encoding = optarg;
+        raw_filename = true;
+#else
+        fprintf(stderr, "This version of Unshield is not built with encoding support.\n");
+        return false;
+#endif
         break;
 
       case 'j':
@@ -346,6 +399,15 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     }
   }
 
+#ifdef HAVE_ICONV
+  if (!convert_encoding(dirname, sizeof(dirname)))
+  {
+    success = false;
+    goto exit;
+  }
+#endif
+
+
 #if 0
   if (dirname[strlen(dirname)-1] != '/')
     strcat(dirname, "/");
@@ -367,6 +429,15 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     }
   }
 
+#ifdef HAVE_ICONV
+  if (!convert_encoding(filename + strlen(dirname),
+      sizeof(filename) - strlen(dirname)))
+  {
+    success = false;
+    goto exit;
+  }
+#endif
+
   printf("  extracting: %s\n", filename);
   switch (format)
   {
@@ -381,6 +452,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
       break;
   }
 
+exit:
   if (!success)
   {
     fprintf(stderr, "Failed to extract file '%s'.%s\n", 
@@ -594,6 +666,18 @@ int main(int argc, char* const argv[])
     goto exit;
   }
 
+#ifdef HAVE_ICONV
+  if (!unshield_is_unicode(unshield) && encoding != NULL)
+  {
+    if ((encoding_descriptor = iconv_open("", encoding)) == (iconv_t)-1)
+    {
+      fprintf(stderr, "Cannot use encoding '%s' error %s\n",
+          encoding, strerror(errno));
+      goto exit;
+    }
+  }
+#endif
+
   printf("Cabinet: %s\n", cab_file_name);
 
   switch (action)
@@ -625,6 +709,10 @@ int main(int argc, char* const argv[])
 
 exit:
   unshield_close(unshield);
+#ifdef HAVE_ICONV
+  if (encoding_descriptor != (iconv_t)-1)
+    iconv_close(encoding_descriptor);
+#endif
   if (!success)
     exit_status = 1;
   return exit_status;

@@ -433,4 +433,14 @@ void unshield_close(Unshield* unshield)/*{{{*/
   }
 }/*}}}*/
 
+bool unshield_is_unicode(Unshield* unshield)
+{
+  if (unshield)
+  {
+    Header* header = unshield->header_list;
 
+    return header->major_version >= 17;
+  }
+  else
+    return false;
+}
