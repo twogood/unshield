@@ -93,6 +93,9 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
 /** Deobfuscate a buffer. Seed is 0 at file start */
 void unshield_deobfuscate(unsigned char* buffer, size_t size, unsigned* seed);
 
+/** Is the archive Unicode-capable? */
+bool unshield_is_unicode(Unshield* unshield);
+
 #ifdef __cplusplus
 }
 #endif
