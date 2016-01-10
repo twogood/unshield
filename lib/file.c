@@ -640,7 +640,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
   FILE* output = NULL;
   unsigned char* input_buffer   = (unsigned char*)malloc(BUFFER_SIZE+1);
   unsigned char* output_buffer  = (unsigned char*)malloc(BUFFER_SIZE);
-  int bytes_left;
+  unsigned int bytes_left;
   uLong total_written = 0;
   UnshieldReader* reader = NULL;
   FileDescriptor* file_descriptor;
@@ -837,7 +837,7 @@ bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
   FILE* output = NULL;
   unsigned char* input_buffer   = (unsigned char*)malloc(BUFFER_SIZE);
   unsigned char* output_buffer  = (unsigned char*)malloc(BUFFER_SIZE);
-  int bytes_left;
+  unsigned int bytes_left;
   UnshieldReader* reader = NULL;
   FileDescriptor* file_descriptor;
 
@@ -953,7 +953,7 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
   size_t input_buffer_size = BUFFER_SIZE;
   unsigned char* input_buffer   = (unsigned char*)malloc(BUFFER_SIZE);
   unsigned char* output_buffer  = (unsigned char*)malloc(BUFFER_SIZE);
-  int bytes_left;
+  unsigned int bytes_left;
   uLong total_written = 0;
   UnshieldReader* reader = NULL;
   FileDescriptor* file_descriptor;
