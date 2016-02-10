@@ -69,7 +69,7 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
 #if VERBOSE
     unshield_trace("Opening file '%s'", filename);
 #endif
-    result = fopen(filename, "r");
+    result = fopen(filename, "rb");
 
 exit:
     if (sourcedir)
