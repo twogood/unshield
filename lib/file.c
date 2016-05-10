@@ -599,7 +599,7 @@ static UnshieldReader* unshield_reader_create(/*{{{*/
     }
 
     /* Start with the correct volume for IS5 cabinets */
-    if (reader->unshield->header_list->major_version == 5 &&
+    if (reader->unshield->header_list->major_version <= 5 &&
         index > (int)reader->volume_header.last_file_index)
     {
       unshield_trace("Trying next volume...");
