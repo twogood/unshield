@@ -1014,6 +1014,13 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
     uLong bytes_to_write = 0;
     int result;
 
+    if (reader->volume_bytes_left == 0 && !unshield_reader_open_volume(reader, reader->volume + 1))
+    {
+      unshield_error("Failed to open volume %i to read %i more bytes",
+                     reader->volume + 1, bytes_left);
+      goto exit;
+    }
+
     if (file_descriptor->flags & FILE_COMPRESSED)
     {
       static const uint8_t END_OF_CHUNK[4] = { 0x00, 0x00, 0xff, 0xff };
