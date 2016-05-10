@@ -530,6 +530,11 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
     unshield_trace("Trying to read 0x%x bytes from offset %08x in volume %i", 
         bytes_to_read, ftell(reader->volume_file), reader->volume);
 #endif
+    if (bytes_to_read == 0)
+    {
+      unshield_error("bytes_to_read can't be zero");
+      goto exit;
+    }
 
     if (bytes_to_read != fread(p, 1, bytes_to_read, reader->volume_file))
     {
@@ -711,14 +716,19 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
 
       if (!unshield_reader_read(reader, &bytes_to_read, sizeof(bytes_to_read)))
       {
-#if VERBOSE
-        unshield_error("Failed to read %i bytes of file %i (%s) from input cabinet file %i", 
+        unshield_error("Failed to read %i bytes of file %i (%s) from input cabinet file %i",
             sizeof(bytes_to_read), index, unshield_file_name(unshield, index), file_descriptor->volume);
-#endif
         goto exit;
       }
 
       bytes_to_read = letoh16(bytes_to_read);
+      if (bytes_to_read == 0)
+      {
+        unshield_error("bytes_to_read can't be zero");
+        unshield_error("HINT: Try unshield_file_save_old() or -O command line parameter!");
+        goto exit;
+      }
+
       if (!unshield_reader_read(reader, input_buffer, bytes_to_read))
       {
 #if VERBOSE
@@ -737,6 +747,10 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
       {
         unshield_error("Decompression failed with code %i. bytes_to_read=%i, volume_bytes_left=%i, volume=%i, read_bytes=%i", 
             result, bytes_to_read, reader->volume_bytes_left, file_descriptor->volume, read_bytes);
+        if (result == Z_DATA_ERROR)
+        {
+          unshield_error("HINT: Try unshield_file_save_old() or -O command line parameter!");
+        }
         goto exit;
       }
 
@@ -1103,7 +1117,7 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
 
         if (Z_OK != result)
         {
-          unshield_error("Decompression failed with code %i. input_size=%i, volume_bytes_left=%i, volume=%i, read_bytes=%i", 
+          unshield_error("Decompression failed with code %i. input_size=%i, volume_bytes_left=%i, volume=%i, read_bytes=%i",
               result, input_size, reader->volume_bytes_left, file_descriptor->volume, read_bytes);
           goto exit;
         }
