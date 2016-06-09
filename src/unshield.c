@@ -3,6 +3,18 @@
 #define _BSD_SOURCE 1
 #define _POSIX_C_SOURCE 2
 #endif
+
+#define _CRT_NONSTDC_NO_DEPRECATE 
+
+// Maximum length of file name
+#ifndef _MAX_PATH
+#define _MAX_PATH          260
+#endif
+
+#if !defined(PATH_MAX)
+#   define PATH_MAX _MAX_PATH
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <ctype.h>
@@ -77,7 +89,7 @@ static const char* encoding           = NULL;
 #ifdef HAVE_ICONV
       iconv_t encoding_descriptor           = (iconv_t)-1;
 #else
-static int*  encoding_descriptor           =          -1;
+static int  encoding_descriptor           =          -1;
 #endif
 
 static bool make_sure_directory_exists(const char* directory)/*{{{*/
@@ -98,7 +110,7 @@ static bool make_sure_directory_exists(const char* directory)/*{{{*/
     else
     {
       const char* slash = strchr(p, '/');
-      current = _strdup(directory);
+      current = strdup(directory);
       
       if (slash)
         current[slash-directory] = '\0';
@@ -106,7 +118,7 @@ static bool make_sure_directory_exists(const char* directory)/*{{{*/
       if (stat(current, &dir_stat) < 0)
       {
         #ifdef _WIN32
-        if (_mkdir(current) < 0)
+        if (mkdir(current) < 0)
         #else
         if (mkdir(current, 0700) < 0)
         #endif
@@ -364,18 +376,18 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 {
   bool success;
 
-  char dirname[_MAX_PATH];
-  char filename[_MAX_PATH];
+  char dirname[PATH_MAX];
+  char filename[PATH_MAX];
   char* p;
   int directory = unshield_file_directory(unshield, index);
 
-  strcpy_s(dirname, _MAX_PATH, output_directory);
-  strcat_s(dirname, _MAX_PATH, "/");
+  strcpy( dirname, output_directory);
+  strcat( dirname, "/");
 
   if (prefix && prefix[0])
   {
-    strcat_s(dirname, _MAX_PATH, prefix);
-    strcat_s(dirname, _MAX_PATH, "/");
+    strcat( dirname,  prefix);
+    strcat( dirname,  "/");
   }
 
   if (!junk_paths && directory >= 0)
@@ -383,8 +395,8 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     const char* tmp = unshield_directory_name(unshield, directory);
     if (tmp && tmp[0])
     {
-	  strcat_s(dirname, _MAX_PATH, tmp);
-	  strcat_s(dirname, _MAX_PATH, "/");
+	  strcat( dirname, tmp);
+	  strcat( dirname, "/");
     }
   }
 
@@ -596,7 +608,7 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
 
   for (i = first; i <= last; i++)
   {
-    char dirname[_MAX_PATH];
+    char dirname[PATH_MAX];
 
     if (unshield_file_is_valid(unshield, i) && should_process_file(unshield, i))
     {
@@ -604,13 +616,13 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
 
       if (prefix && prefix[0])
       {
-		strcpy_s(dirname, _MAX_PATH, prefix);
-		strcat_s(dirname, _MAX_PATH, "\\");
+		strcpy( dirname, prefix);
+		strcat( dirname, "\\");
       }
       else
         dirname[0] = '\0';
 
-	  strcat_s(dirname, _MAX_PATH,
+	  strcat( dirname,
           unshield_directory_name(unshield, unshield_file_directory(unshield, i)));
 
 #if 0
@@ -620,7 +632,7 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
 #endif
 
       if (dirname[ strlen(dirname)-1 ] != '\\')
-		  strcat_s(dirname, _MAX_PATH, "\\");
+		  strcat(dirname, "\\");
 
       printf(" %8" SIZE_FORMAT "  %s%s\n",
           unshield_file_size(unshield, i),
