@@ -10,7 +10,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <unistd.h>
+
 #include "../lib/libunshield.h"
 #ifdef HAVE_CONFIG_H
 #include "lib/unshield_config.h"
@@ -71,7 +73,12 @@ static const char* cab_file_name      = NULL;
 static char* const* path_names        = NULL;
 static int path_name_count            = 0;
 static const char* encoding           = NULL;
-iconv_t encoding_descriptor           = (iconv_t)-1;
+
+#ifdef HAVE_ICONV
+      iconv_t encoding_descriptor           = (iconv_t)-1;
+#else
+static int*  encoding_descriptor           =          -1;
+#endif
 
 static bool make_sure_directory_exists(const char* directory)/*{{{*/
 {
@@ -91,14 +98,14 @@ static bool make_sure_directory_exists(const char* directory)/*{{{*/
     else
     {
       const char* slash = strchr(p, '/');
-      current = strdup(directory);
+      current = _strdup(directory);
       
       if (slash)
         current[slash-directory] = '\0';
 
       if (stat(current, &dir_stat) < 0)
       {
-        #ifdef __MINGW32__
+        #ifdef _WIN32
         if (_mkdir(current) < 0)
         #else
         if (mkdir(current, 0700) < 0)
@@ -338,6 +345,15 @@ static bool handle_parameters(
     return false;
   }
 
+  // Replace in path \ -> /
+  // since windows also comes along with / as path seperator
+  // cab_file_name = repl_str (cab_file_name, '\\', '/'); 
+    char* pstrBackslash;
+    while ((pstrBackslash = strchr( cab_file_name, '\\')) != NULL) {
+      *pstrBackslash = '/';
+    }
+
+
   path_name_count = argc - optind;
   path_names = &argv[optind];
 
@@ -347,18 +363,19 @@ static bool handle_parameters(
 static bool extract_file(Unshield* unshield, const char* prefix, int index)
 {
   bool success;
-  char dirname[256];
-  char filename[256];
+
+  char dirname[_MAX_PATH];
+  char filename[_MAX_PATH];
   char* p;
   int directory = unshield_file_directory(unshield, index);
 
-  strcpy(dirname, output_directory);
-  strcat(dirname, "/");
+  strcpy_s(dirname, _MAX_PATH, output_directory);
+  strcat_s(dirname, _MAX_PATH, "/");
 
   if (prefix && prefix[0])
   {
-    strcat(dirname, prefix);
-    strcat(dirname, "/");
+    strcat_s(dirname, _MAX_PATH, prefix);
+    strcat_s(dirname, _MAX_PATH, "/");
   }
 
   if (!junk_paths && directory >= 0)
@@ -366,8 +383,8 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     const char* tmp = unshield_directory_name(unshield, directory);
     if (tmp && tmp[0])
     {
-      strcat(dirname, tmp);
-      strcat(dirname, "/");
+	  strcat_s(dirname, _MAX_PATH, tmp);
+	  strcat_s(dirname, _MAX_PATH, "/");
     }
   }
 
@@ -579,7 +596,7 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
 
   for (i = first; i <= last; i++)
   {
-    char dirname[256];
+    char dirname[_MAX_PATH];
 
     if (unshield_file_is_valid(unshield, i) && should_process_file(unshield, i))
     {
@@ -587,13 +604,13 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
 
       if (prefix && prefix[0])
       {
-        strcpy(dirname, prefix);
-        strcat(dirname, "\\");
+		strcpy_s(dirname, _MAX_PATH, prefix);
+		strcat_s(dirname, _MAX_PATH, "\\");
       }
       else
         dirname[0] = '\0';
 
-      strcat(dirname,
+	  strcat_s(dirname, _MAX_PATH,
           unshield_directory_name(unshield, unshield_file_directory(unshield, i)));
 
 #if 0
@@ -602,8 +619,8 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
           *p = '/';
 #endif
 
-      if (dirname[strlen(dirname)-1] != '\\')
-        strcat(dirname, "\\");
+      if (dirname[ strlen(dirname)-1 ] != '\\')
+		  strcat_s(dirname, _MAX_PATH, "\\");
 
       printf(" %8" SIZE_FORMAT "  %s%s\n",
           unshield_file_size(unshield, i),
@@ -621,10 +638,14 @@ static bool do_action(Unshield* unshield, ActionHelper helper)
 {
   int count = 0;
 
+  // Option -c  COMPONENT  Only list/extract this component
   if (component_name)
   {
+    fprintf(stderr, "Option -c  COMPONENT - not implemented yet!");
     abort();
   }
+
+  // Option  -g GROUP    Only list/extract this file group
   else if (file_group_name)
   {
     UnshieldFileGroup* file_group = unshield_file_group_find(unshield, file_group_name);
@@ -701,8 +722,10 @@ int main(int argc, char* const argv[])
     case ACTION_TEST:
       if (strcmp(output_directory, DEFAULT_OUTPUT_DIRECTORY) != 0)
         fprintf(stderr, "Output directory (-d) option has no effect with test (t) command.\n");
+
       if (make_lowercase)
         fprintf(stderr, "Make lowercase (-L) option has no effect with test (t) command.\n");
+
       success = do_action(unshield, test_helper);
       break;
   }
