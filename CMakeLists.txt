@@ -47,8 +47,7 @@ if(NOT SIZE_FORMAT_ZI)
 		endif()
 	endif()
 endif()
-message(STATUS "SIZE_FORMAT: \
-	${SIZE_FORMAT}")
+message(STATUS "SIZE_FORMAT: ${SIZE_FORMAT}")
 
 ###############################
 	
