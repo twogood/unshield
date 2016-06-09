@@ -31,13 +31,8 @@ check_function_exists( iconv HAVE_ICONV)
 
 ###############################
 # Check what format string for printf  works to output some size_t type
-set( SourcePre " \
-	#include <stdio.h> \n
-	int main() {  \
-		char buf[2]; \ 
-	  return  1-sprintf( buf,\"%")
-set( SourcePost "\
-\",  (size_t) 0);} ")
+set( SourcePre " #include <stdio.h> \n int main() {  char buf[2]; return  1-sprintf( buf,\"%")
+set( SourcePost "\",  (size_t) 0);} ")
 	
 set(SIZE_FORMAT "zi")
 CHECK_C_SOURCE_RUNS( "${SourcePre}${SIZE_FORMAT}${SourcePost}" SIZE_FORMAT_ZI)
@@ -57,7 +52,7 @@ message(STATUS "SIZE_FORMAT: \
 
 ###############################
 	
-find_package(ZLIB REQUIRED)
+find_package(ZLIB REQUIRED) #http://gnuwin32.sourceforge.net/packages/zlib.htm
 find_package(OpenSSL)
 
 if (${OPENSSL_FOUND})
@@ -88,4 +83,4 @@ add_subdirectory(lib)
 add_subdirectory(src)
 
 install(FILES man/unshield.1 DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/man/man1)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libunshield.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libunshield.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig) 
