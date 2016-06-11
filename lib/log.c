@@ -18,7 +18,7 @@ void _unshield_log(int level, const char* file, int line, const char* format, ..
 	if (level > current_log_level)
 		return;
 
-	fprintf(stderr, "[%s:%i] ", file, line);
+	fprintf(stderr, "[%30s:%i]\t", file, line);
 	
 	va_start(ap, format);
 	vfprintf(stderr, format, ap);
