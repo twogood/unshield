@@ -20,7 +20,7 @@ int main(int argc, char** argv)
     exit(1);
   }
 
-  input = fopen(argv[1], "r");
+  input = fopen(argv[1], "rb");
   if (!input)
   {
     fprintf(stderr, 
@@ -29,7 +29,7 @@ int main(int argc, char** argv)
     exit(2);
   }
 
-  output = fopen(argv[2], "w");
+  output = fopen(argv[2], "wb");
   if (!output)
   {
     fprintf(stderr, 
