@@ -70,8 +70,10 @@ static int is_version                 = -1;
 static const char* cab_file_name      = NULL;
 static char* const* path_names        = NULL;
 static int path_name_count            = 0;
+#ifdef HAVE_ICONV
 static const char* encoding           = NULL;
 iconv_t encoding_descriptor           = (iconv_t)-1;
+#endif
 
 static bool make_sure_directory_exists(const char* directory)/*{{{*/
 {
