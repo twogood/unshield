@@ -689,7 +689,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
 
   if (filename) 
   {
-    output = fopen(filename, "w");
+    output = fopen(filename, "wb");
     if (!output)
     {
       unshield_error("Failed to open output file '%s'", filename);
@@ -891,7 +891,7 @@ bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
 
   if (filename) 
   {
-    output = fopen(filename, "w");
+    output = fopen(filename, "wb");
     if (!output)
     {
       unshield_error("Failed to open output file '%s'", filename);
@@ -1008,7 +1008,7 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
 
   if (filename) 
   {
-    output = fopen(filename, "w");
+    output = fopen(filename, "wb");
     if (!output)
     {
       unshield_error("Failed to open output file '%s'", filename);
