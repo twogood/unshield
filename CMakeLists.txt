@@ -67,6 +67,11 @@ if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
     add_definitions(-fPIC)
 endif()
 
+if (WIN32)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/win32)
+endif (WIN32)
+
 add_subdirectory(lib)
 add_subdirectory(src)
 

@@ -19,18 +19,18 @@ extern "C"
 
 void _unshield_log(int level, const char* file, int line, const char* format, ...);
 
-#define unshield_trace(format, args...) \
-	_unshield_log(UNSHIELD_LOG_LEVEL_TRACE,__PRETTY_FUNCTION__, __LINE__, format, ##args)
+#define unshield_trace(format, ...) \
+	_unshield_log(UNSHIELD_LOG_LEVEL_TRACE,__PRETTY_FUNCTION__, __LINE__, format,  ##__VA_ARGS__)
 
-#define unshield_warning(format, args...) \
-	_unshield_log(UNSHIELD_LOG_LEVEL_WARNING,__PRETTY_FUNCTION__, __LINE__, format, ##args)
+#define unshield_warning(format, ...) \
+	_unshield_log(UNSHIELD_LOG_LEVEL_WARNING,__PRETTY_FUNCTION__, __LINE__, format,  ##__VA_ARGS__)
 
-#define unshield_warning_unless(cond, format, args...) \
+#define unshield_warning_unless(cond, format, ...) \
 	if (!(cond)) \
-	_unshield_log(UNSHIELD_LOG_LEVEL_WARNING,__PRETTY_FUNCTION__, __LINE__, format, ##args)
+	_unshield_log(UNSHIELD_LOG_LEVEL_WARNING,__PRETTY_FUNCTION__, __LINE__, format, ## __VA_ARGS__)
 
-#define unshield_error(format, args...) \
-	_unshield_log(UNSHIELD_LOG_LEVEL_ERROR,__PRETTY_FUNCTION__, __LINE__, format, ##args)
+#define unshield_error(format, ...) \
+	_unshield_log(UNSHIELD_LOG_LEVEL_ERROR,__PRETTY_FUNCTION__, __LINE__, format, ## __VA_ARGS__)
 
 #ifdef __cplusplus
 }
