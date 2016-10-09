@@ -10,7 +10,7 @@
 
 #define VERBOSE 0
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_MSC_VER)
   #define snprintf _snprintf
   #define vsnprintf _vsnprintf
   #define strcasecmp _stricmp

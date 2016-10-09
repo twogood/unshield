@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef _WIN32
+#if !defined(_MSC_VER)
 #include <sys/param.h>    /* for MIN(a,b) */
 #endif
 
