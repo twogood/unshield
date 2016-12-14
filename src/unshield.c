@@ -353,6 +353,8 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   char filename[256];
   char* p;
   int directory = unshield_file_directory(unshield, index);
+  char* real_output_directory;
+  char* real_filename;
 
   strcpy(dirname, output_directory);
   strcat(dirname, "/");
@@ -439,6 +441,23 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     goto exit;
   }
 #endif
+
+  real_output_directory=realpath(output_directory, NULL);
+  real_filename=realpath(filename, NULL);
+
+  if (real_filename == NULL || strncmp(real_filename,
+                                       real_output_directory,
+                                       strlen(real_output_directory)) != 0)
+  {
+    fprintf(stderr, "\n\nExtraction failed.\nPossible directory traversal attack for %s\n", filename);
+    free(real_filename);
+    free(real_output_directory);
+    exit_status = 1;
+    success = false;
+    return success;
+  }
+  free(real_filename);
+  free(real_output_directory);
 
   printf("  extracting: %s\n", filename);
   switch (format)
