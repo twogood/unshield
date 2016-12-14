@@ -453,6 +453,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     free(real_filename);
     free(real_output_directory);
     exit_status = 1;
+    success = false;
     return success;
   }
   free(real_filename);
