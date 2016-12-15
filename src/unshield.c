@@ -353,8 +353,8 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   char filename[256];
   char* p;
   int directory = unshield_file_directory(unshield, index);
-  char* real_output_directory;
-  char* real_filename;
+  char real_output_directory[256];
+  char real_filename[256];
 
   strcpy(dirname, output_directory);
   strcat(dirname, "/");
@@ -442,22 +442,19 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   }
 #endif
 
-  real_output_directory=realpath(output_directory, NULL);
-  real_filename=realpath(filename, NULL);
-
+  realpath(output_directory, real_output_directory);
+  realpath(filename, real_filename);
   if (real_filename == NULL || strncmp(real_filename,
                                        real_output_directory,
                                        strlen(real_output_directory)) != 0)
   {
-    fprintf(stderr, "\n\nExtraction failed.\nPossible directory traversal attack for %s\n", filename);
-    free(real_filename);
-    free(real_output_directory);
+    fprintf(stderr, "\n\nExtraction failed.\n");
+    fprintf(stderr, "Possible directory traversal attack for: %s\n", filename);
+    fprintf(stderr, "To be placed at: %s\n\n", real_filename);
     exit_status = 1;
     success = false;
     return success;
   }
-  free(real_filename);
-  free(real_output_directory);
 
   printf("  extracting: %s\n", filename);
   switch (format)
