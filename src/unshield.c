@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <limits.h>
 #include "../lib/libunshield.h"
 #ifdef HAVE_CONFIG_H
 #include "lib/unshield_config.h"
@@ -353,8 +354,26 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   char filename[256];
   char* p;
   int directory = unshield_file_directory(unshield, index);
-  char real_output_directory[256];
-  char real_filename[256];
+  long int path_max;
+  char* real_output_directory;
+  char* real_filename;
+
+  #ifdef PATH_MAX
+    path_max = PATH_MAX;
+  #else
+    path_max = pathconf(path, _PC_PATH_MAX);
+    if (path_max <= 0)
+      path_max = 4096;
+  #endif
+
+  real_output_directory = malloc(path_max);
+  real_filename = malloc(path_max);
+  if (real_output_directory == NULL || real_filename == NULL)
+  {
+    fprintf(stderr,"Unable to allocate memory.");
+    success=false;
+    goto exit;
+  }
 
   strcpy(dirname, output_directory);
   strcat(dirname, "/");
@@ -442,6 +461,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   }
 #endif
 
+  /* use GNU extension to return non-existing files to real_output_directory */
   realpath(output_directory, real_output_directory);
   realpath(filename, real_filename);
   if (real_filename == NULL || strncmp(real_filename,
@@ -453,6 +473,8 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     fprintf(stderr, "To be placed at: %s\n\n", real_filename);
     exit_status = 1;
     success = false;
+    free(real_filename);
+    free(real_output_directory);
     return success;
   }
 
@@ -479,7 +501,8 @@ exit:
     unlink(filename);
     exit_status = 1;
   }
-
+  free(real_filename);
+  free(real_output_directory);
   return success;
 }
 
