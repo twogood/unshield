@@ -11,7 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <limits.h>
 #include "../lib/libunshield.h"
 #ifdef HAVE_CONFIG_H
 #include "lib/unshield_config.h"
@@ -29,6 +28,16 @@
 #endif
 
 #define FREE(ptr)       { if (ptr) { free(ptr); ptr = NULL; } }
+
+#ifdef _WIN32
+  #define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
+  #include <direct.h>
+  #ifndef PATH_MAX
+    #define PATH_MAX _MAX_PATH
+  #endif
+#else
+  #include <limits.h>
+#endif
 
 typedef enum 
 {
