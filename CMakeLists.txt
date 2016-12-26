@@ -3,7 +3,7 @@ project(unshield)
 
 # Mimic CMP0048 which is avaliable only for cmake 3.0 and later
 set(PROJECT_VERSION_MAJOR 1)
-set(PROJECT_VERSION_MINOR 3)
+set(PROJECT_VERSION_MINOR 4)
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
 
 option(BUILD_STATIC "Build static version of libunshield" OFF)
