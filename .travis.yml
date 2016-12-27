@@ -18,6 +18,8 @@ env:
 script: mkdir build && cd build && cmake -DZLIB_ROOT:PATH=$ROOT -DCMAKE_SYSTEM_NAME=$CMAKE_SYSTEM_NAME -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield -DUSE_OUR_OWN_MD5=$USE_OUR_OWN_MD5 -DBUILD_STATIC=$BUILD_STATIC .. && make && make install && ../run-tests.sh
 
 before_install:
+  # https://bugs.launchpad.net/ubuntu/+source/mingw-w64/+bug/1022397
+  - sudo add-apt-repository ppa:mingw-packages/ppa -y
   - sudo apt-get update -qq
-  - sudo apt-get install -qq libz-mingw-w64-dev
+  - sudo apt-get install -qq zlib-mingw-w64-cross -y
 
