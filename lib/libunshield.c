@@ -27,7 +27,7 @@ static bool unshield_create_filename_pattern(Unshield* unshield, const char* fil
 
     for (; *p != '\0'; p++)
     {
-      if ('.' == *p || isdigit(*p))
+      if ('.' == *p || isdigit((unsigned char)*p))
       {
         *p = '\0';
         break;

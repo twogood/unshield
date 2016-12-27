@@ -18,6 +18,9 @@
 #if HAVE_FNMATCH
 #include <fnmatch.h>
 #endif
+#ifdef __MINGW32__
+#include <direct.h>
+#endif
 #ifdef HAVE_ICONV
 #include <iconv.h>
 #include <errno.h>
@@ -422,10 +425,10 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
       default:
         if (!raw_filename)
         {  
-          if (!isprint(*p))
+          if (!isprint((unsigned char)*p))
             *p = '_';
           else if (make_lowercase)
-            *p = tolower(*p);
+            *p = tolower((unsigned char)*p);
         }
         break;;
     }
@@ -454,10 +457,10 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   {
     if (!raw_filename)
     {
-      if (!isprint(*p))
+      if (!isprint((unsigned char)*p))
         *p = '_';
       else if (make_lowercase)
-        *p = tolower(*p);
+        *p = tolower((unsigned char)*p);
     }
   }
 

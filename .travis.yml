@@ -11,6 +11,8 @@ env:
     - USE_OUR_OWN_MD5=1 BUILD_STATIC=0
     - USE_OUR_OWN_MD5=0 BUILD_STATIC=1
     - USE_OUR_OWN_MD5=1 BUILD_STATIC=1
+    - USE_OUR_OWN_MD5=1 BUILD_STATIC=1 CC= PLATFORM="mingw32" ARCH="x86"
+    - USE_OUR_OWN_MD5=1 BUILD_STATIC=1 CC= PLATFORM="mingw32" ARCH="x86_64"      
 
 # cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield . && make && make install
 script: mkdir build && cd build && cmake -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield -DUSE_OUR_OWN_MD5=$USE_OUR_OWN_MD5 -DBUILD_STATIC=$BUILD_STATIC .. && make && make install && ../run-tests.sh
