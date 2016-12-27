@@ -19,10 +19,10 @@ script: mkdir build && cd build && cmake "$CMAKE_PARAMS" -DCMAKE_INSTALL_PREFIX:
 
 before_install:
   # https://bugs.launchpad.net/ubuntu/+source/mingw-w64/+bug/1022397
-  - test "$MINGW" && sudo add-apt-repository ppa:mingw-packages/ppa -y
-  - test "$MINGW" && sudo apt-get update -qq
-  - test "$MINGW" && sudo apt-get install zlib-mingw-w64-cross -y
-  - test "$MINGW" && sudo apt-get install binutils-mingw-w64-i686 gcc-mingw-w64-i686 g++-mingw-w64-i686 binutils-mingw-w64-x86-64 gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 -y
-  - test "$MINGW" && export CC=$ARCH-w64-mingw32-gcc CXX=$ARCH-w64-mingw32-c++
-  - test "$MINGW" && export CMAKE_PARAMS="-DCMAKE_RC_COMPILER:FILEPATH=/usr/bin/$ARCH-w64-mingw32-windres -DZLIB_ROOT:PATH=/usr/$ARCH-w64-mingw32 -DCMAKE_SYSTEM_NAME=Windows"
+  - if [ "$MINGW" ]; then sudo add-apt-repository ppa:mingw-packages/ppa -y; fi
+  - if [ "$MINGW" ]; then sudo apt-get update -qq; fi
+  - if [ "$MINGW" ]; then sudo apt-get install zlib-mingw-w64-cross -y; fi
+  - if [ "$MINGW" ]; then sudo apt-get install binutils-mingw-w64-i686 gcc-mingw-w64-i686 g++-mingw-w64-i686 binutils-mingw-w64-x86-64 gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 -y; fi
+  - if [ "$MINGW" ]; then export CC=$ARCH-w64-mingw32-gcc CXX=$ARCH-w64-mingw32-c++; fi
+  - if [ "$MINGW" ]; then export CMAKE_PARAMS="-DCMAKE_RC_COMPILER:FILEPATH=/usr/bin/$ARCH-w64-mingw32-windres -DZLIB_ROOT:PATH=/usr/$ARCH-w64-mingw32 -DCMAKE_SYSTEM_NAME=Windows"; fi
 
