@@ -2,7 +2,7 @@
 set -e
 cd `dirname $0`
 MD5_FILE=`pwd`/`basename $0 .sh`.md5
-UNSHIELD=/var/tmp/unshield/bin/unshield
+UNSHIELD=${UNSHIELD:-/var/tmp/unshield/bin/unshield}
 
 if [ \! -x ${UNSHIELD} ]; then
     echo "unshield executable not found at $UNSHIELD" >&2
