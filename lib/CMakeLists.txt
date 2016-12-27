@@ -37,7 +37,7 @@ else()
 endif()
 
 set_target_properties(libunshield PROPERTIES OUTPUT_NAME unshield)
-set_target_properties(libunshield PROPERTIES SOVERSION ${PROJECT_VERSION})
+set_target_properties(libunshield PROPERTIES VERSION 0.0.0 SOVERSION 0)
 
 install(TARGETS libunshield RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES libunshield.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
