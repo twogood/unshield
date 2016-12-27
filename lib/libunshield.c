@@ -1,5 +1,6 @@
 /* $Id$ */
 #define _BSD_SOURCE 1
+#define _DEFAULT_SOURCE 1
 #include "internal.h"
 #include "log.h"
 #include <assert.h>
