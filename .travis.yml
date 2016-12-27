@@ -12,9 +12,12 @@ env:
     - USE_OUR_OWN_MD5=0 BUILD_STATIC=1
     - USE_OUR_OWN_MD5=1 BUILD_STATIC=1
     # cross-compile using mingw
-    - USE_OUR_OWN_MD5=1 BUILD_STATIC=1 CC= PLATFORM="mingw32" ARCH="x86"
-    - USE_OUR_OWN_MD5=1 BUILD_STATIC=1 CC= PLATFORM="mingw32" ARCH="x86_64"      
+    - USE_OUR_OWN_MD5=1 BUILD_STATIC=1 CC=i686-w64-mingw32-gcc   CXX=i686-w64-mingw32-c++   CMAKE_SYSTEM_NAME=Windows ROOT=/usr/i686-w64-mingw32
+    - USE_OUR_OWN_MD5=1 BUILD_STATIC=1 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-c++ CMAKE_SYSTEM_NAME=Windows ROOT=/usr/x86_64-w64-mingw32
 
-# cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield . && make && make install
-script: mkdir build && cd build && cmake -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield -DUSE_OUR_OWN_MD5=$USE_OUR_OWN_MD5 -DBUILD_STATIC=$BUILD_STATIC .. && make && make install && ../run-tests.sh
+script: mkdir build && cd build && cmake -DZLIB_ROOT:PATH=$ROOT -DCMAKE_SYSTEM_NAME=$CMAKE_SYSTEM_NAME -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield -DUSE_OUR_OWN_MD5=$USE_OUR_OWN_MD5 -DBUILD_STATIC=$BUILD_STATIC .. && make && make install && ../run-tests.sh
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libz-mingw-w64-dev
 
