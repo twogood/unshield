@@ -69,7 +69,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/lib)
 
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
-  add_definitions(-mcmodel=large)
+  #  add_definitions(-mcmodel=large)
 else()
   # The POSITION_INDEPENDENT_CODE property was introduced in cmake 2.8.10/CMP0018
   # as we are targeting cmake 2.8.7, we can't use
