@@ -62,10 +62,11 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libunshield.pc.in ${CMAKE_CURRENT_BIN
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/lib)
 
-# To force position independent code for static libs on Linux x64
-if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
-    add_definitions(-fPIC)
-endif()
+# The POSITION_INDEPENDENT_CODE property was introduced in cmake 2.8.10/CMP0018
+# as we are targeting cmake 2.8.7, we can't use
+#  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+# let's fall back to add_definitions for now
+add_definitions(-fPIC)
 
 add_subdirectory(lib)
 add_subdirectory(src)
