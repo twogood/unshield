@@ -1,4 +1,7 @@
+LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
+IF("${isSystemDir}" STREQUAL "-1")
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+ENDIF("${isSystemDir}" STREQUAL "-1")
 
 add_executable(unshield "unshield.c")
 target_link_libraries(unshield libunshield)
