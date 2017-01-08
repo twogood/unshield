@@ -360,8 +360,8 @@ static bool handle_parameters(
 static bool extract_file(Unshield* unshield, const char* prefix, int index)
 {
   bool success;
-  char dirname[256];
-  char filename[256];
+  char* dirname;
+  char* filename;
   char* p;
   int directory = unshield_file_directory(unshield, index);
   long int path_max;
@@ -378,6 +378,8 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 
   real_output_directory = malloc(path_max);
   real_filename = malloc(path_max);
+  dirname = malloc(path_max);
+  filename = malloc(path_max);
   if (real_output_directory == NULL || real_filename == NULL)
   {
     fprintf(stderr,"Unable to allocate memory.");
@@ -385,13 +387,45 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     goto exit;
   }
 
-  strcpy(dirname, output_directory);
-  strcat(dirname, "/");
+
+  if(strlen(output_directory) < path_max-2)
+  {
+    strncpy(dirname, output_directory,path_max-2);
+    if (path_max > 0)
+      dirname[path_max - 1]= '\0';
+    strcat(dirname, "/");
+  }
+  else
+  {
+    fprintf(stderr, "\nOutput directory exceeds maximum path length.\n");
+    exit_status = 1;
+    success = false;
+    free(real_filename);
+    free(real_output_directory);
+    free(dirname);
+    free(filename);
+    return success;
+  }
+
 
   if (prefix && prefix[0])
   {
-    strcat(dirname, prefix);
-    strcat(dirname, "/");
+    if(strlen(dirname)+strlen(prefix) < path_max-2)
+    {
+      strcat(dirname, prefix);
+      strcat(dirname, "/");
+    }
+    else
+    {
+    fprintf(stderr, "\nOutput directory exceeds maximum path length.\n");
+    exit_status = 1;
+    success = false;
+    free(real_filename);
+    free(real_output_directory);
+    free(dirname);
+    free(filename);
+    return success;
+    }
   }
 
   if (!junk_paths && directory >= 0)
@@ -399,8 +433,22 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     const char* tmp = unshield_directory_name(unshield, directory);
     if (tmp && tmp[0])
     {
-      strcat(dirname, tmp);
-      strcat(dirname, "/");
+      if(strlen(dirname)+strlen(tmp) < path_max-2)
+      {
+        strcat(dirname, tmp);
+        strcat(dirname, "/");
+      }
+      else
+      {
+      fprintf(stderr, "\nOutput directory exceeds maximum path length.\n");
+      exit_status = 1;
+      success = false;
+      free(real_filename);
+      free(real_output_directory);
+      free(dirname);
+      free(filename);
+      return success;
+      }
     }
   }
 
@@ -448,7 +496,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 
   make_sure_directory_exists(dirname);
 
-  snprintf(filename, sizeof(filename), "%s%s", 
+  snprintf(filename, path_max, "%s%s", 
       dirname, unshield_file_name(unshield, index));
 
   for (p = filename + strlen(dirname); *p != '\0'; p++)
@@ -485,6 +533,8 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     success = false;
     free(real_filename);
     free(real_output_directory);
+    free(dirname);
+    free(filename);
     return success;
   }
 
@@ -513,6 +563,8 @@ exit:
   }
   free(real_filename);
   free(real_output_directory);
+  free(dirname);
+  free(filename);
   return success;
 }
 
@@ -630,7 +682,7 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
 
   for (i = first; i <= last; i++)
   {
-    char dirname[256];
+    char dirname[4096];
 
     if (unshield_file_is_valid(unshield, i) && should_process_file(unshield, i))
     {

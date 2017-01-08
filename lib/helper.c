@@ -9,6 +9,16 @@
 #include <string.h>
 #include <errno.h>
 
+#ifdef _WIN32
+  #define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
+  #include <direct.h>
+  #ifndef PATH_MAX
+    #define PATH_MAX _MAX_PATH
+  #endif
+#else
+  #include <limits.h>
+#endif
+
 #define VERBOSE 0
 
 FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suffix)
@@ -16,13 +26,37 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
   if (unshield && unshield->filename_pattern)
   {
     FILE* result = NULL;
-    char filename[256];
-    char dirname[256];
+    char* filename;
+    char* dirname;
     char * p = strrchr(unshield->filename_pattern, '/');
     const char *q;
     struct dirent *dent = NULL;
     DIR *sourcedir;
-    snprintf(filename, sizeof(filename), unshield->filename_pattern, index, suffix);
+    long int path_max;
+
+    #ifdef PATH_MAX
+    path_max = PATH_MAX;
+    #else
+    path_max = pathconf(prefix, _PC_PATH_MAX);
+    if (path_max <= 0)
+      path_max = 4096;
+    #endif
+
+    dirname = malloc(path_max);
+    filename = malloc(path_max);
+    if (filename == NULL || dirname == NULL)
+    {
+      unshield_error("Unable to allocate memory.\n");
+      return false;
+    }
+
+    if(snprintf(filename, path_max, unshield->filename_pattern, index, suffix)>=path_max)
+    {
+      unshield_error("Pathname exceeds system limits.\n");
+      free(filename);
+      free(dirname);
+      return false;
+    }
     q=strrchr(filename,'/');
     if (q)
       q++;
@@ -31,11 +65,11 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
 
     if (p)
     {
-      strncpy( dirname, unshield->filename_pattern,sizeof(dirname));
-      if ((unsigned int)(p-unshield->filename_pattern) > sizeof(dirname))
+      strncpy( dirname, unshield->filename_pattern,path_max);
+      if ((unsigned int)(p-unshield->filename_pattern) > path_max)
       {
         unshield_trace("WARN: size\n");
-        dirname[sizeof(dirname)-1]=0;
+        dirname[path_max-1]=0;
       }
       else
         dirname[(p-unshield->filename_pattern)] = 0;
@@ -62,7 +96,13 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
         goto exit;
       }
       else
-        snprintf(filename, sizeof(filename), "%s/%s", dirname, dent->d_name);
+        if(snprintf(filename, path_max, "%s/%s", dirname, dent->d_name)>=path_max)
+        {
+          unshield_error("Pathname exceeds system limits.\n");
+          free(filename);
+          free(dirname);
+          return false;
+        }
     }
     else
       unshield_trace("Could not open directory %s error %s\n", dirname, strerror(errno));
@@ -75,7 +115,8 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
 exit:
     if (sourcedir)
       closedir(sourcedir);
-
+    free(filename);
+    free(dirname);
     return result;
   }
 
