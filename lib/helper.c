@@ -47,15 +47,13 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
     if (filename == NULL || dirname == NULL)
     {
       unshield_error("Unable to allocate memory.\n");
-      return false;
+      goto exit;
     }
 
     if(snprintf(filename, path_max, unshield->filename_pattern, index, suffix)>=path_max)
     {
       unshield_error("Pathname exceeds system limits.\n");
-      free(filename);
-      free(dirname);
-      return false;
+      goto exit;
     }
     q=strrchr(filename,'/');
     if (q)
@@ -99,9 +97,7 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
         if(snprintf(filename, path_max, "%s/%s", dirname, dent->d_name)>=path_max)
         {
           unshield_error("Pathname exceeds system limits.\n");
-          free(filename);
-          free(dirname);
-          return false;
+          goto exit;
         }
     }
     else

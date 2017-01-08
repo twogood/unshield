@@ -40,6 +40,10 @@
   #include <limits.h>
 #endif
 
+#ifndef NAME_MAX
+  #define NAME_MAX FILENAME_MAX
+#endif
+
 typedef enum 
 {
   OVERWRITE_ASK,
@@ -118,6 +122,8 @@ static bool make_sure_directory_exists(const char* directory)/*{{{*/
         #endif
         {
           fprintf(stderr, "Failed to create directory %s\n", directory);
+          if(strlen(directory)>NAME_MAX)
+            fprintf(stderr, "Directory name must be less than %i characters\n", NAME_MAX+1);
           goto exit;
         }
       }
@@ -388,9 +394,9 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   }
 
 
-  if(strlen(output_directory) < path_max-2)
+  if(strlen(output_directory) < path_max-1)
   {
-    strncpy(dirname, output_directory,path_max-2);
+    strncpy(dirname, output_directory,path_max-1);
     if (path_max > 0)
       dirname[path_max - 1]= '\0';
     strcat(dirname, "/");
@@ -398,19 +404,14 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   else
   {
     fprintf(stderr, "\nOutput directory exceeds maximum path length.\n");
-    exit_status = 1;
     success = false;
-    free(real_filename);
-    free(real_output_directory);
-    free(dirname);
-    free(filename);
-    return success;
+    goto exit;
   }
 
 
   if (prefix && prefix[0])
   {
-    if(strlen(dirname)+strlen(prefix) < path_max-2)
+    if(strlen(dirname)+strlen(prefix) < path_max-1)
     {
       strcat(dirname, prefix);
       strcat(dirname, "/");
@@ -418,13 +419,8 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     else
     {
     fprintf(stderr, "\nOutput directory exceeds maximum path length.\n");
-    exit_status = 1;
     success = false;
-    free(real_filename);
-    free(real_output_directory);
-    free(dirname);
-    free(filename);
-    return success;
+    goto exit;
     }
   }
 
@@ -433,7 +429,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     const char* tmp = unshield_directory_name(unshield, directory);
     if (tmp && tmp[0])
     {
-      if(strlen(dirname)+strlen(tmp) < path_max-2)
+      if(strlen(dirname)+strlen(tmp) < path_max-1)
       {
         strcat(dirname, tmp);
         strcat(dirname, "/");
@@ -441,13 +437,8 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
       else
       {
       fprintf(stderr, "\nOutput directory exceeds maximum path length.\n");
-      exit_status = 1;
       success = false;
-      free(real_filename);
-      free(real_output_directory);
-      free(dirname);
-      free(filename);
-      return success;
+      goto exit;
       }
     }
   }
@@ -529,13 +520,8 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     fprintf(stderr, "\n\nExtraction failed.\n");
     fprintf(stderr, "Possible directory traversal attack for: %s\n", filename);
     fprintf(stderr, "To be placed at: %s\n\n", real_filename);
-    exit_status = 1;
     success = false;
-    free(real_filename);
-    free(real_output_directory);
-    free(dirname);
-    free(filename);
-    return success;
+    goto exit;
   }
 
   printf("  extracting: %s\n", filename);
