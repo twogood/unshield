@@ -27,12 +27,12 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
   if (unshield && unshield->filename_pattern)
   {
     FILE* result = NULL;
-    char* filename;
-    char* dirname;
+    char* filename = NULL;
+    char* dirname = NULL;
     char * p = strrchr(unshield->filename_pattern, '/');
     const char *q;
     struct dirent *dent = NULL;
-    DIR *sourcedir;
+    DIR *sourcedir = NULL;
     long int path_max;
 
     #ifdef PATH_MAX
