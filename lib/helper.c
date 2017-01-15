@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
 
 #ifdef _WIN32
   #define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
@@ -37,7 +38,7 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
     #ifdef PATH_MAX
     path_max = PATH_MAX;
     #else
-    path_max = pathconf(prefix, _PC_PATH_MAX);
+    path_max = pathconf(unshield->filename_pattern, _PC_PATH_MAX);
     if (path_max <= 0)
       path_max = 4096;
     #endif
