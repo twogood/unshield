@@ -18,4 +18,6 @@ src/unshield
 src/unshield-deobfuscate
 .*.swp
 .idea
-build
+build/
+*.dll
+*.exe

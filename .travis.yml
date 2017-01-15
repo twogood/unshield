@@ -12,7 +12,18 @@ env:
     - USE_OUR_OWN_MD5=1 BUILD_STATIC=0
     - USE_OUR_OWN_MD5=0 BUILD_STATIC=1
     - USE_OUR_OWN_MD5=1 BUILD_STATIC=1
+    # cross-compile using mingw
+    - USE_OUR_OWN_MD5=1 BUILD_STATIC=1 MINGW=1 ARCH=i686
+    - USE_OUR_OWN_MD5=1 BUILD_STATIC=1 MINGW=1 ARCH=x86_64
 
-# cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield . && make && make install
-script: mkdir build && cd build && cmake -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield -DUSE_OUR_OWN_MD5=$USE_OUR_OWN_MD5 -DBUILD_STATIC=$BUILD_STATIC .. && make && make install && ../run-tests.sh
+script: mkdir build && cd build && cmake $CMAKE_PARAMS -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield -DUSE_OUR_OWN_MD5=$USE_OUR_OWN_MD5 -DBUILD_STATIC=$BUILD_STATIC .. && make && make install && ../run-tests.sh
+
+before_install:
+  # https://bugs.launchpad.net/ubuntu/+source/mingw-w64/+bug/1022397
+  - if [ "$MINGW" ]; then sudo add-apt-repository ppa:mingw-packages/ppa -y; fi
+  - if [ "$MINGW" ]; then sudo apt-get update -qq; fi
+  - if [ "$MINGW" ]; then sudo apt-get install zlib-mingw-w64-cross -y; fi
+  - if [ "$MINGW" ]; then sudo apt-get install binutils-mingw-w64-i686 gcc-mingw-w64-i686 g++-mingw-w64-i686 binutils-mingw-w64-x86-64 gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 -y; fi
+  - if [ "$MINGW" ]; then export CC=$ARCH-w64-mingw32-gcc CXX=$ARCH-w64-mingw32-c++; fi
+  - if [ "$MINGW" ]; then export CMAKE_PARAMS="-DCMAKE_RC_COMPILER:FILEPATH=/usr/bin/$ARCH-w64-mingw32-windres -DZLIB_ROOT:PATH=/usr/$ARCH-w64-mingw32 -DCMAKE_SYSTEM_NAME=Windows"; fi
 
