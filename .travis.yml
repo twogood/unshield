@@ -4,6 +4,10 @@ compiler:
   - gcc
   - clang
 
+os:
+  - linux
+  - osx
+
 env:
   global:
     - CFLAGS="-Wall -Werror -ggdb3"
@@ -14,5 +18,11 @@ env:
     - USE_OUR_OWN_MD5=1 BUILD_STATIC=1
 
 # cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield . && make && make install
-script: mkdir build && cd build && cmake -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield -DUSE_OUR_OWN_MD5=$USE_OUR_OWN_MD5 -DBUILD_STATIC=$BUILD_STATIC .. && make && make install && ../run-tests.sh
+script:
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield -DUSE_OUR_OWN_MD5=$USE_OUR_OWN_MD5 -DBUILD_STATIC=$BUILD_STATIC ..
+  - make
+  - make install
+  - ../run-tests.sh
 
