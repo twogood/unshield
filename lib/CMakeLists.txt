@@ -33,6 +33,7 @@ add_library(libunshield ${LIBUNSHIELD_LIBRARY_TYPE} ${LIBUNSHIELD_HEADES} ${LIBU
 if(USE_OUR_OWN_MD5)
     target_link_libraries(libunshield ${ZLIB_LIBRARY} md5 convert_utf)
 else()
+    include_directories(${OPENSSL_INCLUDE_DIR})
     target_link_libraries(libunshield ${ZLIB_LIBRARY} ${OPENSSL_LIBRARIES} convert_utf)
 endif()
 
