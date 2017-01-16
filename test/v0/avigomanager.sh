@@ -37,7 +37,7 @@ fi
 
 cd extract2
 find . -type f | LC_ALL=C sort | xargs md5sum > ../md5
-if ! diff -w ${MD5_FILE} ../md5 >&2 ; then
+if ! diff -wu ${MD5_FILE} ../md5 >&2 ; then
     echo "MD5 sums diff" >&2
     exit 4
 fi
