@@ -1,3 +1,11 @@
+LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
+IF("${isSystemDir}" STREQUAL "-1")
+# Enable CMP0042
+if (APPLE)
+	set(CMAKE_MACOSX_RPATH ON)
+endif (APPLE)
+ENDIF("${isSystemDir}" STREQUAL "-1")
+
 add_subdirectory(convert_utf)
 
 if(USE_OUR_OWN_MD5)
@@ -33,6 +41,7 @@ add_library(libunshield ${LIBUNSHIELD_LIBRARY_TYPE} ${LIBUNSHIELD_HEADES} ${LIBU
 if(USE_OUR_OWN_MD5)
     target_link_libraries(libunshield ${ZLIB_LIBRARY} md5 convert_utf)
 else()
+    include_directories(${OPENSSL_INCLUDE_DIR})
     target_link_libraries(libunshield ${ZLIB_LIBRARY} ${OPENSSL_LIBRARIES} convert_utf)
 endif()
 

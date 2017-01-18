@@ -28,8 +28,8 @@ if [ ${CODE} -ne 0 ]; then
 fi
 
 cd extract1
-find . -type f | sort | xargs md5sum > ../md5
-if ! diff ${MD5_FILE} ../md5 >&2 ; then
+find . -type f | LC_ALL=C sort | xargs md5sum > ../md5
+if ! diff -wu ${MD5_FILE} ../md5 >&2 ; then
     echo "MD5 sums diff" >&2
     echo "See https://github.com/twogood/unshield/issues/27" >&2
     exit 3

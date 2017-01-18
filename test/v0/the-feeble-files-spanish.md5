@@ -6,9 +6,9 @@ de4f46b96872f50ed9a9bc86e3f3b74f  ./Essential_Game_Files/0071.VGA
 c9984357a5534e05b9d3f7da36856730  ./Essential_Game_Files/0072.VGA
 a884cd4b8597f40e9557ef4a7ca80031  ./Essential_Game_Files/0081.VGA
 e465c315cbe92ba02821c8e9ff927777  ./Essential_Game_Files/0082.VGA
+a1af4636fe0d3286d17d0aa6ca89fda4  ./Essential_Game_Files/0091.VGA
 a1af4636fe0d3286d17d0aa6ca89fda4  ./Essential_Game_Files/0091.fst
 1f8c398703d331547b1b0c33de176eed  ./Essential_Game_Files/0091.slw
-a1af4636fe0d3286d17d0aa6ca89fda4  ./Essential_Game_Files/0091.VGA
 34f3dd6e1b6978a0b05ef8b0c33557f4  ./Essential_Game_Files/0092.VGA
 b089d0826fcd31f4cee07821c421f8b8  ./Essential_Game_Files/0111.VGA
 81a2356eaa10b64e96c1df514c613ad7  ./Essential_Game_Files/0112.VGA
@@ -281,16 +281,12 @@ aeb37c757f102ff4ca3d76db07eec04c  ./Essential_Game_Files/3332.VGA
 ecb26c965ca8b45e3a1856fc17a21b9e  ./Essential_Game_Files/Disk2.smk
 b8f09cb0f9d811c32e5bdb07aac08584  ./Essential_Game_Files/Disk3.smk
 f2ce346f8f45c0d362f432ad5fe1b6dd  ./Essential_Game_Files/Disk4.smk
-ae84d7898b6282127618069d9c586246  ./Essential_Game_Files/feeinbin.ico
 24fe7ba975369c272088aa3b0c5bf348  ./Essential_Game_Files/GAME22
-c1fa9f0e1726e9a95638b53b1d087468  ./Essential_Game_Files/icklfeeb.ico
 e445a0a7e554ebcb550a52ee6e74023e  ./Essential_Game_Files/Nextdoor.smk
 c86a414aa0101d0838b6c5e20dd5e99c  ./Essential_Game_Files/Omnitoy.smk
 754e03f61a1186dd47b31ee7798fc704  ./Essential_Game_Files/Qtime.smk
 c4a0b8193335026c5b220257dea2c585  ./Essential_Game_Files/Run95.exe
-71512fc98501a8071a26b683a31dde78  ./Essential_Game_Files/save.999
 7635d1e15ba1704b3cb1525c1eba0d6f  ./Essential_Game_Files/SMACKW32.DLL
-e00cead9fb77c8a6b48b9a8fe98af527  ./Essential_Game_Files/startup.wav
 4157c16894c0413ca64e56a52aa46d50  ./Essential_Game_Files/TABLES01
 d71b7918c74a999fa4c539ee8ef63003  ./Essential_Game_Files/TABLES02
 ae33ef52caed416c1f29c2976736ac4f  ./Essential_Game_Files/TABLES03
@@ -317,3 +313,7 @@ c521eb8fe621ddb1a1e112fc679ef1b4  ./Essential_Game_Files/TABLES21
 b50f2a67685e05b792afd5edf894ebeb  ./Essential_Game_Files/TABLES24
 a7add5ae7548d332982c234a81bfb03f  ./Essential_Game_Files/TABLES25
 0bbfee8e69739111eb36b0d138da8ddf  ./Essential_Game_Files/TBLLIST
+ae84d7898b6282127618069d9c586246  ./Essential_Game_Files/feeinbin.ico
+c1fa9f0e1726e9a95638b53b1d087468  ./Essential_Game_Files/icklfeeb.ico
+71512fc98501a8071a26b683a31dde78  ./Essential_Game_Files/save.999
+e00cead9fb77c8a6b48b9a8fe98af527  ./Essential_Game_Files/startup.wav
