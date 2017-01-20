@@ -24,6 +24,10 @@ env:
 matrix:
   exclude:
     - os: osx
+      compiler: gcc
+      env: STATIC_ANALYZER=scan-build CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Debug"
+    - os: osx
+      compiler: clang
       env: STATIC_ANALYZER=scan-build CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Debug"
   allow_failures:
     - env: STATIC_ANALYZER=scan-build CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Debug"
