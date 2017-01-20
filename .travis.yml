@@ -20,10 +20,12 @@ env:
     - USE_OUR_OWN_MD5=0 BUILD_STATIC=1
     - USE_OUR_OWN_MD5=1 BUILD_STATIC=1
     - STATIC-ANALYZER=scan-build CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Debug"
+
+matrix:
   exclude:
     - os: osx
       env: STATIC_ANALYZER=scan-build CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Debug"
-  allowed_failures:
+  allow_failures:
     - env: STATIC_ANALYZER=scan-build CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Debug"
 
 install:
