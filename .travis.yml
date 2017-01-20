@@ -1,3 +1,6 @@
+dist: trusty
+sudo: false
+
 language: c
 
 compiler:
@@ -16,6 +19,19 @@ env:
     - USE_OUR_OWN_MD5=1 BUILD_STATIC=0
     - USE_OUR_OWN_MD5=0 BUILD_STATIC=1
     - USE_OUR_OWN_MD5=1 BUILD_STATIC=1
+    - STATIC_ANALYZER=scan-build CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Debug"
+
+addons:
+  apt:
+    packages:
+      - clang
+
+matrix:
+  exclude:
+    - os: osx
+      env: STATIC_ANALYZER=scan-build CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Debug"
+  allow_failures:
+    - env: STATIC_ANALYZER=scan-build CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Debug"
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update; fi
@@ -29,8 +45,8 @@ install:
 script:
   - mkdir build
   - cd build
-  - cmake -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield -DUSE_OUR_OWN_MD5=$USE_OUR_OWN_MD5 -DBUILD_STATIC=$BUILD_STATIC ${CMAKE_OPTS:-} ..
-  - make
+  - $STATIC_ANALYZER cmake -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield -DUSE_OUR_OWN_MD5=$USE_OUR_OWN_MD5 -DBUILD_STATIC=$BUILD_STATIC ${CMAKE_OPTS:-} ..
+  - $STATIC_ANALYZER make
   - make install
   - ../run-tests.sh
 
