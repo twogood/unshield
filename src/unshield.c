@@ -113,7 +113,11 @@ static bool make_sure_directory_exists(const char* directory)/*{{{*/
       if (slash)
         current[slash-directory] = '\0';
 
+      #ifdef __MINGW32__
+      if (stat(current) < 0)
+      #else
       if (stat(current, &dir_stat) < 0)
+      #endif
       {
         #ifdef __MINGW32__
         if (_mkdir(current) < 0)
