@@ -2,7 +2,7 @@
 .SH NAME
 unshield \- extract CAB files from an InstallShield installer archive
 .SH SYNOPSIS
-unshield [\-c COMPONENT] [\-d DIRECTORY] [\-D LEVEL] [\-g GROUP] [\-h] [\-j] [\-L] [\-n] [\-o] [\-O] [\-r] [\-v] [\-V] c|g|l|t|x CABFILE
+unshield [\-c COMPONENT] [\-d DIRECTORY] [\-D LEVEL] [\-g GROUP] [\-h] [\-i VERSION] [\-j] [\-L] [\-n] [\-o] [\-O] [\-r] [\-v] [\-V] c|g|l|t|x CABFILE
 .SH DESCRIPTION
 Unshield extracts CAB files from InstallShield installers, used to 
 install software on Microsoft Windows based machines.
@@ -26,6 +26,11 @@ Only list/extract this file group
 .TP
 \fB\-h\fR
 Show help message
+.TP
+\fB\-i\fR VERSION
+Force InstallShield version number (don't autodetect)\n
+.br
+Use this option if you have a very old archive (generated with InstallShield <= 4) and / or the automatic detection fails
 .TP
 \fB\-j\fR
 Junk paths (do not make directories)
