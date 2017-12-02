@@ -712,7 +712,8 @@ static bool do_action(Unshield* unshield, ActionHelper helper)
 
   if (component_name)
   {
-    abort();
+    fprintf(stderr, "This action is not implemented for components, sorry! Patch welcome!\n");
+    return false;
   }
   else if (file_group_name)
   {
