@@ -19,3 +19,4 @@ src/unshield-deobfuscate
 .*.swp
 .idea
 build
+/cmake-build-debug/
