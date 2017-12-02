@@ -95,12 +95,12 @@ uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset);
    Macros for safer development
  */
 
-#define FREE(ptr)       { if (ptr) { free(ptr); ptr = NULL; } }
+#define FREE(ptr)       { if (ptr) { free(ptr); (ptr) = NULL; } }
 #define STRDUP(str)     ((str) ? strdup(str) : NULL)
 #define NEW(type, count)      ((type*)calloc(count, sizeof(type)))
 #define NEW1(type)      ((type*)calloc(1, sizeof(type)))
-#define FCLOSE(file)    if (file) { fclose(file); file = NULL; }
-#define FSIZE(file)     (file ? unshield_fsize(file) : 0)
+#define FCLOSE(file)    if (file) { fclose(file); (file) = NULL; }
+#define FSIZE(file)     ((file) ? unshield_fsize(file) : 0)
 #define STREQ(s1,s2)    (0 == strcmp(s1,s2))
 
 #if WORDS_BIGENDIAN
