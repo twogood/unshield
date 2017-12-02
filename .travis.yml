@@ -23,7 +23,7 @@ install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew link openssl --force; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then export CMAKE_OPTS="-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl"; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$CC" = "gcc" ]; then CC=gcc-4.9; $CC --version; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$CC" = "gcc" ]; then CC=gcc-7; $CC --version; fi
 
 # cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield . && make && make install
 script:
