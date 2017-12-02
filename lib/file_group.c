@@ -17,7 +17,7 @@ UnshieldFileGroup* unshield_file_group_new(Header* header, uint32_t offset)/*{{{
 
   self->name = unshield_header_get_string(header, READ_UINT32(p)); p += 4;
 
-  if (header->major_version == 5)
+  if (header->major_version <= 5)
     p += 0x48;
   else
     p += 0x12;

@@ -10,7 +10,7 @@ if [ \! -x ${UNSHIELD} ]; then
 fi
 
 DIR=`mktemp -d`
-#trap 'rm -rf ${DIR}' TERM INT EXIT
+trap 'rm -rf ${DIR}' TERM INT EXIT
 cd ${DIR}
 
 #URL=https://www.ti.com/organizers/avigo/docs/avigomanager11b22.zip
@@ -36,7 +36,7 @@ if [ ${CODE} -ne 0 ]; then
 fi
 
 cd extract2
-find . -type f | LC_ALL=C sort | xargs md5sum > ../md5
+find . -type f -print0 | LC_ALL=C sort -z | xargs -0 md5sum > ../md5
 if ! diff -wu ${MD5_FILE} ../md5 >&2 ; then
     echo "MD5 sums diff" >&2
     exit 4
