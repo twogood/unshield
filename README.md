@@ -8,7 +8,6 @@ Support Unshield development
 ----------------------------
 
 - [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=SQ7PEFMJK36AU)
-- [Pledgie](https://pledgie.com/campaigns/29872)
 
 
 Dictionary

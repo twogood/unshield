@@ -5,8 +5,17 @@ ENDIF("${isSystemDir}" STREQUAL "-1")
 
 add_executable(unshield "unshield.c")
 target_link_libraries(unshield libunshield)
+if(WIN32)
+    if(HAVE_ICONV)
+        target_link_libraries(unshield iconv)
+    endif(HAVE_ICONV)
+    target_link_libraries(unshield z)
+endif()
 
 add_executable(unshield-deobfuscate "unshield-deobfuscate.c")
 target_link_libraries(unshield-deobfuscate libunshield)
+if(WIN32)
+    target_link_libraries(unshield-deobfuscate z)
+endif()
 
 install(TARGETS unshield RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
