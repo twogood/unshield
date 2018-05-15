@@ -472,7 +472,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   }
 
 #ifdef HAVE_ICONV
-  if (!convert_encoding(dirname, sizeof(dirname)))
+  if (!convert_encoding(dirname, path_max))
   {
     success = false;
     goto exit;
@@ -503,7 +503,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 
 #ifdef HAVE_ICONV
   if (!convert_encoding(filename + strlen(dirname),
-      sizeof(filename) - strlen(dirname)))
+      path_max - strlen(dirname)))
   {
     success = false;
     goto exit;
