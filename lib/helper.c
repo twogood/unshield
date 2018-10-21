@@ -140,7 +140,7 @@ bool unshield_read_common_header(uint8_t** buffer, CommonHeader* common)
     unshield_error("Invalid file signature");
 
     if (MSCF_SIGNATURE == common->signature)
-      unshield_warning("Found Microsoft Cabinet header. Use cabextract (http://www.kyz.uklinux.net/cabextract.php) to unpack this file.");
+      unshield_warning("Found Microsoft Cabinet header. Use cabextract (https://www.cabextract.org.uk/) to unpack this file.");
 
     return false;
   }
