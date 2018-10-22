@@ -7,4 +7,8 @@ set(LIBMD5_UTF_SOURCES
     "md5c.c"
 )
 
+if(BUILD_STATIC AND WIN32 AND MSVC)
+    set_msvc_runtime_static()
+endif(BUILD_STATIC AND WIN32 AND MSVC)
+
 add_library(md5 STATIC ${LIBMD5_UTF_HEADES} ${LIBMD5_UTF_SOURCES})

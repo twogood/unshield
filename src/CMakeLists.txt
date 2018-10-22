@@ -18,4 +18,8 @@ if(WIN32)
     target_link_libraries(unshield-deobfuscate z)
 endif()
 
+if(BUILD_STATIC AND WIN32 AND MSVC)
+    set_msvc_runtime_static()
+endif(BUILD_STATIC AND WIN32 AND MSVC)
+
 install(TARGETS unshield RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})

@@ -14,10 +14,15 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if !defined(_MSC_VER)
 #include <sys/param.h>    /* for MIN(a,b) */
+#endif
+
 #ifndef MIN /* missing in some platforms */
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #endif
+
 #include <zlib.h>
 
 #define VERBOSE 3
@@ -942,7 +947,7 @@ static uint8_t* find_bytes(
     const uint8_t* buffer, size_t bufferSize, 
     const uint8_t* pattern, size_t patternSize)
 {
-  const void *p = buffer;
+  const unsigned char *p = buffer;
   size_t buffer_left = bufferSize;
   while ((p = memchr(p, pattern[0], buffer_left)) != NULL)
   {

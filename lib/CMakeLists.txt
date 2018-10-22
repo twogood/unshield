@@ -32,12 +32,17 @@ set(LIBUNSHIELD_SOURCES
 
 if(BUILD_STATIC)
     set(LIBUNSHIELD_LIBRARY_TYPE STATIC)
+    
+    if(WIN32 AND MSVC)
+        set_msvc_runtime_static()
+    endif(WIN32 AND MSVC)
 else()
     set(LIBUNSHIELD_LIBRARY_TYPE SHARED)
 endif()
 
 add_library(libunshield ${LIBUNSHIELD_LIBRARY_TYPE} ${LIBUNSHIELD_HEADES} ${LIBUNSHIELD_SOURCES})
 
+include_directories(${ZLIB_INCLUDE_DIR})
 if(USE_OUR_OWN_MD5)
     target_link_libraries(libunshield ${ZLIB_LIBRARY} md5 convert_utf)
 else()

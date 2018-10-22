@@ -6,4 +6,8 @@ set(LIBCONVERT_UTF_SOURCES
     "ConvertUTF.c"
 )
 
+if(BUILD_STATIC AND WIN32 AND MSVC)
+    set_msvc_runtime_static()
+endif(BUILD_STATIC AND WIN32 AND MSVC)
+
 add_library(convert_utf STATIC ${LIBCONVERT_UTF_HEADES} ${LIBCONVERT_UTF_SOURCES})
