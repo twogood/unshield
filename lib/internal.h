@@ -16,10 +16,6 @@
 
 #include "cabfile.h"
 
-#ifndef __PRETTY_FUNCTION__
-#define __PRETTY_FUNCTION__ __FUNCTION__
-#endif
-
 typedef struct _StringBuffer StringBuffer;
 
 struct _StringBuffer
