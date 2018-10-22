@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.7)
-project(unshield)
+project(unshield C)
 
 # Mimic CMP0048 which is avaliable only for cmake 3.0 and later
 set(PROJECT_VERSION_MAJOR 1)
