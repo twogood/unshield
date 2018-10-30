@@ -11,10 +11,21 @@
 #include <inttypes.h>
 #endif
 
+#include <setjmp.h>
 #include <stdbool.h>
 #include <stdio.h>  /* for FILE */
 
 #include "cabfile.h"
+
+typedef struct _Exception Exception;
+
+struct _Exception
+{
+    jmp_buf   environment;
+    const char* function;
+    int line;
+    const char* message;
+};
 
 typedef struct _StringBuffer StringBuffer;
 
@@ -28,6 +39,7 @@ typedef struct _Header Header;
 
 struct _Header
 {
+  Exception exception;
   Header*   next;
   int       index;
   uint8_t*  data;
@@ -63,7 +75,7 @@ UnshieldComponent* unshield_component_new(Header* header, uint32_t offset);
 void unshield_component_destroy(UnshieldComponent* self);
 
 
-/* 
+/*
    Internal file group functions
  */
 
@@ -82,6 +94,19 @@ bool unshield_read_common_header(uint8_t** buffer, CommonHeader* common);
 const char* unshield_get_utf8_string(Header* header, const void* buffer);
 const char* unshield_header_get_string(Header* header, uint32_t offset);
 uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset);
+
+
+#define UNSHIELD_HANDLE_EXCEPTION(e) (setjmp(e.environment) != 0)
+
+static inline void _unshield_throw_exception(Exception* exception, const char* function, int line, const char* message)
+{
+    exception->function = function;
+    exception->line = line;
+    exception->message = message;
+    longjmp(exception->environment, 1);
+}
+
+#define UNSHIELD_THROW_EXCEPTION(exception, message) { _unshield_throw_exception(exception, __FUNCTION__, __LINE__, message); }
 
 
 /*
