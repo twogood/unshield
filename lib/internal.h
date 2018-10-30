@@ -10,10 +10,21 @@
 #include <inttypes.h>
 #endif
 
+#include <setjmp.h>
 #include <stdbool.h>
 #include <stdio.h>  /* for FILE */
 
 #include "cabfile.h"
+
+typedef struct _Exception Exception;
+
+struct _Exception
+{
+    jmp_buf   environment;
+    const char* function;
+    int line;
+    const char* message;
+};
 
 typedef struct _StringBuffer StringBuffer;
 
@@ -27,6 +38,7 @@ typedef struct _Header Header;
 
 struct _Header
 {
+  Exception exception;
   Header*   next;
   int       index;
   uint8_t*  data;
@@ -64,7 +76,7 @@ UnshieldComponent* unshield_component_new(Header* header, uint32_t offset);
 void unshield_component_destroy(UnshieldComponent* self);
 
 
-/* 
+/*
    Internal file group functions
  */
 
@@ -131,6 +143,19 @@ static inline struct dirent* unshield_readdir(Unshield* unshield, void *dir)
 {
     return unshield->io_callbacks->readdir(dir, unshield->io_userdata);
 }
+
+#define UNSHIELD_HANDLE_EXCEPTION(e) (setjmp(e.environment) != 0)
+
+static inline void _unshield_throw_exception(Exception* exception, const char* function, int line, const char* message)
+{
+    exception->function = function;
+    exception->line = line;
+    exception->message = message;
+    longjmp(exception->environment, 1);
+}
+
+#define UNSHIELD_THROW_EXCEPTION(exception, message) { _unshield_throw_exception(exception, __FUNCTION__, __LINE__, message); }
+
 
 /*
    Constants
