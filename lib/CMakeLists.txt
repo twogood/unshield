@@ -3,7 +3,7 @@ IF("${isSystemDir}" STREQUAL "-1")
 # Enable CMP0042
 if (APPLE)
 	set(CMAKE_MACOSX_RPATH ON)
-endif (APPLE)
+endif ()
 ENDIF("${isSystemDir}" STREQUAL "-1")
 
 add_subdirectory(convert_utf)
@@ -32,12 +32,17 @@ set(LIBUNSHIELD_SOURCES
 
 if(BUILD_STATIC)
     set(LIBUNSHIELD_LIBRARY_TYPE STATIC)
+    
+    if(MSVC)
+        set_msvc_runtime_static()
+    endif(MSVC)
 else()
     set(LIBUNSHIELD_LIBRARY_TYPE SHARED)
 endif()
 
 add_library(libunshield ${LIBUNSHIELD_LIBRARY_TYPE} ${LIBUNSHIELD_HEADES} ${LIBUNSHIELD_SOURCES})
 
+include_directories(${ZLIB_INCLUDE_DIR})
 if(USE_OUR_OWN_MD5)
     target_link_libraries(libunshield ${ZLIB_LIBRARY} md5 convert_utf)
 else()
