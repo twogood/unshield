@@ -79,10 +79,10 @@ function(set_msvc_runtime_static)
     endforeach(flag_var)
 endfunction(set_msvc_runtime_static)
 
-if (WIN32 AND MSVC)
+if (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/win32_msvc)
-endif (WIN32 AND MSVC)
+endif ()
 
 add_subdirectory(lib)
 add_subdirectory(src)
