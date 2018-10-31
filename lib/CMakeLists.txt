@@ -4,7 +4,7 @@ IF("${isSystemDir}" STREQUAL "-1")
 if (APPLE)
 	set(CMAKE_MACOSX_RPATH ON)
 endif ()
-ENDIF("${isSystemDir}" STREQUAL "-1")
+ENDIF()
 
 add_subdirectory(convert_utf)
 
@@ -35,7 +35,7 @@ if(BUILD_STATIC)
     
     if(MSVC)
         set_msvc_runtime_static()
-    endif(MSVC)
+    endif()
 else()
     set(LIBUNSHIELD_LIBRARY_TYPE SHARED)
 endif()
