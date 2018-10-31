@@ -18,6 +18,9 @@ if(WIN32)
     target_link_libraries(unshield-deobfuscate z)
 endif()
 
+add_executable(unshield-afl "unshield-afl.c")
+target_link_libraries(unshield-afl libunshield)
+
 if(BUILD_STATIC AND MSVC)
     set_msvc_runtime_static()
 endif(BUILD_STATIC AND MSVC)
