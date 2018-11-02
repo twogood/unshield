@@ -87,5 +87,5 @@ endif ()
 add_subdirectory(lib)
 add_subdirectory(src)
 
-install(FILES man/unshield.1 DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/man/man1)
+install(FILES man/unshield.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libunshield.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
