@@ -21,3 +21,4 @@ src/unshield-deobfuscate
 build
 /cmake-build-debug/
 .vs
+.vscode
