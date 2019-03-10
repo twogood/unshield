@@ -12,7 +12,7 @@ if(USE_OUR_OWN_MD5)
     add_subdirectory(md5)
 endif()
 
-set(LIBUNSHIELD_HEADES
+set(LIBUNSHIELD_HEADERS
     "internal.h"
     "libunshield.h"
     "log.h"
@@ -40,7 +40,7 @@ else()
     set(LIBUNSHIELD_LIBRARY_TYPE SHARED)
 endif()
 
-add_library(libunshield ${LIBUNSHIELD_LIBRARY_TYPE} ${LIBUNSHIELD_HEADES} ${LIBUNSHIELD_SOURCES})
+add_library(libunshield ${LIBUNSHIELD_LIBRARY_TYPE} ${LIBUNSHIELD_HEADERS} ${LIBUNSHIELD_SOURCES})
 
 include_directories(${ZLIB_INCLUDE_DIR})
 if(USE_OUR_OWN_MD5)
