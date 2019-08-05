@@ -9,6 +9,6 @@ set(LIBMD5_UTF_SOURCES
 
 if(BUILD_STATIC AND MSVC)
     set_msvc_runtime_static()
-endif(BUILD_STATIC AND MSVC)
+endif()
 
 add_library(md5 STATIC ${LIBMD5_UTF_HEADES} ${LIBMD5_UTF_SOURCES})
