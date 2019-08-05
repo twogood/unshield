@@ -138,8 +138,14 @@ static inline uint32_t get_unaligned_le32(const uint8_t *p)
     return p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24;
 }
 
+static inline uint64_t get_unaligned_le64(const uint8_t *p)
+{
+    return (uint64_t)get_unaligned_le32(p + 4) << 32 | get_unaligned_le32(p);
+}
+
 #define READ_UINT16(p)   get_unaligned_le16(p)
 #define READ_UINT32(p)   get_unaligned_le32(p)
+#define READ_UINT64(p)   get_unaligned_le64(p)
 
 #define READ_INT16(p)   ((int16_t)READ_UINT16(p))
 #define READ_INT32(p)   ((int32_t)READ_UINT32(p))

@@ -100,12 +100,9 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       unshield_trace("File descriptor offset: %08x", p - header->data);
 #endif
       fd->flags             = READ_UINT16(p); p += 2;
-      fd->expanded_size     = READ_UINT32(p); p += 4;
-      p += 4;
-      fd->compressed_size   = READ_UINT32(p); p += 4;
-      p += 4;
-      fd->data_offset       = READ_UINT32(p); p += 4;
-      p += 4;
+      fd->expanded_size     = READ_UINT64(p); p += 8;
+      fd->compressed_size   = READ_UINT64(p); p += 8;
+      fd->data_offset       = READ_UINT64(p); p += 8;
       memcpy(fd->md5, p, 0x10); p += 0x10;
       p += 0x10;
       fd->name_offset       = READ_UINT32(p); p += 4;
@@ -307,9 +304,9 @@ typedef struct
 static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{*/
 {
   bool success = false;
-  unsigned data_offset = 0;
-  unsigned volume_bytes_left_compressed;
-  unsigned volume_bytes_left_expanded;
+  uint64_t data_offset = 0;
+  uint64_t volume_bytes_left_compressed;
+  uint64_t volume_bytes_left_expanded;
   CommonHeader common_header;
 
 #if VERBOSE >= 2
