@@ -541,7 +541,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 exit:
   if (!success)
   {
-    fprintf(stderr, "Failed to extract file '%s'.%s\n", 
+    fprintf(stderr, "Failed to extract file '%s'.%s\n",
         unshield_file_name(unshield, index),
         (log_level < 3) ? "Run unshield again with -D 3 for more information." : "");
     unlink(filename);
