@@ -55,6 +55,7 @@ endif()
 message(STATUS "OPENSSL_FOUND: ${OPENSSL_FOUND}")
 message(STATUS "USE_OUR_OWN_MD5: ${USE_OUR_OWN_MD5}")
 message(STATUS "BUILD_STATIC: ${BUILD_STATIC}")
+message(STATUS "WIN32: ${WIN32}")
 
 add_definitions(-DHAVE_CONFIG_H)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/lib/unshield_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/lib/unshield_config.h)

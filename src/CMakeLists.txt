@@ -13,9 +13,9 @@ if(WIN32)
 endif()
 
 add_executable(unshield-deobfuscate "unshield-deobfuscate.c")
-target_link_libraries(unshield-deobfuscate libunshield)
+target_link_libraries(unshield-deobfuscate PRIVATE libunshield)
 if(WIN32)
-    target_link_libraries(unshield-deobfuscate ZLIB::ZLIB)
+    target_link_libraries(unshield-deobfuscate PRIVATE ZLIB::ZLIB)
 endif()
 
 if(BUILD_STATIC AND MSVC)
