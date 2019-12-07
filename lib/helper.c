@@ -205,7 +205,7 @@ static const char* unshield_utf16_to_utf8(Header* header, const uint16_t* utf16)
 {
   StringBuffer* string_buffer = unshield_add_string_buffer(header); 
   int length = unshield_strlen_utf16(utf16);
-  int buffer_size = 2 * length + 1;
+  int buffer_size = 3 * length + 1;
   char* target = string_buffer->string = NEW(char, buffer_size);
   ConversionResult result = ConvertUTF16toUTF8(
       (const UTF16**)&utf16, utf16 + length + 1, 
