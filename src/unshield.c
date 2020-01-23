@@ -597,7 +597,16 @@ static bool test_file(Unshield* unshield, int index)
   bool success;
 
   printf("  testing: %s\n", unshield_file_name(unshield, index));
-  success = unshield_file_save(unshield, index, NULL);
+
+    switch (format)
+    {
+        case FORMAT_NEW:
+            success = unshield_file_save(unshield, index, NULL);
+            break;
+        case FORMAT_OLD:
+            success = unshield_file_save_old(unshield, index, NULL);
+            break;
+    }
 
   if (!success)
   {
