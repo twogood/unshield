@@ -609,6 +609,9 @@ static bool test_file(Unshield* unshield, int index)
         case FORMAT_OLD:
             success = unshield_file_save_old(unshield, index, NULL);
             break;
+        case FORMAT_RAW:
+            success = unshield_file_save_raw(unshield, index, NULL);
+            break;
     }
 
   if (!success)

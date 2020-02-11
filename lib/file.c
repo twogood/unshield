@@ -1010,11 +1010,12 @@ bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
 
     bytes_left -= bytes_to_write;
 
-    if (bytes_to_write != fwrite(output_buffer, 1, bytes_to_write, output))
-    {
-      unshield_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
-      goto exit;
-    }
+      if (output) {
+          if (bytes_to_write != fwrite(output_buffer, 1, bytes_to_write, output)) {
+              unshield_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
+              goto exit;
+          }
+      }
   }
 
   success = true;
