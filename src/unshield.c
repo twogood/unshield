@@ -511,6 +511,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   }
 #endif
 
+#ifdef __GLIBC__
   /* use GNU extension to return non-existing files to real_output_directory */
   realpath(output_directory, real_output_directory);
   realpath(filename, real_filename);
@@ -519,11 +520,13 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
                                        strlen(real_output_directory)) != 0)
   {
     fprintf(stderr, "\n\nExtraction failed.\n");
+    fprintf(stderr, "Error: %s (%d).\n", strerror(errno), errno);
     fprintf(stderr, "Possible directory traversal attack for: %s\n", filename);
     fprintf(stderr, "To be placed at: %s\n\n", real_filename);
     success = false;
     goto exit;
   }
+#endif
 
   printf("  extracting: %s\n", filename);
   switch (format)
