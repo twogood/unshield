@@ -1,10 +1,6 @@
-LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
-IF("${isSystemDir}" STREQUAL "-1")
-# Enable CMP0042
-if (APPLE)
-	set(CMAKE_MACOSX_RPATH ON)
-endif ()
-ENDIF()
+cmake_minimum_required(VERSION 3.6)
+
+project(libunshield)
 
 add_subdirectory(convert_utf)
 
@@ -30,28 +26,15 @@ set(LIBUNSHIELD_SOURCES
     "log.c"
 )
 
-if(BUILD_STATIC)
-    set(LIBUNSHIELD_LIBRARY_TYPE STATIC)
-    
-    if(MSVC)
-        set_msvc_runtime_static()
-    endif()
-else()
-    set(LIBUNSHIELD_LIBRARY_TYPE SHARED)
-endif()
+add_library(${PROJECT_NAME} STATIC ${LIBUNSHIELD_HEADES} ${LIBUNSHIELD_SOURCES})
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(${PROJECT_NAME} PUBLIC ZLIB::ZLIB convert_utf)
 
-add_library(libunshield ${LIBUNSHIELD_LIBRARY_TYPE} ${LIBUNSHIELD_HEADES} ${LIBUNSHIELD_SOURCES})
-
-include_directories(${ZLIB_INCLUDE_DIR})
 if(USE_OUR_OWN_MD5)
-    target_link_libraries(libunshield ${ZLIB_LIBRARY} md5 convert_utf)
+    target_link_libraries(${PROJECT_NAME} PUBLIC md5)
 else()
-    include_directories(${OPENSSL_INCLUDE_DIR})
-    target_link_libraries(libunshield ${ZLIB_LIBRARY} ${OPENSSL_LIBRARIES} convert_utf)
+    target_link_libraries(${PROJECT_NAME} PUBLIC OpenSSL::Crypto)
 endif()
-
-set_target_properties(libunshield PROPERTIES OUTPUT_NAME unshield)
-set_target_properties(libunshield PROPERTIES VERSION 0.0.0 SOVERSION 0)
 
 install(TARGETS libunshield RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES libunshield.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
