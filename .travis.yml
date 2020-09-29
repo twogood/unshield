@@ -13,11 +13,6 @@ os:
 
 osx_image: xcode12u
 
-addons:
-  homebrew:
-    packages:
-    - openssl
-
 env:
   global:
     - CFLAGS="-Wall -Werror -ggdb3"
@@ -32,6 +27,9 @@ addons:
   apt:
     packages:
       - clang
+  homebrew:
+    packages:
+      - openssl
 
 matrix:
   exclude:
@@ -42,7 +40,7 @@ matrix:
 
 install:
 #  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew link openssl --force; fi
-#  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then export CMAKE_OPTS="-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl"; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then export CMAKE_OPTS="-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl"; fi
 #  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"; fi
 #  - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$CC" = "gcc" ]; then CC=gcc-4.9; $CC --version; fi
 
