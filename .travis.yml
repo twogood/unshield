@@ -8,7 +8,7 @@ compiler:
   - clang
 
 os:
-#  - linux
+  - linux
   - osx
 
 osx_image: xcode12u
