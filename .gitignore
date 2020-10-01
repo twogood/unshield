@@ -20,3 +20,5 @@ src/unshield-deobfuscate
 .idea
 build
 /cmake-build-debug/
+.vs
+.vscode

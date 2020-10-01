@@ -12,7 +12,7 @@ if(USE_OUR_OWN_MD5)
     add_subdirectory(md5)
 endif()
 
-set(LIBUNSHIELD_HEADES
+set(LIBUNSHIELD_HEADERS
     "internal.h"
     "libunshield.h"
     "log.h"
@@ -40,14 +40,14 @@ else()
     set(LIBUNSHIELD_LIBRARY_TYPE SHARED)
 endif()
 
-add_library(libunshield ${LIBUNSHIELD_LIBRARY_TYPE} ${LIBUNSHIELD_HEADES} ${LIBUNSHIELD_SOURCES})
+add_library(libunshield ${LIBUNSHIELD_LIBRARY_TYPE} ${LIBUNSHIELD_HEADERS} ${LIBUNSHIELD_SOURCES})
 
 include_directories(${ZLIB_INCLUDE_DIR})
 if(USE_OUR_OWN_MD5)
-    target_link_libraries(libunshield ${ZLIB_LIBRARY} md5 convert_utf)
+    target_link_libraries(libunshield ${ZLIB_LIBRARIES} md5 convert_utf)
 else()
     include_directories(${OPENSSL_INCLUDE_DIR})
-    target_link_libraries(libunshield ${ZLIB_LIBRARY} ${OPENSSL_LIBRARIES} convert_utf)
+    target_link_libraries(libunshield ${ZLIB_LIBRARIES} ${OPENSSL_LIBRARIES} convert_utf)
 endif()
 
 set_target_properties(libunshield PROPERTIES OUTPUT_NAME unshield)
