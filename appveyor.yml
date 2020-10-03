@@ -1,6 +1,9 @@
 image: Visual Studio 2019
 
+cache: C:\Tools\vcpkg\installed\
+
 environment:
+  APPVEYOR_SAVE_CACHE_ON_ERROR: true
   matrix:
     - compiler: clang
     - compiler: msvc
@@ -121,8 +124,6 @@ for:
       - call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
       - cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -Ax64
       - cmake --build . --config Release
-
-cache: C:\Tools\vcpkg\installed\
 
 init:
   - C:\Tools\vcpkg\vcpkg version
