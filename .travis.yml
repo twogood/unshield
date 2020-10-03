@@ -3,58 +3,24 @@ sudo: false
 
 language: c
 
+os: linux
+
+compiler:
+  - gcc
+  - clang
+
 env:
   matrix:
-    - USE_OUR_OWN_MD5=0
-    - USE_OUR_OWN_MD5=1
+    - USE_OUR_OWN_MD5=0 CFLAGS="-O2" LDFLAGS="-s"
+    - USE_OUR_OWN_MD5=1 CFLAGS="-O2" LDFLAGS="-s"
+    - USE_OUR_OWN_MD5=0 CFLAGS="-Og -g -Wall -Wextra"
+    - USE_OUR_OWN_MD5=1 CFLAGS="-Og -g -Wall -Wextra"
 
-jobs:
-  include:
-    - os: linux
-      compiler: gcc
-      env: CFLAGS="-O2" LDFLAGS="-s"
-      
-    - os: linux
-      compiler: gcc
-      env: CFLAGS="-Og -g -Wall -Wextra"
-
-    - os: linux
-      compiler: clang
-      env: CFLAGS="-O2" LDFLAGS="-s"
-      
-    - os: linux
-      compiler: clang
-      env: CFLAGS="-Og -g -Wall -Wextra"
-
-    - os: windows
-      compiler: msvc
-      env: CMAKE_OPTIONS="-DCMAKE_BUILD_TYPE=Release"
-      
-    - os: windows
-      compiler: msvc
-      env: CMAKE_OPTIONS="-DCMAKE_BUILD_TYPE=Debug"
-      
-    - os: windows
-      compiler: clang
-      env: CMAKE_OPTIONS="-DCMAKE_BUILD_TYPE=Release"
-      
-    - os: windows
-      compiler: clang
-      env: CMAKE_OPTIONS="-DCMAKE_BUILD_TYPE=Debug"
-      
-    - os: windows
-      compiler: gcc
-      env: CFLAGS="-O2" LDFLAGS="-s" CMAKE_GENERATOR="MinGW Makefiles"
-      
-    - os: windows
-      compiler: gcc
-      env: CFLAGS="-Og -g -Wall -Wextra" CMAKE_GENERATOR="MinGW Makefiles"
-          
 script:
   - mkdir build
   - cd build
   - cmake -DUSE_OUR_OWN_MD5=${USE_OUR_OWN_MD5} ..
   - cmake --build .
-#  - make install
-#  - ../run-tests.sh
+  - make install
+  - ../run-tests.sh
 
