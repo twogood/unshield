@@ -19,7 +19,7 @@ env:
 script:
   - mkdir build
   - cd build
-  - cmake -DUSE_OUR_OWN_MD5=${USE_OUR_OWN_MD5} ..
+  - cmake .. -DUSE_OUR_OWN_MD5=${USE_OUR_OWN_MD5} -DCMAKE_INSTALL_PREFIX=/var/tmp/unshield
   - cmake --build .
   - make install
   - ../run-tests.sh
