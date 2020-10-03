@@ -136,8 +136,13 @@ before_build:
   
 install:
   - cd C:\Tools\vcpkg
-  - git pull
-  - .\bootstrap-vcpkg.bat
+#msys repos are temporary down, downloading two dependencies manuallly from a mirror repo
+  - if not exist downloads mkdir downloads
+  - cd downloads
+  - curl -O https://mirrors.ustc.edu.cn/msys2/mingw/i686/mingw-w64-i686-pkg-config-0.29.2-1-any.pkg.tar.xz
+  - curl -O https://mirrors.ustc.edu.cn/msys2/mingw/i686/mingw-w64-i686-libwinpthread-git-8.0.0.5906.c9a21571-1-any.pkg.tar.zst
+  - cd ..
+#end of the hotfix
   - vcpkg install zlib:%platform% openssl:%platform%
   - cd %APPVEYOR_BUILD_FOLDER%
 
