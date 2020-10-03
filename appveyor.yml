@@ -135,5 +135,9 @@ before_build:
   - cd build
   
 install:
-  - C:\Tools\vcpkg\vcpkg install zlib:%platform% openssl:%platform%
+  - cd C:\Tools\vcpkg
+  - git pull
+  - .\bootstrap-vcpkg.bat
+  - vcpkg install zlib:%platform% openssl:%platform%
+  - cd %APPVEYOR_BUILD_FOLDER%
 
