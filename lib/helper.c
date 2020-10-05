@@ -11,6 +11,8 @@
 #include <unistd.h>
 
 #ifdef _WIN32
+  #define fseek _fseeki64
+  #define ftell _ftelli64
   #define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
   #include <direct.h>
   #ifndef PATH_MAX
@@ -145,10 +147,10 @@ exit:
   return NULL;
 }
 
-long unshield_fsize(FILE* file)
+long long unshield_fsize(FILE* file)
 {
-  long result;
-  long previous = ftell(file);
+  long long result;
+  long long previous = ftell(file);
   fseek(file, 0L, SEEK_END);
   result = ftell(file);
   fseek(file, previous, SEEK_SET);

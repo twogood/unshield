@@ -2,8 +2,6 @@
 #ifndef __cabfile_h__
 #define __cabfile_h__
 
-#include "internal.h"
-
 #define OFFSET_COUNT 0x47
 #define CAB_SIGNATURE 0x28635349
 

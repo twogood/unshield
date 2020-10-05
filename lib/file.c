@@ -19,6 +19,11 @@
 #include <sys/param.h>    /* for MIN(a,b) */
 #endif
 
+#ifdef _WIN32
+#define fseek _fseeki64
+#define ftell _ftelli64
+#endif
+
 #ifndef MIN /* missing in some platforms */
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #endif
