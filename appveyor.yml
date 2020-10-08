@@ -32,6 +32,7 @@ for:
           platform: x86-windows
         - image: Ubuntu
           platform: x64-windows
+
   -
     matrix:
       only:
@@ -40,6 +41,18 @@ for:
     environment:
       CC: clang
       CXX: clang++
+    build_script:
+      - cmake . -DCMAKE_BUILD_TYPE=%configuration%
+      - cmake --build .
+
+  -
+    matrix:
+      only:
+        - image: Ubuntu
+          compiler: gcc
+    environment:
+      CC: gcc
+      CXX: g++
     build_script:
       - cmake . -DCMAKE_BUILD_TYPE=%configuration%
       - cmake --build .
