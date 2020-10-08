@@ -14,6 +14,7 @@ environment:
 platform:
   - x86-windows
   - x64-windows
+  - linux
 
 configuration:
   - Debug
@@ -25,6 +26,24 @@ for:
       exclude:
         - image: Ubuntu
           compiler: msvc
+        - image: Visual Studio 2019
+          platform: linux
+        - image: Ubuntu
+          platform: x86-windows
+        - image: Ubuntu
+          platform: x64-windows
+  -
+    matrix:
+      only:
+        - image: Ubuntu
+          compiler: clang
+    environment:
+      CC: clang
+      CXX: clang++
+    build_script:
+      - cmake . -DCMAKE_BUILD_TYPE=%configuration%
+      - cmake --build .
+
   -
     matrix:
       only:
