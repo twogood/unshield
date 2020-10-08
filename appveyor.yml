@@ -1,4 +1,6 @@
-image: Visual Studio 2019
+image:
+  - Visual Studio 2019
+  - Ubuntu
 
 cache: C:\Tools\vcpkg\installed\
 
@@ -18,6 +20,11 @@ configuration:
   - Release
 
 for:
+  -
+    matrix:
+      exclude:
+        - image: Ubuntu
+          compiler: msvc
   -
     matrix:
       only:
