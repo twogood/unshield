@@ -1,6 +1,6 @@
 image:
-  - Visual Studio 2019
   - Ubuntu
+  - Visual Studio 2019
 
 cache: C:\Tools\vcpkg\installed\
 
@@ -32,6 +32,11 @@ for:
           platform: x86-windows
         - image: Ubuntu
           platform: x64-windows
+  -
+    matrix:
+      only:
+        - image: Ubuntu
+    install: []
 
   -
     matrix:
@@ -232,10 +237,6 @@ for:
       - call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
       - cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release -G"MinGW Makefiles"
       - cmake --build .
-
-init:
-  - C:\Tools\vcpkg\vcpkg version
-  - cmake --version
 
 before_build:
   - cd %APPVEYOR_BUILD_FOLDER%
