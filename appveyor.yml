@@ -1,6 +1,4 @@
-image:
-  - Ubuntu
-  - Visual Studio 2019
+image: Visual Studio 2019
 
 cache: C:\Tools\vcpkg\installed\
 
@@ -14,54 +12,12 @@ environment:
 platform:
   - x86-windows
   - x64-windows
-  - linux
 
 configuration:
   - Debug
   - Release
 
 for:
-  -
-    matrix:
-      exclude:
-        - image: Ubuntu
-          compiler: msvc
-        - image: Visual Studio 2019
-          platform: linux
-        - image: Ubuntu
-          platform: x86-windows
-        - image: Ubuntu
-          platform: x64-windows
-  -
-    matrix:
-      only:
-        - image: Ubuntu
-    install: []
-
-  -
-    matrix:
-      only:
-        - image: Ubuntu
-          compiler: clang
-    environment:
-      CC: clang
-      CXX: clang++
-    build_script:
-      - cmake . -DCMAKE_BUILD_TYPE=%configuration%
-      - cmake --build .
-
-  -
-    matrix:
-      only:
-        - image: Ubuntu
-          compiler: gcc
-    environment:
-      CC: gcc
-      CXX: g++
-    build_script:
-      - cmake . -DCMAKE_BUILD_TYPE=%configuration%
-      - cmake --build .
-
   -
     matrix:
       only:
