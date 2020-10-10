@@ -59,5 +59,9 @@ before_build:
   - cd build
 
 build_script:
-  - cmake .. -DCMAKE_BUILD_TYPE=$configuration
+  - cmake .. -DCMAKE_BUILD_TYPE=$configuration -DCMAKE_INSTALL_PREFIX=/var/tmp/unshield
   - cmake --build .
+  - cmake --install .
+
+test_script:
+  - ../run-tests.sh
