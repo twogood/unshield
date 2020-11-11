@@ -78,7 +78,7 @@ void unshield_file_group_destroy(UnshieldFileGroup* self);
 char *unshield_get_base_directory_name(Unshield *unshield);
 long int unshield_get_path_max(Unshield* unshield);
 FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suffix);
-long unshield_fsize(FILE* file);
+long long unshield_fsize(FILE* file);
 bool unshield_read_common_header(uint8_t** buffer, CommonHeader* common);
 
 const char* unshield_get_utf8_string(Header* header, const void* buffer);

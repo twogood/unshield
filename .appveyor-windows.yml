@@ -1,0 +1,213 @@
+image: Visual Studio 2019
+
+cache: C:\Tools\vcpkg\installed\
+
+environment:
+  APPVEYOR_SAVE_CACHE_ON_ERROR: true
+  matrix:
+    - compiler: clang
+    - compiler: msvc
+    - compiler: gcc
+
+platform:
+  - x86-windows
+  - x64-windows
+
+configuration:
+  - Debug
+  - Release
+
+for:
+  -
+    matrix:
+      only:
+        - configuration: Debug
+          platform: x86-windows
+          compiler: clang
+    environment:
+      CC: clang-cl
+      CXX: clang-cl
+      CFLAGS: -Og -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -m32
+      CXXFLAGS: -Og -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -m32
+    build_script:
+      - call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars32.bat"
+      - cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Debug -GNinja
+      - cmake --build .
+
+  -
+    matrix:
+      only:
+        - configuration: Release
+          platform: x86-windows
+          compiler: clang
+    environment:
+      CC: clang-cl
+      CXX: clang-cl
+      CFLAGS: -O2 -m32
+      CXXFLAGS: -O2 -m32
+    build_script:
+      - call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars32.bat"
+      - cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release -GNinja
+      - cmake --build .
+
+  -
+    matrix:
+      only:
+        - configuration: Debug
+          platform: x86-windows
+          compiler: msvc
+    build_script:
+      - call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars32.bat"
+      - cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -AWin32
+      - cmake --build . --config Debug
+
+  -
+    matrix:
+      only:
+        - configuration: Release
+          platform: x86-windows
+          compiler: msvc
+    build_script:
+      - call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars32.bat"
+      - cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -AWin32
+      - cmake --build . --config Release
+
+  -
+    matrix:
+      only:
+        - configuration: Debug
+          platform: x86-windows
+          compiler: gcc
+    environment:
+      CC: gcc
+      CXX: g++
+      CFLAGS: -Og -g -Wall -Wextra
+      CXXFLAGS: -Og -g -Wall -Wextra
+    build_script:
+      - SET PATH=C:\\mingw-w64\\i686-8.1.0-posix-dwarf-rt_v6-rev0\\mingw32\\bin;%PATH%
+      - call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars32.bat"
+      - cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Debug -G"MinGW Makefiles"
+      - cmake --build .
+
+  -
+    matrix:
+      only:
+        - configuration: Release
+          platform: x86-windows
+          compiler: gcc
+    environment:
+      CC: gcc
+      CXX: g++
+      CFLAGS: -O2
+      CXXFLAGS: -O2
+    build_script:
+      - SET PATH=C:\\mingw-w64\\i686-8.1.0-posix-dwarf-rt_v6-rev0\\mingw32\\bin;%PATH%
+      - call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars32.bat"
+      - cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release -G"MinGW Makefiles"
+      - cmake --build .
+
+  -
+    matrix:
+      only:
+        - configuration: Debug
+          platform: x64-windows
+          compiler: clang
+    environment:
+      CC: clang-cl
+      CXX: clang-cl
+      CFLAGS: -Og -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic
+      CXXFLAGS: -Og -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic
+    build_script:
+      - call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
+      - cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Debug -GNinja
+      - cmake --build .
+
+  -
+    matrix:
+      only:
+        - configuration: Release
+          platform: x64-windows
+          compiler: clang
+    environment:
+      CC: clang-cl
+      CXX: clang-cl
+      CFLAGS: -O2
+      CXXFLAGS: -O2
+    build_script:
+      - call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
+      - cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release -GNinja
+      - cmake --build .
+
+  -
+    matrix:
+      only:
+        - configuration: Debug
+          platform: x64-windows
+          compiler: msvc
+    build_script:
+      - call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
+      - cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -Ax64
+      - cmake --build . --config Debug
+
+  -
+    matrix:
+      only:
+        - configuration: Release
+          platform: x64-windows
+          compiler: msvc
+    build_script:
+      - call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
+      - cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -Ax64
+      - cmake --build . --config Release
+
+  -
+    matrix:
+      only:
+        - configuration: Debug
+          platform: x64-windows
+          compiler: gcc
+    environment:
+      CC: gcc
+      CXX: g++
+      CFLAGS: -Og -g -Wall -Wextra
+      CXXFLAGS: -Og -g -Wall -Wextra
+    build_script:
+      - SET PATH=C:\\mingw-w64\\x86_64-8.1.0-posix-seh-rt_v6-rev0\\mingw64\\bin;%PATH%
+      - call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
+      - cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Debug -G"MinGW Makefiles"
+      - cmake --build .
+
+  -
+    matrix:
+      only:
+        - configuration: Release
+          platform: x64-windows
+          compiler: gcc
+    environment:
+      CC: gcc
+      CXX: g++
+      CFLAGS: -O2
+      CXXFLAGS: -O2
+    build_script:
+      - SET PATH=C:\\mingw-w64\\x86_64-8.1.0-posix-seh-rt_v6-rev0\\mingw64\\bin;%PATH%
+      - call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
+      - cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release -G"MinGW Makefiles"
+      - cmake --build .
+
+before_build:
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - mkdir build
+  - cd build
+
+install:
+  - cd C:\Tools\vcpkg
+#msys repos are temporary down, downloading two dependencies manuallly from a mirror repo
+  - if not exist downloads mkdir downloads
+  - cd downloads
+  - curl -O https://mirrors.ustc.edu.cn/msys2/mingw/i686/mingw-w64-i686-pkg-config-0.29.2-1-any.pkg.tar.xz
+  - curl -O https://mirrors.ustc.edu.cn/msys2/mingw/i686/mingw-w64-i686-libwinpthread-git-8.0.0.5906.c9a21571-1-any.pkg.tar.zst
+  - cd ..
+#end of the hotfix
+  - vcpkg install zlib:%platform% openssl:%platform%
+  - cd %APPVEYOR_BUILD_FOLDER%
+

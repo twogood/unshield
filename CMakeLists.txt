@@ -62,12 +62,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libunshield.pc.in ${CMAKE_CURRENT_BIN
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/lib)
 
-# The POSITION_INDEPENDENT_CODE property was introduced in cmake 2.8.10/CMP0018
-# as we are targeting cmake 2.8.7, we can't use
-#  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-# let's fall back to add_definitions for now
-add_definitions(-fPIC)
-
 # Function to change MSVC runtime linkage to static
 function(set_msvc_runtime_static)
     foreach(flag_var
