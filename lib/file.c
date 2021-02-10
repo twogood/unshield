@@ -314,8 +314,8 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
 #if VERBOSE >= 2
   unshield_trace("Open volume %i", volume);
 #endif
-  
-  FCLOSE(reader->volume_file);
+
+  FCLOSE(reader->unshield, reader->volume_file);
 
   reader->volume_file = unshield_fopen_for_reading(reader->unshield, volume, CABINET_SUFFIX);
   if (!reader->volume_file)
@@ -328,8 +328,8 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
     uint8_t tmp[COMMON_HEADER_SIZE];
     uint8_t* p = tmp;
 
-    if (COMMON_HEADER_SIZE != 
-        fread(&tmp, 1, COMMON_HEADER_SIZE, reader->volume_file))
+    if (COMMON_HEADER_SIZE !=
+        reader->unshield->io_callbacks->fread(&tmp, 1, COMMON_HEADER_SIZE, reader->volume_file, reader->unshield->io_userdata))
       goto exit;
 
     if (!unshield_read_common_header(&p, &common_header))
@@ -346,8 +346,8 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
         uint8_t five_header[VOLUME_HEADER_SIZE_V5];
         uint8_t* p = five_header;
 
-        if (VOLUME_HEADER_SIZE_V5 != 
-            fread(&five_header, 1, VOLUME_HEADER_SIZE_V5, reader->volume_file))
+        if (VOLUME_HEADER_SIZE_V5 !=
+            reader->unshield->io_callbacks->fread(&five_header, 1, VOLUME_HEADER_SIZE_V5, reader->volume_file, reader->unshield->io_userdata))
           goto exit;
 
         reader->volume_header.data_offset                = READ_UINT32(p); p += 4;
@@ -383,8 +383,8 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
         uint8_t six_header[VOLUME_HEADER_SIZE_V6];
         uint8_t* p = six_header;
 
-        if (VOLUME_HEADER_SIZE_V6 != 
-            fread(&six_header, 1, VOLUME_HEADER_SIZE_V6, reader->volume_file))
+        if (VOLUME_HEADER_SIZE_V6 !=
+            reader->unshield->io_callbacks->fread(&six_header, 1, VOLUME_HEADER_SIZE_V6, reader->volume_file, reader->unshield->io_userdata))
           goto exit;
 
         reader->volume_header.data_offset                       = READ_UINT32(p); p += 4;
@@ -486,7 +486,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
   else
     reader->volume_bytes_left = volume_bytes_left_expanded;
 
-  fseek(reader->volume_file, data_offset, SEEK_SET);
+  unshield_fseek(reader->unshield, reader->volume_file, data_offset, SEEK_SET);
 
   reader->volume = volume;
   success = true;
@@ -532,7 +532,7 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
 
 #if VERBOSE >= 3
     unshield_trace("Trying to read 0x%x bytes from offset %08x in volume %i", 
-        bytes_to_read, ftell(reader->volume_file), reader->volume);
+        bytes_to_read, unshield_ftell(reader->unshield, reader->volume_file), reader->volume);
 #endif
     if (bytes_to_read == 0)
     {
@@ -540,12 +540,12 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
       goto exit;
     }
 
-    if (bytes_to_read != fread(p, 1, bytes_to_read, reader->volume_file))
+    if (bytes_to_read != reader->unshield->io_callbacks->fread(p, 1, bytes_to_read, reader->volume_file, reader->unshield->io_userdata))
     {
       unshield_error("Failed to read 0x%08x bytes of file %i (%s) from volume %i. Current offset = 0x%08x",
           bytes_to_read, reader->index, 
           unshield_file_name(reader->unshield, reader->index), reader->volume,
-          ftell(reader->volume_file));
+          unshield_ftell(reader->unshield, reader->volume_file));
       goto exit;
     }
 
@@ -583,14 +583,14 @@ exit:
   return success;
 }/*}}}*/
 
-int copy_file(FILE* infile, FILE* outfile) {
+int copy_file(Unshield* unshield, FILE* infile, FILE* outfile) {
 #define SIZE (1024*1024)
 
     char buffer[SIZE];
     size_t bytes;
 
-    while (0 < (bytes = fread(buffer, 1, sizeof(buffer), infile)))
-        fwrite(buffer, 1, bytes, outfile);
+    while (0 < (bytes = unshield->io_callbacks->fread(buffer, 1, sizeof(buffer), infile, unshield->io_userdata)))
+        unshield->io_callbacks->fwrite(buffer, 1, bytes, outfile, unshield->io_userdata);
 
     return 0;
 }
@@ -626,7 +626,7 @@ static UnshieldReader* unshield_reader_create_external(/*{{{*/
     }
 
     if (file_descriptor->flags & FILE_COMPRESSED) {
-        long file_size = FSIZE(reader->volume_file);
+        long file_size = FSIZE(unshield, reader->volume_file);
         FILE *temporary_file = NULL;
 
         /*
@@ -639,7 +639,7 @@ static UnshieldReader* unshield_reader_create_external(/*{{{*/
         if (diff > 0) {
             diff = MIN(sizeof(END_OF_CHUNK), diff);
             temporary_file = tmpfile();
-            copy_file(reader->volume_file, temporary_file);
+            copy_file(reader->unshield, reader->volume_file, temporary_file);
             fwrite(END_OF_CHUNK + sizeof(END_OF_CHUNK) - diff, 1, diff, temporary_file);
             fseek(temporary_file, 0, SEEK_SET);
 
@@ -719,7 +719,7 @@ static void unshield_reader_destroy(UnshieldReader* reader)/*{{{*/
 {
   if (reader)
   {
-    FCLOSE(reader->volume_file);
+    FCLOSE(reader->unshield, reader->volume_file);
     free(reader);
   }
 }/*}}}*/
@@ -777,7 +777,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
     goto exit;
   }
 
-  if (unshield_fsize(reader->volume_file) == (long)file_descriptor->data_offset)
+  if (unshield_fsize(unshield, reader->volume_file) == (long)file_descriptor->data_offset)
   {
     unshield_error("File %i is not inside the cabinet.", index);
     goto exit;
@@ -785,7 +785,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
 
   if (filename) 
   {
-    output = fopen(filename, "wb");
+    output = unshield_fopen(unshield, filename, "wb");
     if (!output)
     {
       unshield_error("Failed to open output file '%s'", filename);
@@ -883,7 +883,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
 
     if (output)
     {
-      if (bytes_to_write != fwrite(output_buffer, 1, bytes_to_write, output))
+      if (bytes_to_write != unshield_fwrite(unshield, output_buffer, 1, bytes_to_write, output))
       {
         unshield_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
         goto exit;
@@ -925,7 +925,7 @@ exit:
   md5 = NULL;
 #endif
   unshield_reader_destroy(reader);
-  FCLOSE(output);
+  FCLOSE(unshield, output);
   FREE(input_buffer);
   FREE(output_buffer);
   return success;
@@ -992,7 +992,7 @@ bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
     goto exit;
   }
 
-  if (unshield_fsize(reader->volume_file) == (long)file_descriptor->data_offset)
+  if (unshield_fsize(unshield, reader->volume_file) == (long)file_descriptor->data_offset)
   {
     unshield_error("File %i is not inside the cabinet.", index);
     goto exit;
@@ -1000,7 +1000,7 @@ bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
 
   if (filename) 
   {
-    output = fopen(filename, "wb");
+    output = unshield_fopen(unshield, filename, "wb");
     if (!output)
     {
       unshield_error("Failed to open output file '%s'", filename);
@@ -1031,7 +1031,7 @@ bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
     bytes_left -= bytes_to_write;
 
       if (output) {
-          if (bytes_to_write != fwrite(output_buffer, 1, bytes_to_write, output)) {
+          if (bytes_to_write != unshield_fwrite(unshield, output_buffer, 1, bytes_to_write, output)) {
               unshield_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
               goto exit;
           }
@@ -1042,7 +1042,7 @@ bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
   
 exit:
   unshield_reader_destroy(reader);
-  FCLOSE(output);
+  FCLOSE(unshield, output);
   FREE(input_buffer);
   FREE(output_buffer);
   return success;
@@ -1110,7 +1110,7 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
     goto exit;
   }
 
-  if (unshield_fsize(reader->volume_file) == (long)file_descriptor->data_offset)
+  if (unshield_fsize(unshield, reader->volume_file) == (long)file_descriptor->data_offset)
   {
       unshield_error("File %i is not inside the cabinet. Trying external file!", index);
       unshield_reader_destroy(reader);
@@ -1124,7 +1124,7 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
 
   if (filename) 
   {
-    output = fopen(filename, "wb");
+    output = unshield_fopen(unshield, filename, "wb");
     if (!output)
     {
       unshield_error("Failed to open output file '%s'", filename);
@@ -1247,7 +1247,7 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
           bytes_left -= bytes_to_write;
 
           if (output) {
-              if (bytes_to_write != fwrite(output_buffer, 1, bytes_to_write, output)) {
+              if (bytes_to_write != unshield_fwrite(unshield, output_buffer, 1, bytes_to_write, output)) {
                   unshield_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
                   goto exit;
               }
@@ -1272,7 +1272,7 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
       bytes_left -= bytes_to_write;
 
       if (output) {
-        if (bytes_to_write != fwrite(output_buffer, 1, bytes_to_write, output))
+        if (bytes_to_write != unshield_fwrite(unshield, output_buffer, 1, bytes_to_write, output))
         {
           unshield_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
           goto exit;
@@ -1295,7 +1295,7 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
   
 exit:
   unshield_reader_destroy(reader);
-  FCLOSE(output);
+  FCLOSE(unshield, output);
   FREE(input_buffer);
   FREE(output_buffer);
   return success;
