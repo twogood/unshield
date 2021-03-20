@@ -23,7 +23,6 @@ These notices must be retained in any copies of any part of this
 documentation and/or software.
  */
 
-#include "global.h"
 #include "md5.h"
 
 /* Constants for MD5Transform routine.

@@ -1,3 +1,20 @@
+#ifndef __MD5__
+#define __MD5__
+
+/* GLOBAL.H - RSAREF types and constants
+ */
+/* POINTER defines a generic pointer type */
+typedef unsigned char *POINTER;
+
+/* UINT2 defines a two byte word */
+typedef unsigned short int UINT2;
+
+/* UINT4 defines a four byte word */
+typedef unsigned int UINT4;
+
+#define PROTO_LIST(list) list
+
+
 /* MD5.H - header file for MD5C.C
  */
 
@@ -34,3 +51,6 @@ void MD5Init PROTO_LIST ((MD5_CTX *));
 void MD5Update PROTO_LIST
   ((MD5_CTX *, unsigned char *, unsigned int));
 void MD5Final PROTO_LIST ((unsigned char [16], MD5_CTX *));
+
+
+#endif // __MD5__

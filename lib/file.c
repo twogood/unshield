@@ -1,7 +1,6 @@
 /* $Id$ */
 #include "internal.h"
 
-#include "md5/global.h"
 #include "md5/md5.h"
 
 #include "cabfile.h"
