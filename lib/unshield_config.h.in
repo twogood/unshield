@@ -67,9 +67,6 @@
 /* Define to 1 if your system has a working POSIX `iconv' function. */
 #cmakedefine HAVE_ICONV 1
 
-/* Defined if we should use our own MD5 routines. */
-#cmakedefine01 USE_OUR_OWN_MD5
-
 /* Version number of package */
 #define VERSION "@PROJECT_VERSION@"
 

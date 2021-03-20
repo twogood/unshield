@@ -45,16 +45,7 @@ if(NOT SIZE_FORMAT_ZI)
 endif()
 
 find_package(ZLIB REQUIRED)
-find_package(OpenSSL)
 
-if (${OPENSSL_FOUND})
-	option(USE_OUR_OWN_MD5 "Build using own md5 implementation" OFF)
-else()
-	option(USE_OUR_OWN_MD5 "Build using own md5 implementation" ON)
-endif()
-
-message(STATUS "OPENSSL_FOUND: ${OPENSSL_FOUND}")
-message(STATUS "USE_OUR_OWN_MD5: ${USE_OUR_OWN_MD5}")
 message(STATUS "BUILD_STATIC: ${BUILD_STATIC}")
 
 add_definitions(-DHAVE_CONFIG_H)
