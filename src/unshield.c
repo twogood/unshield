@@ -201,7 +201,7 @@ static void show_usage(const char* name)
       "\t-O            Use old compression\n"
       "\t-r            Save raw data (do not decompress)\n"
       "\t-R            Don't do any conversion to file and directory names when extracting.\n"
-      "\t-V            Print copyright and version information\n"
+      "\t-V --version  Print copyright and version information\n"
       "\n"
       "Commands:\n"
       "\tc             List components\n"         
@@ -231,11 +231,17 @@ static bool handle_parameters(
     int argc, 
     char* const argv[])
 {
-	int c;
+    int c;
 
-	while ((c = getopt(argc, argv, "c:d:D:g:hi:e:jLnoOrRV")) != -1)
-	{
-		switch (c)
+    static struct option long_options[] =
+    {
+       { "version", no_argument, NULL, 'V' },
+       { NULL, 0, NULL, 0 }
+    };
+
+    while ((c = getopt_long(argc, argv, "c:d:D:g:hi:e:jLnoOrRV", long_options, NULL)) != -1)
+    {
+    switch (c)
     {
       case 'c':
         component_name = optarg;
@@ -300,7 +306,7 @@ static bool handle_parameters(
         break;
 
       case 'V':
-        printf("Unshield version " VERSION ". Copyright (C) 2003-2021 David Eriksson.\n");
+        printf("Unshield version " VERSION ". MIT License. (C) 2003-2021 David Eriksson.\n");
         exit(0);
         break;
 
