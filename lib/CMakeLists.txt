@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.6)
 
-project(libunshield)
+project(libunshield C)
 
 add_subdirectory(convert_utf)
 
