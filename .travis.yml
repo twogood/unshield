@@ -3,8 +3,7 @@ os:
   - osx
 
 osx_image: xcode12u
-dist: focal
-sudo: false
+dist: bionic
 
 language: c
 
@@ -16,6 +15,8 @@ env:
   global:
     - CFLAGS="-Wall -Werror -ggdb3"
   matrix:
+    - BUILD_STATIC=0
+    - BUILD_STATIC=1
     - STATIC_ANALYZER=scan-build CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Debug"
 
 addons:
