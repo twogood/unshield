@@ -3,8 +3,7 @@ os:
   - osx
 
 osx_image: xcode12u
-dist: focal
-sudo: false
+dist: bionic
 
 language: c
 
@@ -36,6 +35,7 @@ matrix:
     - os: osx
       env: STATIC_ANALYZER=scan-build CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Debug"
   allow_failures:
+    - env: USE_OUR_OWN_MD5=1 BUILD_STATIC=0
     - env: STATIC_ANALYZER=scan-build CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Debug"
 
 install:
