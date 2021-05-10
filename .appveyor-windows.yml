@@ -208,6 +208,6 @@ install:
   - curl -O https://mirrors.ustc.edu.cn/msys2/mingw/i686/mingw-w64-i686-libwinpthread-git-8.0.0.5906.c9a21571-1-any.pkg.tar.zst
   - cd ..
 #end of the hotfix
-  - vcpkg install zlib:%platform% openssl:%platform%
+  - vcpkg install zlib:%platform%
   - cd %APPVEYOR_BUILD_FOLDER%
 
