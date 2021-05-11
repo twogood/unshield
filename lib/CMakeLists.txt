@@ -4,6 +4,10 @@ project(libunshield C)
 
 add_subdirectory(convert_utf)
 
+if(NOT HAVE_ZLIB)
+    add_subdirectory(miniz)
+endif()
+
 set(LIBUNSHIELD_HEADES
     "md5/md5.h"
     "internal.h"
@@ -31,7 +35,13 @@ else()
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(${PROJECT_NAME} PUBLIC ZLIB::ZLIB convert_utf)
+target_link_libraries(${PROJECT_NAME} PUBLIC convert_utf)
+
+if(HAVE_ZLIB)
+target_link_libraries(${PROJECT_NAME} PUBLIC ZLIB::ZLIB)
+else()
+target_link_libraries(${PROJECT_NAME} PUBLIC miniz)
+endif()
 
 install(TARGETS libunshield RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES libunshield.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

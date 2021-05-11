@@ -24,7 +24,15 @@
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #endif
 
+#ifdef HAVE_ZLIB
 #include <zlib.h>
+#else
+#define MINIZ_NO_ARCHIVE_APIS
+#define MINIZ_NO_ARCHIVE_WRITING_APIS
+#include "miniz/miniz.h"
+#pragma message ( "using static MINIZ" )
+#endif
+
 
 #define VERBOSE 3
 

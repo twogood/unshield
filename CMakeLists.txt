@@ -44,8 +44,14 @@ if(NOT SIZE_FORMAT_ZI)
 	endif()
 endif()
 
-find_package(ZLIB REQUIRED)
+find_package(ZLIB)
 
+if (${ZLIB_FOUND})
+#   option(HAVE_ZLIB "Use zlib" ON)
+    check_include_files(zlib.h HAVE_ZLIB)
+endif()
+
+message(STATUS "HAVE_ZLIB: ${HAVE_ZLIB}")
 message(STATUS "BUILD_STATIC: ${BUILD_STATIC}")
 
 add_definitions(-DHAVE_CONFIG_H)

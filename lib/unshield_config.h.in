@@ -68,6 +68,8 @@
 /* Define to 1 if your system has a working POSIX `iconv' function. */
 #cmakedefine HAVE_ICONV @HAVE_ICONV@
 
+#cmakedefine HAVE_ZLIB @HAVE_ZLIB@
+
 /* Version number of package */
 #define VERSION "@PROJECT_VERSION@"
 
