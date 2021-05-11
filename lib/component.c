@@ -51,7 +51,9 @@ UnshieldComponent* unshield_component_new(Header* header, uint32_t offset)
 
   self->file_group_count = READ_UINT16(p); p += 2;
   if (self->file_group_count > MAX_FILE_GROUP_COUNT)
-    abort();
+  {
+    UNSHIELD_THROW_EXCEPTION(&header->exception, "file_group_count > MAX_FILE_GROUP_COUNT");
+  }
 
   self->file_group_names = NEW(const char*, self->file_group_count);
 
