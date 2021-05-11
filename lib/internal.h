@@ -2,6 +2,7 @@
 #ifndef __internal_h__
 #define __internal_h__
 
+#include "pendian_detect.h"
 #include "libunshield.h"
 #include "lib/unshield_config.h"
 
@@ -105,7 +106,7 @@ uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset);
 #define FSIZE(file)     ((file) ? unshield_fsize(file) : 0)
 #define STREQ(s1,s2)    (0 == strcmp(s1,s2))
 
-#if WORDS_BIGENDIAN
+#if __BIG_ENDIAN__
 
 #if HAVE_BYTESWAP_H
 #include <byteswap.h>
@@ -125,7 +126,7 @@ uint32_t bswap_32(uint32_t x);
 #define letoh16(x)    bswap_16(x)
 #define letoh32(x)    bswap_32(x)
 
-#else
+#else // not big endian
 #define letoh32(x) (x)
 #define letoh16(x) (x)
 #endif
