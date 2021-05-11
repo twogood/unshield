@@ -2,6 +2,10 @@
 #ifndef __unshield_h__
 #define __unshield_h__
 
+/* #define _GNU_SOURCE */
+#define _LARGEFILE_SOURCE 1
+#define _LARGEFILE64_SOURCE 1
+
 #include <stdbool.h>
 #include <stddef.h>
 

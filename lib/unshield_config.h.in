@@ -70,6 +70,8 @@
 /* Defined if we should use our own MD5 routines. */
 #cmakedefine01 USE_OUR_OWN_MD5
 
+#cmakedefine HAVE_ZLIB @HAVE_ZLIB@
+
 /* Version number of package */
 #define VERSION "@PROJECT_VERSION@"
 

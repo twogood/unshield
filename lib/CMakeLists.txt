@@ -8,6 +8,10 @@ if(USE_OUR_OWN_MD5)
     add_subdirectory(md5)
 endif()
 
+if(NOT HAVE_ZLIB)
+    add_subdirectory(miniz)
+endif()
+
 set(LIBUNSHIELD_HEADES
     "internal.h"
     "libunshield.h"
@@ -33,7 +37,13 @@ else()
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(${PROJECT_NAME} PUBLIC ZLIB::ZLIB convert_utf)
+target_link_libraries(${PROJECT_NAME} PUBLIC convert_utf)
+
+if(HAVE_ZLIB)
+target_link_libraries(${PROJECT_NAME} PUBLIC ZLIB::ZLIB)
+else()
+target_link_libraries(${PROJECT_NAME} PUBLIC miniz)
+endif()
 
 if(USE_OUR_OWN_MD5)
     target_link_libraries(${PROJECT_NAME} PUBLIC md5)
