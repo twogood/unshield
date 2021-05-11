@@ -53,6 +53,8 @@ struct _Unshield
 {
   Header* header_list;
   char* filename_pattern;
+  const UnshieldIoCallbacks* io_callbacks;
+  void* io_userdata;
 };
 
 /*
@@ -78,7 +80,7 @@ void unshield_file_group_destroy(UnshieldFileGroup* self);
 char *unshield_get_base_directory_name(Unshield *unshield);
 long int unshield_get_path_max(Unshield* unshield);
 FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suffix);
-long long unshield_fsize(FILE* file);
+long long unshield_fsize(Unshield* unshield, FILE* file);
 bool unshield_read_common_header(uint8_t** buffer, CommonHeader* common);
 
 const char* unshield_get_utf8_string(Header* header, const void* buffer);
@@ -101,8 +103,8 @@ uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset);
 #define STRDUP(str)     ((str) ? strdup(str) : NULL)
 #define NEW(type, count)      ((type*)calloc(count, sizeof(type)))
 #define NEW1(type)      ((type*)calloc(1, sizeof(type)))
-#define FCLOSE(file)    if (file) { fclose(file); (file) = NULL; }
-#define FSIZE(file)     ((file) ? unshield_fsize(file) : 0)
+#define FCLOSE(unshield, file) if (file) { unshield->io_callbacks->fclose(file, unshield->io_userdata); (file) = NULL; }
+#define FSIZE(unshield, file)     ((file) ? unshield_fsize(unshield, file) : 0)
 #define STREQ(s1,s2)    (0 == strcmp(s1,s2))
 
 #if WORDS_BIGENDIAN

@@ -36,6 +36,22 @@ Unshield* unshield_open(const char* filename);
 Unshield* unshield_open_force_version(const char* filename, int version);
 void unshield_close(Unshield* unshield);
 
+typedef struct
+{
+    void *(*fopen)(const char *filename, const char *modes, void *userdata);
+    int (*fseek)(void *file, long int offset, int whence, void *userdata);
+    long int (*ftell)(void *file, void *userdata);
+    size_t (*fread)(void *ptr, size_t size, size_t n, void *file, void *userdata);
+    size_t (*fwrite)(const void *ptr, size_t size, size_t n, void *file, void *userdata);
+    int (*fclose)(void *ptr, void *userdata);
+    void *(*opendir)(const char *name, void *userdata);
+    int (*closedir)(void *dir, void *userdata);
+    struct dirent* (*readdir)(void *dir, void *userdata);
+} UnshieldIoCallbacks;
+
+Unshield* unshield_open2(const char* filename, const UnshieldIoCallbacks* callbacks, void* userdata);
+Unshield* unshield_open2_force_version(const char* filename, int version, const UnshieldIoCallbacks* callbacks, void* userdata);
+
 /*
    Component functions
  */

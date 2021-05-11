@@ -103,11 +103,12 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
     else
       q=filename;
 
-    sourcedir = opendir(dirname);
+    sourcedir = unshield->io_callbacks->opendir(dirname, unshield->io_userdata);
     /* Search for the File case independent */
     if (sourcedir)
     {
-      for (dent=readdir(sourcedir);dent;dent=readdir(sourcedir))
+      for (dent=unshield->io_callbacks->readdir(sourcedir, unshield->io_userdata);dent;
+           dent=unshield->io_callbacks->readdir(sourcedir, unshield->io_userdata))
       {
         if (!(strcasecmp(q, dent->d_name)))
         {
@@ -134,11 +135,11 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
 #if VERBOSE
     unshield_trace("Opening file '%s'", filename);
 #endif
-    result = fopen(filename, "rb");
+    result = unshield->io_callbacks->fopen(filename, "rb", unshield->io_userdata);
 
 exit:
     if (sourcedir)
-      closedir(sourcedir);
+      unshield->io_callbacks->closedir(sourcedir, unshield->io_userdata);
     free(filename);
     free(dirname);
     return result;
@@ -147,13 +148,13 @@ exit:
   return NULL;
 }
 
-long long unshield_fsize(FILE* file)
+long long unshield_fsize(Unshield* unshield, FILE* file)
 {
   long long result;
-  long long previous = ftell(file);
-  fseek(file, 0L, SEEK_END);
-  result = ftell(file);
-  fseek(file, previous, SEEK_SET);
+  long long previous = unshield->io_callbacks->ftell(file, unshield->io_userdata);
+  unshield->io_callbacks->fseek(file, 0L, SEEK_END, unshield->io_userdata);
+  result = unshield->io_callbacks->ftell(file, unshield->io_userdata);
+  unshield->io_callbacks->fseek(file, previous, SEEK_SET, unshield->io_userdata);
   return result;
 }
 
