@@ -44,7 +44,8 @@ if(NOT SIZE_FORMAT_ZI)
 	endif()
 endif()
 
-find_package(ZLIB)
+### uncomment this to enable ZLIB detection
+#find_package(ZLIB)
 
 if (${ZLIB_FOUND})
 #   option(HAVE_ZLIB "Use zlib" ON)
