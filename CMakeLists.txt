@@ -44,8 +44,6 @@ if(NOT SIZE_FORMAT_ZI)
 	endif()
 endif()
 
-find_package(ZLIB REQUIRED)
-
 message(STATUS "BUILD_STATIC: ${BUILD_STATIC}")
 
 add_definitions(-DHAVE_CONFIG_H)
