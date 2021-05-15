@@ -1,6 +1,7 @@
 os:
   - linux
   - osx
+  - freebsd
 
 osx_image: xcode12u
 dist: bionic
