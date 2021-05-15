@@ -4,6 +4,8 @@ cd "$(dirname "$0")"
 MD5_FILE=$(pwd)/$(basename "$0" .sh).md5
 UNSHIELD=${UNSHIELD:-/var/tmp/unshield/bin/unshield}
 
+test -z "$MD5SUM" && MD5SUM=md5sum
+
 if [ \! -x "${UNSHIELD}" ]; then
     echo "unshield executable not found at $UNSHIELD" >&2
     exit 1
@@ -28,7 +30,7 @@ if [ ${CODE} -ne 0 ]; then
 fi
 
 cd extract
-find . -type f -print0 | LC_ALL=C sort -z | xargs -0 md5sum > ../md5
+find . -type f -print0 | LC_ALL=C sort -z | xargs -0 ${MD5SUM} > ../md5
 if ! diff -wu "${MD5_FILE}" ../md5 >&2 ; then
     echo "MD5 sums diff" >&2
     exit 4
