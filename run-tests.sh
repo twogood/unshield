@@ -1,6 +1,9 @@
-#!/bin/bash
+#!/bin/sh
+
 ALL_RET=0
-for SCRIPT in $(find $(dirname $0)/test/v* -name '*.sh'); do
+
+for SCRIPT in $(find $(dirname $0)/test/v* -name '*.sh')
+do
   echo -n "Running test $SCRIPT..."
   bash ${SCRIPT}
   TEST_RET=$?

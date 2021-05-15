@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 cd "$(dirname "$0")"
 MD5_FILE=$(pwd)/$(basename "$0" .sh).md5
