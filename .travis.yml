@@ -11,14 +11,6 @@ compiler:
   - gcc
   - clang
 
-env:
-  global:
-    - CFLAGS="-Wall -Werror -ggdb3"
-  matrix:
-    - BUILD_STATIC=0
-    - BUILD_STATIC=1
-    - STATIC_ANALYZER=scan-build CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Debug"
-
 addons:
   apt:
     packages:
@@ -27,24 +19,11 @@ addons:
     packages:
       - gcc@10
 
-matrix:
-  exclude:
-    - os: osx
-      env: STATIC_ANALYZER=scan-build CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Debug"
-  allow_failures:
-    - env: USE_OUR_OWN_MD5=1 BUILD_STATIC=0
-    - env: STATIC_ANALYZER=scan-build CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Debug"
-
 install:
   # Use the real gcc, not clang
   - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$CC" = "gcc" ]; then CC=gcc-10; $CC --version; fi
 
 # cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield . && make && make install
 script:
-  - mkdir build
-  - cd build
-  - $STATIC_ANALYZER cmake -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield -DBUILD_STATIC=$BUILD_STATIC ${CMAKE_OPTS:-} ..
-  - $STATIC_ANALYZER make
-  - make install
-  - ../run-tests.sh
-
+  - ./rebuild.sh
+  - ./run-tests.sh
