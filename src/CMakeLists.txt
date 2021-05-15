@@ -9,6 +9,8 @@ if(WIN32)
     if(HAVE_ICONV)
         target_link_libraries(unshield iconv)
     endif()
+elseif(ICONV_LIBRARIES)
+    target_link_libraries(unshield ${ICONV_LIBRARIES})
 endif()
 
 add_executable(unshield-deobfuscate "unshield-deobfuscate.c")
