@@ -4,6 +4,9 @@ os:
 
 osx_image: xcode12u
 dist: bionic
+arch:
+  - amd64
+  - arm64
 
 language: c
 
