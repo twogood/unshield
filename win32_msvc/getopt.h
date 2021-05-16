@@ -35,6 +35,15 @@
 #ifndef YA_GETOPT_H
 #define YA_GETOPT_H 1
 
+/* Hide warnings about unreferenced local functions */
+#if defined(__clang__)
+#	pragma clang diagnostic ignored "-Wunused-function"
+#elif defined(_MSC_VER)
+#	pragma warning(disable:4505)
+#elif defined(__GNUC__)
+#	pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -55,17 +64,16 @@ struct option {
     int val;
 };
 
-//  error: ‘ya_getopt’ defined but not used [-Werror=unused-function]
-///static int ya_getopt(int argc, char * const argv[], const char *optstring);
+static int ya_getopt(int argc, char * const argv[], const char *optstring);
 static int ya_getopt_long(int argc, char * const argv[], const char *optstring,
                    const struct option *longopts, int *longindex);
-///static int ya_getopt_long_only(int argc, char * const argv[], const char *optstring,
-///                        const struct option *longopts, int *longindex);
+static int ya_getopt_long_only(int argc, char * const argv[], const char *optstring,
+                        const struct option *longopts, int *longindex);
 
 #ifndef YA_GETOPT_NO_COMPAT_MACRO
-///#define getopt ya_getopt
+#define getopt ya_getopt
 #define getopt_long ya_getopt_long
-///#define getopt_long_only ya_getopt_long_only
+#define getopt_long_only ya_getopt_long_only
 #define optarg ya_optarg
 #define optind ya_optind
 #define opterr ya_opterr
@@ -124,20 +132,20 @@ static int is_option(const char *arg)
 
 // ==================================================================
 
-///static int ya_getopt(int argc, char * const argv[], const char *optstring)
-///{
-///    return ya_getopt_internal(argc, argv, optstring, NULL, NULL, 0);
-///}
+static int ya_getopt(int argc, char * const argv[], const char *optstring)
+{
+    return ya_getopt_internal(argc, argv, optstring, NULL, NULL, 0);
+}
 
 static int ya_getopt_long(int argc, char * const argv[], const char *optstring, const struct option *longopts, int *longindex)
 {
     return ya_getopt_internal(argc, argv, optstring, longopts, longindex, 0);
 }
 
-///static int ya_getopt_long_only(int argc, char * const argv[], const char *optstring, const struct option *longopts, int *longindex)
-///{
-///    return ya_getopt_internal(argc, argv, optstring, longopts, longindex, 1);
-///}
+static int ya_getopt_long_only(int argc, char * const argv[], const char *optstring, const struct option *longopts, int *longindex)
+{
+    return ya_getopt_internal(argc, argv, optstring, longopts, longindex, 1);
+}
 
 // ==================================================================
 
