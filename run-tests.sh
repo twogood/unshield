@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if test "$TRAVIS_OS_NAME" = "windows" ; then # see rebuild.sh
+   echo "*** Not running tests on Windows"
+   exit 0
+fi
+
+
 ALL_RET=0
 
 if command -v md5sum >/dev/null 2>&1 ; then
