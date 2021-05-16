@@ -15,7 +15,6 @@ set(LIBUNSHIELD_HEADES
 
 set(LIBUNSHIELD_SOURCES
     "md5/md5.c"
-    "bswap.c"
     "component.c"
     "directory.c"
     "file.c"
