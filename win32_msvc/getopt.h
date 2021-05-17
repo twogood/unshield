@@ -83,13 +83,12 @@ static int ya_getopt_long_only(int argc, char * const argv[], const char *optstr
 #define optional_argument ya_optional_argument
 #endif
 
-
 // ===============================================================================
 
-char *ya_optarg = NULL;
-int ya_optind = 1;
-int ya_opterr = 1;
-int ya_optopt = '?';
+static char *ya_optarg = NULL;
+static int ya_optind = 1;
+static int ya_opterr = 1;
+static int ya_optopt = '?';
 
 static char *ya_optnext = NULL;
 static int posixly_correct = -1;
