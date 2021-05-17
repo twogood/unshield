@@ -73,7 +73,7 @@ function(set_msvc_runtime_static)
 endfunction()
 
 if (MSVC)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/win32_msvc)
 endif ()
 
