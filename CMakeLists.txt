@@ -25,7 +25,7 @@ check_include_files(string.h HAVE_STRING_H)
 check_include_files(sys/stat.h HAVE_SYS_STAT_H)
 check_include_files(sys/types.h HAVE_SYS_TYPES_H)
 check_include_files(unistd.h HAVE_UNISTD_H)
-check_symbol_exists(fnmatch fnmatch.h HAVE_FNMATCH)
+check_include_files(fnmatch.h HAVE_FNMATCH_H)
 
 set(ICONVTEST
     "#include <stddef.h>\n#include <iconv.h>\nint main() {\nchar *a, *b;\nsize_t i, j;\niconv_t ic;\nic = iconv_open(\"to\", \"from\");\niconv(ic, &a, &i, &b, &j);\niconv_close(ic); }"
