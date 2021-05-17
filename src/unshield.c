@@ -34,6 +34,12 @@
 #define VERSION "Unknown"
 #endif
 
+#ifdef _MSC_VER
+#define SIZET_FORMAT "Iu"
+#else /* C99 */
+#define SIZET_FORMAT "zu"
+#endif
+
 #define FREE(ptr)       { if (ptr) { free(ptr); ptr = NULL; } }
 
 #ifdef _WIN32
@@ -721,7 +727,7 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
       if (dirname[strlen(dirname)-1] != '\\')
         strcat(dirname, "\\");
 
-      printf(" %8" SIZE_FORMAT "  %s%s\n",
+      printf(" %8" SIZET_FORMAT "  %s%s\n",
           unshield_file_size(unshield, i),
           dirname,
           unshield_file_name(unshield, i)); 
