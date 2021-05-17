@@ -11,10 +11,11 @@ if test "$TRAVIS_OS_NAME" = "windows" ; then
         echo "*** Will use MSVC ***"
         export CFLAGS="-W3"
         unset CC CC_FOR_BUILD CXX CXX_FOR_BUILD
+        .github/travis_windows_msvc.bat
     else
         export CFLAGS="-Wall" # gcc
+        .github/travis_windows_mingw.bat
     fi
-    .github/travis_windows_build.bat
     exit $?
 fi
 
