@@ -30,7 +30,11 @@ install:
   # Use the real gcc, not clang
   - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$CC" = "gcc" ]; then CC=gcc-10; $CC --version; fi
 
-# cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield . && make && make install
+cache:
+  directories:
+  - ${HOME}/.cache/unshieldtest
+
 script:
   - ./rebuild.sh
   - ./run-tests.sh
+
