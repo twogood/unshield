@@ -34,5 +34,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC convert_utf)
 target_link_libraries(${PROJECT_NAME} PUBLIC zlib)
 
+set_target_properties(libunshield PROPERTIES PREFIX "")
+
 install(TARGETS libunshield RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES libunshield.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
