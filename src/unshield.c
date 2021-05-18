@@ -24,10 +24,11 @@
 #endif
 
 #if HAVE_FNMATCH_H
-#include <fnmatch.h>
-#elif defined(_WIN32)
-/* windows: not detected, include it anyway*/
-#include "../win32_msvc/fnmatch.h"
+#  include <fnmatch.h>
+#else
+// ../win32_msvc/fnmatch.h is ANSI C [musl fnmatch.c/h]
+#  define HAVE_FNMATCH_H 1
+#  include "../win32_msvc/fnmatch.h"
 #endif
 
 #ifdef HAVE_ICONV

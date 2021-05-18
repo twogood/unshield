@@ -44,11 +44,11 @@ extern "C" {
 #include <wchar.h>
 #include <wctype.h>
 
-#define END 0
-#define UNMATCHABLE -2
-#define BRACKET -3
-#define QUESTION -4
-#define STAR -5
+#define MUSLFN_END 0
+#define MUSLFN_UNMATCHABLE -2
+#define MUSLFN_BRACKET -3
+#define MUSLFN_QUESTION -4
+#define MUSLFN_STAR -5
 
 static int muslfn_str_next(const char *str, size_t n, size_t *step)
 {
@@ -75,7 +75,7 @@ static int muslfn_pat_next(const char *pat, size_t m, size_t *step, int flags)
 	int esc = 0;
 	if (!m || !*pat) {
 		*step = 0;
-		return END;
+		return MUSLFN_END;
 	}
 	*step = 1;
 	if (pat[0]=='\\' && pat[1] && !(flags & FNM_NOESCAPE)) {
@@ -102,19 +102,19 @@ static int muslfn_pat_next(const char *pat, size_t m, size_t *step, int flags)
 			return '[';
 		}
 		*step = k+1;
-		return BRACKET;
+		return MUSLFN_BRACKET;
 	}
 	if (pat[0] == '*')
-		return STAR;
+		return MUSLFN_STAR;
 	if (pat[0] == '?')
-		return QUESTION;
+		return MUSLFN_QUESTION;
 escaped:
 	if (pat[0] >= 128U) {
 		wchar_t wc;
 		int k = mbtowc(&wc, pat, m);
 		if (k<0) {
 			*step = 0;
-			return UNMATCHABLE;
+			return MUSLFN_UNMATCHABLE;
 		}
 		*step = k + esc;
 		return wc;
@@ -197,23 +197,23 @@ static int fnmatch_internal(const char *pat, size_t m, const char *str, size_t n
 	}
 	for (;;) {
 		switch ((c = muslfn_pat_next(pat, m, &pinc, flags))) {
-		case UNMATCHABLE:
+		case MUSLFN_UNMATCHABLE:
 			return FNM_NOMATCH;
-		case STAR:
+		case MUSLFN_STAR:
 			pat++;
 			m--;
 			break;
 		default:
 			k = muslfn_str_next(str, n, &sinc);
 			if (k <= 0)
-				return (c==END) ? 0 : FNM_NOMATCH;
+				return (c==MUSLFN_END) ? 0 : FNM_NOMATCH;
 			str += sinc;
 			n -= sinc;
 			kfold = flags & FNM_CASEFOLD ? muslfn_casefold(k) : k;
-			if (c == BRACKET) {
+			if (c == MUSLFN_BRACKET) {
 				if (!muslfn_match_bracket(pat, k, kfold))
 					return FNM_NOMATCH;
-			} else if (c != QUESTION && k != c && kfold != c) {
+			} else if (c != MUSLFN_QUESTION && k != c && kfold != c) {
 				return FNM_NOMATCH;
 			}
 			pat+=pinc;
@@ -230,9 +230,9 @@ static int fnmatch_internal(const char *pat, size_t m, const char *str, size_t n
 	/* Find the last * in pat and count chars needed after it */
 	for (p=ptail=pat; p<endpat; p+=pinc) {
 		switch (muslfn_pat_next(p, endpat-p, &pinc, flags)) {
-		case UNMATCHABLE:
+		case MUSLFN_UNMATCHABLE:
 			return FNM_NOMATCH;
-		case STAR:
+		case MUSLFN_STAR:
 			tailcnt=0;
 			ptail = p+1;
 			break;
@@ -242,7 +242,7 @@ static int fnmatch_internal(const char *pat, size_t m, const char *str, size_t n
 		}
 	}
 
-	/* Past this point we need not check for UNMATCHABLE in pat,
+	/* Past this point we need not check for MUSLFN_UNMATCHABLE in pat,
 	 * because all of pat has already been parsed once. */
 
 	/* Compute real str length if it was initially unknown/-1 */
@@ -266,15 +266,15 @@ static int fnmatch_internal(const char *pat, size_t m, const char *str, size_t n
 		c = muslfn_pat_next(p, endpat-p, &pinc, flags);
 		p += pinc;
 		if ((k = muslfn_str_next(s, endstr-s, &sinc)) <= 0) {
-			if (c != END) return FNM_NOMATCH;
+			if (c != MUSLFN_END) return FNM_NOMATCH;
 			break;
 		}
 		s += sinc;
 		kfold = flags & FNM_CASEFOLD ? muslfn_casefold(k) : k;
-		if (c == BRACKET) {
+		if (c == MUSLFN_BRACKET) {
 			if (!muslfn_match_bracket(p-pinc, k, kfold))
 				return FNM_NOMATCH;
-		} else if (c != QUESTION && k != c && kfold != c) {
+		} else if (c != MUSLFN_QUESTION && k != c && kfold != c) {
 			return FNM_NOMATCH;
 		}
 	}
@@ -291,7 +291,7 @@ static int fnmatch_internal(const char *pat, size_t m, const char *str, size_t n
 			c = muslfn_pat_next(p, endpat-p, &pinc, flags);
 			p += pinc;
 			/* Encountering * completes/commits a component */
-			if (c == STAR) {
+			if (c == MUSLFN_STAR) {
 				pat = p;
 				str = s;
 				break;
@@ -300,15 +300,15 @@ static int fnmatch_internal(const char *pat, size_t m, const char *str, size_t n
 			if (!k)
 				return FNM_NOMATCH;
 			kfold = flags & FNM_CASEFOLD ? muslfn_casefold(k) : k;
-			if (c == BRACKET) {
+			if (c == MUSLFN_BRACKET) {
 				if (!muslfn_match_bracket(p-pinc, k, kfold))
 					break;
-			} else if (c != QUESTION && k != c && kfold != c) {
+			} else if (c != MUSLFN_QUESTION && k != c && kfold != c) {
 				break;
 			}
 			s += sinc;
 		}
-		if (c == STAR) continue;
+		if (c == MUSLFN_STAR) continue;
 		/* If we failed, advance str, by 1 char if it's a valid
 		 * char, or past all invalid bytes otherwise. */
 		k = muslfn_str_next(str, endstr-str, &sinc);
@@ -319,14 +319,14 @@ static int fnmatch_internal(const char *pat, size_t m, const char *str, size_t n
 	return 0;
 }
 
-int fnmatch(const char *pat, const char *str, int flags)
+static int fnmatch(const char *pat, const char *str, int flags)
 {
 	const char *s, *p;
 	size_t inc;
 	int c;
 	if (flags & FNM_PATHNAME) for (;;) {
 		for (s=str; *s && *s!='/'; s++);
-		for (p=pat; (c=muslfn_pat_next(p, -1, &inc, flags))!=END && c!='/'; p+=inc);
+		for (p=pat; (c=muslfn_pat_next(p, -1, &inc, flags))!=MUSLFN_END && c!='/'; p+=inc);
 		if (c!=*s && (!*s || !(flags & FNM_LEADING_DIR)))
 			return FNM_NOMATCH;
 		if (fnmatch_internal(pat, p-pat, str, s-str, flags))
