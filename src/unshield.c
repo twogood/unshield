@@ -14,8 +14,13 @@
 #include <unistd.h>
 #include <getopt.h>
 #include "../lib/libunshield.h"
+
 #ifdef HAVE_CONFIG_H
+#ifdef AUTOTOOLS
+#include <config.h>
+#else
 #include "lib/unshield_config.h"
+#endif
 #endif
 
 #if HAVE_FNMATCH_H

@@ -4,7 +4,12 @@
 
 #include "pendian_detect.h"
 #include "libunshield.h"
+
+#ifdef AUTOTOOLS
+#include <config.h>
+#else
 #include "lib/unshield_config.h"
+#endif
 
 #if HAVE_STDINT_H
 #include <stdint.h>

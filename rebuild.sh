@@ -1,4 +1,6 @@
 #!/bin/sh
+# no param = cmake, travis CI = cmake
+
 set -e
 set -x
 
@@ -19,8 +21,23 @@ if test "$TRAVIS_OS_NAME" = "windows" ; then
     exit $?
 fi
 
-export CFLAGS="-Wall -Werror -ggdb3"
-cd `dirname $0`
-mkdir -p build
-cd build
-cmake -DBUILD_STATIC=ON -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield .. && make && make install
+# =====================================================================
+
+rm -rf /var/tmp/unshield
+
+if test -z "$1" ; then
+    export CFLAGS="-Wall -Werror -ggdb3"
+    mkdir -p build
+    cd build
+    cmake -DBUILD_STATIC=1 -DCMAKE_INSTALL_PREFIX:PATH=/var/tmp/unshield .. && \
+        make && make install
+else
+    # param = autotools, proper cflags are in configure.ac
+    if ! test -f configure ; then
+        sh ./autogen.sh
+    fi
+    ./configure --prefix=/var/tmp/unshield --enable-static --disable-shared && \
+    make clean && \
+    make install
+fi
+
