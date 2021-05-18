@@ -31,12 +31,12 @@
   #define strncasecmp _strnicmp
 #endif
 
-long int unshield_get_path_max(Unshield* unshield)
+size_t unshield_get_path_max(Unshield* unshield)
 {
 #ifdef PATH_MAX
     return PATH_MAX;
 #else
-    long int path_max = pathconf(unshield->filename_pattern, _PC_PATH_MAX);
+    size_t path_max = pathconf(unshield->filename_pattern, _PC_PATH_MAX);
     if (path_max <= 0)
       path_max = 4096;
     return path_max;
@@ -44,13 +44,13 @@ long int unshield_get_path_max(Unshield* unshield)
 }
 
 char *unshield_get_base_directory_name(Unshield *unshield) {
-    long int path_max = unshield_get_path_max(unshield);
+    size_t path_max = unshield_get_path_max(unshield);
     char *p = strrchr(unshield->filename_pattern, '/');
     char *dirname = malloc(path_max);
 
     if (p) {
         strncpy(dirname, unshield->filename_pattern, path_max);
-        if ((unsigned int) (p - unshield->filename_pattern) > path_max) {
+        if ((size_t)(p - unshield->filename_pattern) > path_max) {
             dirname[path_max - 1] = 0;
         } else
             dirname[(p - unshield->filename_pattern)] = 0;
@@ -95,7 +95,7 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
     const char *q;
     struct dirent *dent = NULL;
     DIR *sourcedir = NULL;
-    long int path_max = unshield_get_path_max(unshield);
+    size_t path_max = unshield_get_path_max(unshield);
 
     q=strrchr(filename,'/');
     if (q)
@@ -122,7 +122,7 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
         goto exit;
       }
       else
-        if(snprintf(filename, path_max, "%s/%s", dirname, dent->d_name)>=path_max)
+        if((size_t)snprintf(filename, path_max, "%s/%s", dirname, dent->d_name) >= path_max)
         {
           unshield_error("Pathname exceeds system limits.\n");
           goto exit;

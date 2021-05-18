@@ -389,12 +389,12 @@ static bool handle_parameters(
 
 static bool extract_file(Unshield* unshield, const char* prefix, int index)
 {
-  bool success;
+  bool success = false;
   char* dirname;
   char* filename;
   char* p;
   int directory = unshield_file_directory(unshield, index);
-  long int path_max;
+  size_t path_max;
   char* real_output_directory;
   char* real_filename;
 
@@ -620,7 +620,7 @@ static int extract_helper(Unshield* unshield, const char* prefix, int first, int
 
 static bool test_file(Unshield* unshield, int index)
 {
-  bool success;
+  bool success = false;
 
   printf("  testing: %s\n", unshield_file_name(unshield, index));
 
