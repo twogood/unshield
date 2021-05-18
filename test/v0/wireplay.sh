@@ -28,6 +28,7 @@ fi
 
 cd extract
 find . -type f -print0 | LC_ALL=C sort -z | xargs -0 ${MD5SUM} > ../md5
+winFixMd5 ../md5
 if ! diff -wu "${MD5_FILE}" ../md5 >&2 ; then
     echo "MD5 sums diff" >&2
     exit 4

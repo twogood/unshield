@@ -71,3 +71,13 @@ cleanup_func()
         trap "$@" TERM INT EXIT
     fi
 }
+
+winFixMd5()
+{
+    if test "$TRAVIS_OS_NAME" = "windows" ; then # see rebuild.sh
+        # problem with md5sum in Travis CI (mingw)
+        #  unix: a943ad8f40479fa5cd68afba5787be4f  ./AVIGO/Avigo100.pgm
+        #  win : a943ad8f40479fa5cd68afba5787be4f *./AVIGO/Avigo100.pgm
+        sed -i 's% \*\./%  ./%' "${1}"
+    fi
+}
