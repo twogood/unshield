@@ -12,8 +12,8 @@ set_unshield  # ${UNSHIELD}
 ALL_RET=0
 for SCRIPT in $(find $(dirname $0)/test/v* -name '*.sh' | sort)
 do
-  echo -n "Running test $SCRIPT..."
-  bash ${SCRIPT}
+  printf "%s" "Running test $SCRIPT..."
+  sh ${SCRIPT}
   TEST_RET=$?
   if [ "$TEST_RET" = "0" ]; then
     echo "succeeded"
