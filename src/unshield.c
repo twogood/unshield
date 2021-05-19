@@ -27,7 +27,6 @@
 #  include <fnmatch.h>
 #else
 // ../win32_msvc/fnmatch.h is ANSI C [musl fnmatch.c/h]
-#  define HAVE_FNMATCH_H 1
 #  include "../win32_msvc/fnmatch.h"
 #endif
 
@@ -230,9 +229,7 @@ static void show_usage(const char* name)
       "Other:\n"
       "\tCABFILE       The file to list or extract contents of\n"
       "\tFILENAME...   Optionally specify names of specific files to extract"
-#if HAVE_FNMATCH_H
       " (wildcards are supported)"
-#endif
       "\n"
       ,
       name);
@@ -590,13 +587,8 @@ static bool should_process_file(Unshield* unshield, int index)
 
   for (i = 0; i < path_name_count; i++)
   {
-#if HAVE_FNMATCH_H
     if (fnmatch(path_names[i], unshield_file_name(unshield, index), 0) == 0)
       return true;
-#else
-    if (strcmp(path_names[i], unshield_file_name(unshield, index)) == 0)
-      return true;
-#endif
   }
 
   return false;

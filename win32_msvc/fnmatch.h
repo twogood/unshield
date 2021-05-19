@@ -56,7 +56,7 @@ static int muslfn_str_next(const char *str, size_t n, size_t *step)
 		*step = 0;
 		return 0;
 	}
-	if (str[0] >= 128U) {
+	if ((unsigned char)str[0] >= 128U) {
 		wchar_t wc;
 		int k = mbtowc(&wc, str, n);
 		if (k<0) {
@@ -109,7 +109,7 @@ static int muslfn_pat_next(const char *pat, size_t m, size_t *step, int flags)
 	if (pat[0] == '?')
 		return MUSLFN_QUESTION;
 escaped:
-	if (pat[0] >= 128U) {
+	if ((unsigned char)pat[0] >= 128U) {
 		wchar_t wc;
 		int k = mbtowc(&wc, pat, m);
 		if (k<0) {
@@ -125,7 +125,7 @@ escaped:
 static int muslfn_casefold(int k)
 {
 	int c = towupper(k);
-	return c == k ? towlower(k) : c;
+	return c == k ? (int)towlower(k) : c;
 }
 
 static int muslfn_match_bracket(const char *p, int k, int kfold)
@@ -151,8 +151,8 @@ static int muslfn_match_bracket(const char *p, int k, int kfold)
 			int l = mbtowc(&wc2, p+1, 4);
 			if (l < 0) return 0;
 			if (wc <= wc2)
-				if ((unsigned)k-wc <= wc2-wc ||
-				    (unsigned)kfold-wc <= wc2-wc)
+				if (k-wc <= wc2-wc ||
+				    kfold-wc <= wc2-wc)
 					return !inv;
 			p += l-1;
 			continue;
@@ -172,7 +172,7 @@ static int muslfn_match_bracket(const char *p, int k, int kfold)
 			}
 			continue;
 		}
-		if (*p < 128U) {
+		if ((unsigned char)*p < 128U) {
 			wc = (unsigned char)*p;
 		} else {
 			int l = mbtowc(&wc, p, 4);
@@ -254,7 +254,7 @@ static int fnmatch_internal(const char *pat, size_t m, const char *str, size_t n
 	 * On illegal sequences we may get it wrong, but in that case
 	 * we necessarily have a matching failure anyway. */
 	for (s=endstr; s>str && tailcnt; tailcnt--) {
-		if (s[-1] < 128U || MB_CUR_MAX==1) s--;
+		if ((unsigned char)s[-1] < 128U || MB_CUR_MAX==1) s--;
 		else while ((unsigned char)*--s-0x80U<0x40 && s>str);
 	}
 	if (tailcnt) return FNM_NOMATCH;
