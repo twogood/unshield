@@ -22,9 +22,27 @@ set_unshield()
     if test -n "$UNSHIELD" ; then
         return # already set
     fi
-    export UNSHIELD=/var/tmp/unshield/bin/unshield
-    if ! test -x ${UNSHIELD} ; then
-        echo "unshield executable not found at $UNSHIELD" >&2
+    unshields="/var/tmp/unshield/bin/unshield
+$(pwd)/src/unshield
+$(pwd)/build/src/unshield
+$(pwd)/src/unshield.exe
+$(pwd)/build/src/unshield.exe"
+    for i in ${unshields}
+    do
+        if ! test -x "$i" ; then
+            continue
+        fi
+        echo "------------------------------------------------"
+        echo "UNSHIELD=${i}"
+        echo "------------------------------------------------"
+        export UNSHIELD=${i}
+        break
+    done
+    sleep 1
+    if test -z "$UNSHIELD" ; then
+        echo "coult not find unshield in the following locations:"
+        echo "${unshields}"
+        echo "aborting"
         exit 1
     fi
 }

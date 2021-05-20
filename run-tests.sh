@@ -1,17 +1,12 @@
 #!/bin/sh
 
 . test/functions.sh
+set_md5sum    # ${MD5SUM}
+set_unshield  # ${UNSHIELD}
 
-if test "$TRAVIS_OS_NAME" = "windows" ; then # see rebuild.sh
-    export UNSHIELD="$(pwd)/build/src/unshield.exe"
-    set_md5sum    # ${MD5SUM}
-    if test "$TRAVIS_COMPILER" = "clang" ; then
-       # allow MSVC to fail, currently /test/v0/wireplay.sh fails
-       ALLOW_FAIL=1
-    fi
-else
-    set_md5sum    # ${MD5SUM}
-    set_unshield  # ${UNSHIELD}
+if test "$TRAVIS_OS_NAME" = "windows" && test "$TRAVIS_COMPILER" = "clang" ; then
+    # allow MSVC to fail, currently /test/v0/wireplay.sh fails
+    ALLOW_FAIL=1
 fi
 
 ALL_RET=0
