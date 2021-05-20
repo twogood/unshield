@@ -13,6 +13,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <errno.h>
 #include "../lib/libunshield.h"
 
 #ifdef HAVE_CONFIG_H
@@ -32,7 +33,6 @@
 
 #ifdef HAVE_ICONV
 #include <iconv.h>
-#include <errno.h>
 #endif
 
 #ifndef VERSION
@@ -384,16 +384,32 @@ static bool handle_parameters(
 	return true;
 }
 
+
+static int is_traversal_attack (const char *name)
+{
+   if (!name || !*name) {
+      return 0; /* no */
+   }
+   if (strstr (name, "/../") || strstr (name, "\\..\\")) {
+      return 1; /* yes */
+   }
+   return 0; /* no */
+}
+
+
 static bool extract_file(Unshield* unshield, const char* prefix, int index)
 {
   bool success = false;
   char* dirname;
   char* filename;
+  const char* origdir  = NULL;
+  const char* basename = NULL;
   char* p;
   int directory = unshield_file_directory(unshield, index);
   size_t path_max;
   char* real_output_directory;
   char* real_filename;
+  int traversal_attack = 0;
 
   #ifdef PATH_MAX
     path_max = PATH_MAX;
@@ -414,6 +430,23 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     goto exit;
   }
 
+  /*
+     filename: dir2extract1/Language_Independant/Override/xan6.CRE
+            -d output_dir           prefix       origdir  basename
+
+     if prefix, origdir or basename look wrong, assume it's a traversal attack
+  */
+  if (directory >= 0) {
+     origdir = unshield_directory_name(unshield, directory);
+  }
+  basename = unshield_file_name(unshield, index);
+  if (is_traversal_attack (prefix)
+      || is_traversal_attack (origdir)
+      || is_traversal_attack (basename))
+  {
+     traversal_attack = 1;
+     goto exit;
+  }
 
   if(strlen(output_directory) < path_max-1)
   {
@@ -428,7 +461,6 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     success = false;
     goto exit;
   }
-
 
   if (prefix && prefix[0])
   {
@@ -445,22 +477,18 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     }
   }
 
-  if (!junk_paths && directory >= 0)
+  if (!junk_paths && origdir && *origdir)
   {
-    const char* tmp = unshield_directory_name(unshield, directory);
-    if (tmp && tmp[0])
+    if(strlen(dirname)+strlen(origdir) < path_max-1)
     {
-      if(strlen(dirname)+strlen(tmp) < path_max-1)
-      {
-        strcat(dirname, tmp);
+        strcat(dirname, origdir);
         strcat(dirname, "/");
-      }
-      else
-      {
+    }
+    else
+    {
       fprintf(stderr, "\nOutput directory exceeds maximum path length.\n");
       success = false;
       goto exit;
-      }
     }
   }
 
@@ -508,8 +536,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 
   make_sure_directory_exists(dirname);
 
-  snprintf(filename, path_max, "%s%s", 
-      dirname, unshield_file_name(unshield, index));
+  snprintf (filename, path_max, "%s%s", dirname, basename);
 
   for (p = filename + strlen(dirname); *p != '\0'; p++)
   {
@@ -539,11 +566,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
                                        real_output_directory,
                                        strlen(real_output_directory)) != 0)
   {
-    fprintf(stderr, "\n\nExtraction failed.\n");
-    fprintf(stderr, "Error: %s (%d).\n", strerror(errno), errno);
-    fprintf(stderr, "Possible directory traversal attack for: %s\n", filename);
-    fprintf(stderr, "To be placed at: %s\n\n", real_filename);
-    success = false;
+    traversal_attack = 1;
     goto exit;
   }
 #endif
@@ -563,6 +586,14 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   }
 
 exit:
+  if (traversal_attack)
+  {
+    fprintf(stderr, "\n\nExtraction failed.\n");
+    fprintf(stderr, "Error: %s (%d).\n", strerror(errno), errno);
+    fprintf(stderr, "Possible directory traversal attack for: %s\n", filename);
+    fprintf(stderr, "To be placed at: %s\n\n", real_filename);
+    success = false;
+  }
   if (!success)
   {
     fprintf(stderr, "Failed to extract file '%s'.%s\n",
