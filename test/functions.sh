@@ -22,7 +22,7 @@ set_unshield()
     if test -n "$UNSHIELD" ; then
         return # already set
     fi
-    unshields="/var/tmp/unshield/bin/unshield
+    unshields="$(pwd)/unshield $(pwd)/unshield.exe
 $(pwd)/src/unshield
 $(pwd)/build/src/unshield
 $(pwd)/src/unshield.exe
@@ -35,6 +35,10 @@ $(pwd)/build/src/unshield.exe"
         echo "------------------------------------------------"
         echo "UNSHIELD=${i}"
         echo "------------------------------------------------"
+        if test "$i" = "$(pwd)/unshield" || test "$i" = "$(pwd)/unshield" ; then
+           echo "*** using custom unshield binary in ./"
+           echo "------------------------------------------------"
+        fi
         export UNSHIELD=${i}
         break
     done
