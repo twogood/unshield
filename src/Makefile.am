@@ -1,6 +1,6 @@
 
-AM_CPPFLAGS = -I../lib
-LDADD = ../lib/libunshield.la
+AM_CPPFLAGS = -I../lib $(ICONV_CFLAGS)
+LDADD = ../lib/libunshield.la $(ICONV_LIBS)
 
 bin_PROGRAMS = unshield
 noinst_PROGRAMS = unshield-deobfuscate

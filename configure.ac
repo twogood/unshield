@@ -15,9 +15,23 @@ LT_INIT
 dnl Checks for programs.
 AC_PROG_CC
 AC_C_CONST
+AC_CHECK_HEADERS(inttypes.h stdint.h unistd.h dlfcn.h fnmatch.h)
 
-AC_CHECK_FUNC([iconv],[AC_DEFINE(HAVE_ICONV,1,[iconv])], [])
-AC_CHECK_HEADERS(inttypes.h stdint.h iconv.h unistd.h dlfcn.h fnmatch.h)
+#AC_CHECK_FUNC(
+#   [iconv],
+#   [AC_DEFINE(HAVE_ICONV,1,[iconv])],
+#   [PKG_CHECK_MODULES([ICONV],
+#                      [libiconv],
+#                      [AC_DEFINE(HAVE_ICONV,1,[iconv])])])
+
+PKG_CHECK_MODULES([ICONV],
+                  [libiconv],
+                  [AC_DEFINE(HAVE_ICONV,1,[iconv])],
+                  [AC_CHECK_FUNC([iconv],
+                                 [AC_DEFINE(HAVE_ICONV,1,[iconv])
+                                 ])
+                  ])
+
 #PKG_CHECK_MODULES([ZLIB], [zlib])
 
 AC_DEFINE_UNQUOTED([__USE_MINGW_ANSI_STDIO], 1, [Enable GNU style printf formatters])
@@ -30,10 +44,11 @@ AC_SUBST(CMAKE_INSTALL_FULL_INCLUDEDIR, [${includedir}])
 AC_SUBST(PROJECT_VERSION, [${VERSION}])
 
 CPPFLAGS="$CPPFLAGS -DAUTOTOOLS"
-case "$CC" in
-  gcc*) CPPFLAGS="$CPPFLAGS -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers" ;;
-  *) ;;
-esac
+CPPFLAGS="$CPPFLAGS -Wall"
+#case "$CC" in
+#  gcc*)  CPPFLAGS="$CPPFLAGS -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers" ;;
+#  *) ;;
+#esac
 
 AC_OUTPUT([
 Makefile
