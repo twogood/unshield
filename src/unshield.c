@@ -400,15 +400,15 @@ static int is_traversal_attack (const char *name)
 static bool extract_file(Unshield* unshield, const char* prefix, int index)
 {
   bool success = false;
-  char* dirname;
-  char* filename;
+  char* dirname = NULL;
+  char* filename = NULL;
   const char* origdir  = NULL;
   const char* basename = NULL;
-  char* p;
+  char* p = NULL;
   int directory = unshield_file_directory(unshield, index);
   size_t path_max;
-  char* real_output_directory;
-  char* real_filename;
+  char* real_output_directory = NULL;
+  char* real_filename = NULL;
   int traversal_attack = 0;
 
   #ifdef PATH_MAX
@@ -418,17 +418,6 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     if (path_max <= 0)
       path_max = 4096;
   #endif
-
-  real_output_directory = malloc(path_max);
-  real_filename = malloc(path_max);
-  dirname = malloc(path_max);
-  filename = malloc(path_max);
-  if (real_output_directory == NULL || real_filename == NULL)
-  {
-    fprintf(stderr,"Unable to allocate memory.");
-    success=false;
-    goto exit;
-  }
 
   /*
      filename: dir2extract1/Language_Independant/Override/xan6.CRE
@@ -446,6 +435,17 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   {
      traversal_attack = 1;
      goto exit;
+  }
+
+  real_output_directory = malloc(path_max);
+  real_filename = malloc(path_max);
+  dirname = malloc(path_max);
+  filename = malloc(path_max);
+  if (real_output_directory == NULL || real_filename == NULL)
+  {
+    fprintf(stderr,"Unable to allocate memory.");
+    success=false;
+    goto exit;
   }
 
   if(strlen(output_directory) < path_max-1)
@@ -589,23 +589,25 @@ exit:
   if (traversal_attack)
   {
     fprintf(stderr, "\n\nExtraction failed.\n");
-    fprintf(stderr, "Error: %s (%d).\n", strerror(errno), errno);
-    fprintf(stderr, "Possible directory traversal attack for: %s\n", filename);
-    fprintf(stderr, "To be placed at: %s\n\n", real_filename);
+    fprintf(stderr, "Possible directory traversal attack ");
+    if (filename) {
+       fprintf(stderr, " for: %s\n", filename);
+       fprintf(stderr, "Error: %s (%d).\n", strerror(errno), errno);
+       fprintf(stderr, "To be placed at: %s\n\n", real_filename);
+    }
     success = false;
   }
   if (!success)
   {
-    fprintf(stderr, "Failed to extract file '%s'.%s\n",
-        unshield_file_name(unshield, index),
-        (log_level < 3) ? "Run unshield again with -D 3 for more information." : "");
+    fprintf(stderr, "Failed to extract file '%s'.%s\n", basename,
+            (log_level < 3) ? "Run unshield again with -D 3 for more information." : "");
     unlink(filename);
     exit_status = 1;
   }
-  free(real_filename);
-  free(real_output_directory);
-  free(dirname);
-  free(filename);
+  FREE (real_filename);
+  FREE (real_output_directory);
+  FREE (dirname);
+  FREE (filename);
   return success;
 }
 
