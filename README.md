@@ -91,4 +91,13 @@ like, but don't blame me if anything goes wrong".
 See the file LICENSE for details.
 
 
+Build From Source
+-----------------
 
+Just use the standard CMake build process:
+
+``` sh
+cmake .
+make
+make install
+```
