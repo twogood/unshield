@@ -34,6 +34,8 @@ endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC ZLIB::ZLIB convert_utf)
+set_target_properties(libunshield PROPERTIES OUTPUT_NAME unshield)
+set_target_properties(libunshield PROPERTIES VERSION 0.0.0 SOVERSION 0)
 
 if(USE_OUR_OWN_MD5)
     target_link_libraries(${PROJECT_NAME} PUBLIC md5)
