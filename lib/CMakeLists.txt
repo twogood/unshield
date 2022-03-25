@@ -37,6 +37,10 @@ target_link_libraries(${PROJECT_NAME} PUBLIC ZLIB::ZLIB convert_utf)
 set_target_properties(libunshield PROPERTIES OUTPUT_NAME unshield)
 set_target_properties(libunshield PROPERTIES VERSION 0.0.0 SOVERSION 0)
 
+if(IS_BIG_ENDIAN)
+    target_compile_definitions(libunshield PUBLIC WORDS_BIGENDIAN)
+endif()
+
 if(USE_OUR_OWN_MD5)
     target_link_libraries(${PROJECT_NAME} PUBLIC md5)
 else()

@@ -13,6 +13,7 @@ include(CheckIncludeFiles)
 include(CheckSymbolExists)
 include(CheckCSourceCompiles)
 include(GNUInstallDirs)
+include(TestBigEndian)
 
 check_include_files(byteswap.h HAVE_BYTESWAP_H)
 check_include_files(dlfcn.h HAVE_DLFCN_H)
@@ -29,6 +30,8 @@ check_include_files(sys/types.h HAVE_SYS_TYPES_H)
 check_include_files(unistd.h HAVE_UNISTD_H)
 check_symbol_exists(fnmatch fnmatch.h HAVE_FNMATCH)
 check_symbol_exists(iconv iconv.h HAVE_ICONV)
+
+test_big_endian(IS_BIG_ENDIAN)
 
 set(SIZE_FORMAT "zi")
 check_c_source_compiles("#include <stdio.h>\nint main(int argc, char **argv) { size_t value = 0; printf(\"%${SIZE_FORMAT}\", value); return 0; }" SIZE_FORMAT_ZI)
