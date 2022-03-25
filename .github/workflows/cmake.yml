@@ -32,3 +32,4 @@ jobs:
     - name: Test
       working-directory: ${{github.workspace}}
       run: UNSHIELD=${{github.workspace}}/build/unshield ./run-tests.sh
+#trigger rebuild
