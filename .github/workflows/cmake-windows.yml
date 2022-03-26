@@ -20,11 +20,16 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - uses: msys2/setup-msys2@v2
-      with:
-        update: true
-        install: zlib
+#    - uses: msys2/setup-msys2@v2
+#      with:
+#        update: true
+#        install: zlib
 
+    - name: Install zlib
+      working-directory: ${{github.workspace}}/build
+      run: powershell -Command "(Invoke-WebRequest -Uri https://git.io/JnHTY -OutFile install_zlib.bat)"; ./install_zlib.bat; del install_zlib.bat
+      shell: cmd
+      
     - name: Get latest CMake and ninja
       uses: lukka/get-cmake@latest
 
@@ -36,5 +41,3 @@ jobs:
     - name: Build
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
-
-# trigger rebuild
