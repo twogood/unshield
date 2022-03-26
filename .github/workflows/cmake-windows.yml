@@ -26,10 +26,10 @@ jobs:
 #        install: zlib
 
     - name: Install zlib
-      working-directory: ${{github.workspace}}\build
+      working-directory: ${{github.workspace}}
       run: powershell -Command "(Invoke-WebRequest -Uri https://git.io/JnHTY -OutFile install_zlib.bat)"; ./install_zlib.bat; del install_zlib.bat
       shell: cmd
-      
+
     - name: Get latest CMake and ninja
       uses: lukka/get-cmake@latest
 
@@ -40,4 +40,4 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}\build --config ${{env.BUILD_TYPE}}
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
