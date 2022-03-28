@@ -16,7 +16,6 @@ set(LIBUNSHIELD_HEADES
 )
 
 set(LIBUNSHIELD_SOURCES
-    "bswap.c"
     "component.c"
     "directory.c"
     "file.c"
