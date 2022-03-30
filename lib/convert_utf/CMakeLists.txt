@@ -1,9 +1,9 @@
 set(LIBCONVERT_UTF_HEADERS
-    "ConvertUTF.h"
+    ConvertUTF.h
 )
 
 set(LIBCONVERT_UTF_SOURCES
-    "ConvertUTF.c"
+    ConvertUTF.c
 )
 
 if(BUILD_STATIC AND MSVC)

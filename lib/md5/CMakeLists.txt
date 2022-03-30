@@ -1,10 +1,10 @@
 set(LIBMD5_HEADERS
-	"global.h"
-    "md5.h"
+    global.h
+    md5.h
 )
 
 set(LIBMD5_SOURCES
-    "md5c.c"
+    md5c.c
 )
 
 if(BUILD_STATIC AND MSVC)

@@ -5,20 +5,20 @@ if(USE_OUR_OWN_MD5)
 endif()
 
 set(LIBUNSHIELD_HEADERS
-    "internal.h"
-    "libunshield.h"
-    "log.h"
-    "cabfile.h"
+    internal.h
+    libunshield.h
+    log.h
+    cabfile.h
 )
 
 set(LIBUNSHIELD_SOURCES
-    "component.c"
-    "directory.c"
-    "file.c"
-    "file_group.c"
-    "helper.c"
-    "libunshield.c"
-    "log.c"
+    component.c
+    directory.c
+    file.c
+    file_group.c
+    helper.c
+    libunshield.c
+    log.c
 )
 
 if(BUILD_STATIC)
