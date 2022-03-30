@@ -1,4 +1,4 @@
-set(LIBCONVERT_UTF_HEADES
+set(LIBCONVERT_UTF_HEADERS
     "ConvertUTF.h"
 )
 
@@ -10,7 +10,7 @@ if(BUILD_STATIC AND MSVC)
     set_msvc_runtime_static()
 endif()
 
-add_library(convert_utf STATIC ${LIBCONVERT_UTF_HEADES} ${LIBCONVERT_UTF_SOURCES})
+add_library(convert_utf STATIC ${LIBCONVERT_UTF_HEADERS} ${LIBCONVERT_UTF_SOURCES})
 
 # Linux/Clang-7
 # relocation R_X86_64_32S against `.rodata' can not be used when making a shared object;

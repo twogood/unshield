@@ -4,7 +4,7 @@ if(USE_OUR_OWN_MD5)
     add_subdirectory(md5)
 endif()
 
-set(LIBUNSHIELD_HEADES
+set(LIBUNSHIELD_HEADERS
     "internal.h"
     "libunshield.h"
     "log.h"
@@ -22,9 +22,9 @@ set(LIBUNSHIELD_SOURCES
 )
 
 if(BUILD_STATIC)
-    add_library(libunshield STATIC ${LIBUNSHIELD_HEADES} ${LIBUNSHIELD_SOURCES})
+    add_library(libunshield STATIC ${LIBUNSHIELD_HEADERS} ${LIBUNSHIELD_SOURCES})
 else()
-    add_library(libunshield SHARED ${LIBUNSHIELD_HEADES} ${LIBUNSHIELD_SOURCES})
+    add_library(libunshield SHARED ${LIBUNSHIELD_HEADERS} ${LIBUNSHIELD_SOURCES})
 endif()
 
 target_include_directories(libunshield PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
