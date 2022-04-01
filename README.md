@@ -1,17 +1,8 @@
 Unshield
 ========
 
-[![Build Status](https://travis-ci.org/twogood/unshield.png?branch=master)](https://travis-ci.org/twogood/unshield)
 [![Packaging status](https://repology.org/badge/tiny-repos/unshield.svg)](https://repology.org/project/unshield/versions)
 [![Homebrew package](https://repology.org/badge/version-for-repo/homebrew/unshield.svg)](https://repology.org/project/unshield/versions)
-
-
-#### Microsoft Windows build
-[![Appveyor Build status](https://ci.appveyor.com/api/projects/status/rnjlecanres5au3q?svg=true)](https://ci.appveyor.com/project/twogood/unshield)
-
-[Download page](https://ci.appveyor.com/project/twogood/unshield/build/artifacts)
-
-Note: The Microsoft Windows build is currently broken even if Appveyor doesn't notice, sorry about that! A PR to fix this is welcome!
 
 
 Support Unshield development

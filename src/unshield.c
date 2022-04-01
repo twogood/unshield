@@ -306,7 +306,7 @@ static bool handle_parameters(
         break;
 
       case 'V':
-        printf("Unshield version " VERSION ". MIT License. (C) 2003-2021 David Eriksson.\n");
+        printf("Unshield version " VERSION ". MIT License. (C) 2003-2022 David Eriksson.\n");
         exit(0);
         break;
 
