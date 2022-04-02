@@ -807,15 +807,16 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
     {
       uLong read_bytes;
       uint16_t bytes_to_read = 0;
+      uint8_t bytes_to_read_bytes[2];
 
-      if (!unshield_reader_read(reader, &bytes_to_read, sizeof(bytes_to_read)))
+      if (!unshield_reader_read(reader, bytes_to_read_bytes, sizeof(bytes_to_read_bytes)))
       {
         unshield_error("Failed to read %i bytes of file %i (%s) from input cabinet file %i",
-            sizeof(bytes_to_read), index, unshield_file_name(unshield, index), file_descriptor->volume);
+            sizeof(bytes_to_read_bytes), index, unshield_file_name(unshield, index), file_descriptor->volume);
         goto exit;
       }
 
-      bytes_to_read = letoh16(bytes_to_read);
+      bytes_to_read = READ_UINT16(bytes_to_read_bytes);
       if (bytes_to_read == 0)
       {
         unshield_error("bytes_to_read can't be zero");
