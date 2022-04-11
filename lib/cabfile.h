@@ -2,8 +2,6 @@
 #ifndef __cabfile_h__
 #define __cabfile_h__
 
-#include "internal.h"
-
 #define OFFSET_COUNT 0x47
 #define CAB_SIGNATURE 0x28635349
 
@@ -60,10 +58,10 @@ typedef struct
   uint32_t component_offsets [MAX_COMPONENT_COUNT];   /* 0x15a */
 } CabDescriptor;
 
-#define FILE_SPLIT			  1
-#define FILE_OBFUSCATED   2
-#define FILE_COMPRESSED		4
-#define FILE_INVALID		  8
+#define FILE_SPLIT			  1U
+#define FILE_OBFUSCATED   2U
+#define FILE_COMPRESSED		4U
+#define FILE_INVALID		  8U
 
 #define LINK_NONE	0
 #define LINK_PREV	1
@@ -75,9 +73,9 @@ typedef struct
   uint32_t name_offset;
   uint32_t directory_index;
   uint16_t flags;
-  uint32_t expanded_size;
-  uint32_t compressed_size;
-  uint32_t data_offset;
+  uint64_t expanded_size;
+  uint64_t compressed_size;
+  uint64_t data_offset;
   uint8_t md5[16];
   uint16_t volume;
   uint32_t link_previous;

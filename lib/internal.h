@@ -75,8 +75,10 @@ void unshield_file_group_destroy(UnshieldFileGroup* self);
    Helpers
  */
 
+char *unshield_get_base_directory_name(Unshield *unshield);
+long int unshield_get_path_max(Unshield* unshield);
 FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suffix);
-long unshield_fsize(FILE* file);
+long long unshield_fsize(FILE* file);
 bool unshield_read_common_header(uint8_t** buffer, CommonHeader* common);
 
 const char* unshield_get_utf8_string(Header* header, const void* buffer);
@@ -103,31 +105,6 @@ uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset);
 #define FSIZE(file)     ((file) ? unshield_fsize(file) : 0)
 #define STREQ(s1,s2)    (0 == strcmp(s1,s2))
 
-#if WORDS_BIGENDIAN
-
-#if HAVE_BYTESWAP_H
-#include <byteswap.h>
-#elif HAVE_SYS_BYTESWAP_H
-#include <sys/byteswap.h>
-#else
-
-/* use our own functions */
-#define IMPLEMENT_BSWAP_XX 1
-#define bswap_16 unshield_bswap_16
-#define bswap_32 unshield_bswap_32
-
-uint16_t bswap_16(uint16_t x);
-uint32_t bswap_32(uint32_t x);
-#endif
-
-#define letoh16(x)    bswap_16(x)
-#define letoh32(x)    bswap_32(x)
-
-#else
-#define letoh32(x) (x)
-#define letoh16(x) (x)
-#endif
-
 static inline uint16_t get_unaligned_le16(const uint8_t *p)
 {
     return p[0] | p[1] << 8;
@@ -138,8 +115,14 @@ static inline uint32_t get_unaligned_le32(const uint8_t *p)
     return p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24;
 }
 
+static inline uint64_t get_unaligned_le64(const uint8_t *p)
+{
+    return (uint64_t)get_unaligned_le32(p + 4) << 32 | get_unaligned_le32(p);
+}
+
 #define READ_UINT16(p)   get_unaligned_le16(p)
 #define READ_UINT32(p)   get_unaligned_le32(p)
+#define READ_UINT64(p)   get_unaligned_le64(p)
 
 #define READ_INT16(p)   ((int16_t)READ_UINT16(p))
 #define READ_INT32(p)   ((int32_t)READ_UINT32(p))

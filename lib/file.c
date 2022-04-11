@@ -19,6 +19,11 @@
 #include <sys/param.h>    /* for MIN(a,b) */
 #endif
 
+#ifdef _WIN32
+#define fseek _fseeki64
+#define ftell _ftelli64
+#endif
+
 #ifndef MIN /* missing in some platforms */
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #endif
@@ -30,6 +35,7 @@
 #define ror8(x,n)   (((x) >> ((int)(n))) | ((x) << (8 - (int)(n))))
 #define rol8(x,n)   (((x) << ((int)(n))) | ((x) >> (8 - (int)(n))))
 
+static const uint8_t END_OF_CHUNK[4] = { 0x00, 0x00, 0xff, 0xff };
 
 static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int index)
 {
@@ -100,12 +106,9 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       unshield_trace("File descriptor offset: %08x", p - header->data);
 #endif
       fd->flags             = READ_UINT16(p); p += 2;
-      fd->expanded_size     = READ_UINT32(p); p += 4;
-      p += 4;
-      fd->compressed_size   = READ_UINT32(p); p += 4;
-      p += 4;
-      fd->data_offset       = READ_UINT32(p); p += 4;
-      p += 4;
+      fd->expanded_size     = READ_UINT64(p); p += 8;
+      fd->compressed_size   = READ_UINT64(p); p += 8;
+      fd->data_offset       = READ_UINT64(p); p += 8;
       memcpy(fd->md5, p, 0x10); p += 0x10;
       p += 0x10;
       fd->name_offset       = READ_UINT32(p); p += 4;
@@ -307,9 +310,9 @@ typedef struct
 static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{*/
 {
   bool success = false;
-  unsigned data_offset = 0;
-  unsigned volume_bytes_left_compressed;
-  unsigned volume_bytes_left_expanded;
+  uint64_t data_offset = 0;
+  uint64_t volume_bytes_left_compressed;
+  uint64_t volume_bytes_left_expanded;
   CommonHeader common_header;
 
 #if VERBOSE >= 2
@@ -584,6 +587,92 @@ exit:
   return success;
 }/*}}}*/
 
+int copy_file(FILE* infile, FILE* outfile) {
+#define SIZE (1024*1024)
+
+    char buffer[SIZE];
+    size_t bytes;
+
+    while (0 < (bytes = fread(buffer, 1, sizeof(buffer), infile)))
+        fwrite(buffer, 1, bytes, outfile);
+
+    return 0;
+}
+
+
+static UnshieldReader* unshield_reader_create_external(/*{{{*/
+        Unshield* unshield,
+        int index,
+        FileDescriptor* file_descriptor)
+{
+    bool success = false;
+    const char* file_name = unshield_file_name(unshield, index);
+    const char* directory_name = unshield_directory_name(unshield, file_descriptor->directory_index);
+    char* base_directory_name = unshield_get_base_directory_name(unshield);
+    long int path_max = unshield_get_path_max(unshield);
+    char* directory_and_filename = malloc(path_max);
+
+    UnshieldReader* reader = NEW1(UnshieldReader);
+    if (!reader)
+        goto exit;
+
+    reader->unshield          = unshield;
+    reader->index             = index;
+    reader->file_descriptor   = file_descriptor;
+
+    snprintf(directory_and_filename, path_max, "%s/%s/%s", base_directory_name, directory_name, file_name);
+
+    reader->volume_file = fopen(directory_and_filename, "rb");
+    if (!reader->volume_file)
+    {
+        unshield_error("Failed to open input file %s", directory_and_filename);
+        goto exit;
+    }
+
+    if (file_descriptor->flags & FILE_COMPRESSED) {
+        long file_size = FSIZE(reader->volume_file);
+        FILE *temporary_file = NULL;
+
+        /*
+         * Normally the compressed data is nicely terminated with end of chunk marker 00 00 ff ff but not always
+         * This seem to happen for small files where the compressed size and expanded size are almost the same.
+         * Workaround: Create a temporary file with the correct end of chunk.
+         */
+
+        long diff = file_descriptor->compressed_size - file_size;
+        if (diff > 0) {
+            diff = MIN(sizeof(END_OF_CHUNK), diff);
+            temporary_file = tmpfile();
+            copy_file(reader->volume_file, temporary_file);
+            fwrite(END_OF_CHUNK + sizeof(END_OF_CHUNK) - diff, 1, diff, temporary_file);
+            fseek(temporary_file, 0, SEEK_SET);
+
+            fclose(reader->volume_file);
+            reader->volume_file = temporary_file;
+
+            reader->volume_bytes_left = file_size + diff;
+        }
+        else {
+            reader->volume_bytes_left = file_descriptor->compressed_size;
+        }
+    }
+    else {
+        reader->volume_bytes_left = file_descriptor->expanded_size;
+    }
+
+    success = true;
+
+exit:
+    FREE(base_directory_name);
+    FREE(directory_and_filename);
+
+    if (success)
+        return reader;
+
+    FREE(reader);
+    return NULL;
+}
+
 static UnshieldReader* unshield_reader_create(/*{{{*/
     Unshield* unshield, 
     int index,
@@ -718,15 +807,16 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
     {
       uLong read_bytes;
       uint16_t bytes_to_read = 0;
+      uint8_t bytes_to_read_bytes[2];
 
-      if (!unshield_reader_read(reader, &bytes_to_read, sizeof(bytes_to_read)))
+      if (!unshield_reader_read(reader, bytes_to_read_bytes, sizeof(bytes_to_read_bytes)))
       {
         unshield_error("Failed to read %i bytes of file %i (%s) from input cabinet file %i",
-            sizeof(bytes_to_read), index, unshield_file_name(unshield, index), file_descriptor->volume);
+            sizeof(bytes_to_read_bytes), index, unshield_file_name(unshield, index), file_descriptor->volume);
         goto exit;
       }
 
-      bytes_to_read = letoh16(bytes_to_read);
+      bytes_to_read = READ_UINT16(bytes_to_read_bytes);
       if (bytes_to_read == 0)
       {
         unshield_error("bytes_to_read can't be zero");
@@ -926,11 +1016,12 @@ bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
 
     bytes_left -= bytes_to_write;
 
-    if (bytes_to_write != fwrite(output_buffer, 1, bytes_to_write, output))
-    {
-      unshield_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
-      goto exit;
-    }
+      if (output) {
+          if (bytes_to_write != fwrite(output_buffer, 1, bytes_to_write, output)) {
+              unshield_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
+              goto exit;
+          }
+      }
   }
 
   success = true;
@@ -1007,8 +1098,14 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
 
   if (unshield_fsize(reader->volume_file) == (long)file_descriptor->data_offset)
   {
-    unshield_error("File %i is not inside the cabinet.", index);
-    goto exit;
+      unshield_error("File %i is not inside the cabinet. Trying external file!", index);
+      unshield_reader_destroy(reader);
+      reader = unshield_reader_create_external(unshield, index, file_descriptor);
+      if (!reader)
+      {
+          unshield_error("Failed to create data reader for file %i", index);
+          goto exit;
+      }
   }
 
   if (filename) 
@@ -1021,12 +1118,11 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
     }
   }
 
-  if (file_descriptor->flags & FILE_COMPRESSED)
-    bytes_left = file_descriptor->compressed_size;
-  else
     bytes_left = file_descriptor->expanded_size;
 
-  /*unshield_trace("Bytes to read: %i", bytes_left);*/
+#if VERBOSE >= 4
+  unshield_trace("Bytes to write: %i", bytes_left);
+#endif
 
   while (bytes_left > 0)
   {
@@ -1042,7 +1138,6 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
 
     if (file_descriptor->flags & FILE_COMPRESSED)
     {
-      static const uint8_t END_OF_CHUNK[4] = { 0x00, 0x00, 0xff, 0xff };
       uLong read_bytes;
       size_t input_size = reader->volume_bytes_left;
       uint8_t* chunk_buffer;
@@ -1067,15 +1162,13 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
         goto exit;
       }
 
-      bytes_left -= input_size;
-
-      for (chunk_buffer = input_buffer; input_size; )
+      for (chunk_buffer = input_buffer; input_size && bytes_left; )
       {
         size_t chunk_size;
         uint8_t* match = find_bytes(chunk_buffer, input_size, END_OF_CHUNK, sizeof(END_OF_CHUNK));
         if (!match)
         {
-          unshield_error("Could not find end of chunk for file %i (%s) from input cabinet file %i", 
+          unshield_error("Could not find end of chunk for file %i (%s) from input cabinet file %i",
               index, unshield_file_name(unshield, index), file_descriptor->volume);
           goto exit;
         }
@@ -1137,11 +1230,13 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
         input_size -= chunk_size;
         input_size -= sizeof(END_OF_CHUNK);
 
-        if (output)
-          if (bytes_to_write != fwrite(output_buffer, 1, bytes_to_write, output))
-          {
-            unshield_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
-            goto exit;
+          bytes_left -= bytes_to_write;
+
+          if (output) {
+              if (bytes_to_write != fwrite(output_buffer, 1, bytes_to_write, output)) {
+                  unshield_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
+                  goto exit;
+              }
           }
 
         total_written += bytes_to_write;
@@ -1162,14 +1257,16 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
 
       bytes_left -= bytes_to_write;
 
-      if (output)
+      if (output) {
         if (bytes_to_write != fwrite(output_buffer, 1, bytes_to_write, output))
         {
           unshield_error("Failed to write %i bytes to file '%s'", bytes_to_write, filename);
           goto exit;
         }
+      }
 
       total_written += bytes_to_write;
+
     }
   }
 

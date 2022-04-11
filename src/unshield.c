@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <getopt.h>
 #include "../lib/libunshield.h"
 #ifdef HAVE_CONFIG_H
 #include "lib/unshield_config.h"
@@ -115,7 +116,7 @@ static bool make_sure_directory_exists(const char* directory)/*{{{*/
 
       if (stat(current, &dir_stat) < 0)
       {
-        #ifdef __MINGW32__
+        #if defined (__MINGW32__) || defined (_WIN32)
         if (_mkdir(current) < 0)
         #else
         if (mkdir(current, 0700) < 0)
@@ -200,7 +201,7 @@ static void show_usage(const char* name)
       "\t-O            Use old compression\n"
       "\t-r            Save raw data (do not decompress)\n"
       "\t-R            Don't do any conversion to file and directory names when extracting.\n"
-      "\t-V            Print copyright and version information\n"
+      "\t-V --version  Print copyright and version information\n"
       "\n"
       "Commands:\n"
       "\tc             List components\n"         
@@ -230,11 +231,17 @@ static bool handle_parameters(
     int argc, 
     char* const argv[])
 {
-	int c;
+    int c;
 
-	while ((c = getopt(argc, argv, "c:d:D:g:hi:e:jLnoOrRV")) != -1)
-	{
-		switch (c)
+    static struct option long_options[] =
+    {
+       { "version", no_argument, NULL, 'V' },
+       { NULL, 0, NULL, 0 }
+    };
+
+    while ((c = getopt_long(argc, argv, "c:d:D:g:hi:e:jLnoOrRV", long_options, NULL)) != -1)
+    {
+    switch (c)
     {
       case 'c':
         component_name = optarg;
@@ -299,7 +306,7 @@ static bool handle_parameters(
         break;
 
       case 'V':
-        printf("Unshield version " VERSION ". Copyright (C) 2003-2013 David Eriksson.\n");
+        printf("Unshield version " VERSION ". MIT License. (C) 2003-2022 David Eriksson.\n");
         exit(0);
         break;
 
@@ -510,6 +517,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   }
 #endif
 
+#ifdef __GLIBC__
   /* use GNU extension to return non-existing files to real_output_directory */
   realpath(output_directory, real_output_directory);
   realpath(filename, real_filename);
@@ -518,11 +526,13 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
                                        strlen(real_output_directory)) != 0)
   {
     fprintf(stderr, "\n\nExtraction failed.\n");
+    fprintf(stderr, "Error: %s (%d).\n", strerror(errno), errno);
     fprintf(stderr, "Possible directory traversal attack for: %s\n", filename);
     fprintf(stderr, "To be placed at: %s\n\n", real_filename);
     success = false;
     goto exit;
   }
+#endif
 
   printf("  extracting: %s\n", filename);
   switch (format)
@@ -541,7 +551,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 exit:
   if (!success)
   {
-    fprintf(stderr, "Failed to extract file '%s'.%s\n", 
+    fprintf(stderr, "Failed to extract file '%s'.%s\n",
         unshield_file_name(unshield, index),
         (log_level < 3) ? "Run unshield again with -D 3 for more information." : "");
     unlink(filename);
@@ -596,7 +606,19 @@ static bool test_file(Unshield* unshield, int index)
   bool success;
 
   printf("  testing: %s\n", unshield_file_name(unshield, index));
-  success = unshield_file_save(unshield, index, NULL);
+
+    switch (format)
+    {
+        case FORMAT_NEW:
+            success = unshield_file_save(unshield, index, NULL);
+            break;
+        case FORMAT_OLD:
+            success = unshield_file_save_old(unshield, index, NULL);
+            break;
+        case FORMAT_RAW:
+            success = unshield_file_save_raw(unshield, index, NULL);
+            break;
+    }
 
   if (!success)
   {

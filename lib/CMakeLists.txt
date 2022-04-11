@@ -1,57 +1,42 @@
-LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
-IF("${isSystemDir}" STREQUAL "-1")
-# Enable CMP0042
-if (APPLE)
-	set(CMAKE_MACOSX_RPATH ON)
-endif ()
-ENDIF()
-
 add_subdirectory(convert_utf)
 
 if(USE_OUR_OWN_MD5)
     add_subdirectory(md5)
 endif()
 
-set(LIBUNSHIELD_HEADES
-    "internal.h"
-    "libunshield.h"
-    "log.h"
-    "cabfile.h"
+set(LIBUNSHIELD_HEADERS
+    internal.h
+    libunshield.h
+    log.h
+    cabfile.h
 )
 
 set(LIBUNSHIELD_SOURCES
-    "bswap.c"
-    "component.c"
-    "directory.c"
-    "file.c"
-    "file_group.c"
-    "helper.c"
-    "libunshield.c"
-    "log.c"
+    component.c
+    directory.c
+    file.c
+    file_group.c
+    helper.c
+    libunshield.c
+    log.c
 )
 
 if(BUILD_STATIC)
-    set(LIBUNSHIELD_LIBRARY_TYPE STATIC)
-    
-    if(MSVC)
-        set_msvc_runtime_static()
-    endif()
+    add_library(libunshield STATIC ${LIBUNSHIELD_HEADERS} ${LIBUNSHIELD_SOURCES})
 else()
-    set(LIBUNSHIELD_LIBRARY_TYPE SHARED)
+    add_library(libunshield SHARED ${LIBUNSHIELD_HEADERS} ${LIBUNSHIELD_SOURCES})
 endif()
 
-add_library(libunshield ${LIBUNSHIELD_LIBRARY_TYPE} ${LIBUNSHIELD_HEADES} ${LIBUNSHIELD_SOURCES})
-
-include_directories(${ZLIB_INCLUDE_DIR})
-if(USE_OUR_OWN_MD5)
-    target_link_libraries(libunshield ${ZLIB_LIBRARY} md5 convert_utf)
-else()
-    include_directories(${OPENSSL_INCLUDE_DIR})
-    target_link_libraries(libunshield ${ZLIB_LIBRARY} ${OPENSSL_LIBRARIES} convert_utf)
-endif()
-
+target_include_directories(libunshield PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(libunshield PUBLIC ZLIB::ZLIB convert_utf)
 set_target_properties(libunshield PROPERTIES OUTPUT_NAME unshield)
 set_target_properties(libunshield PROPERTIES VERSION 0.0.0 SOVERSION 0)
+
+if(USE_OUR_OWN_MD5)
+    target_link_libraries(libunshield PUBLIC md5)
+else()
+    target_link_libraries(libunshield PUBLIC OpenSSL::Crypto)
+endif()
 
 install(TARGETS libunshield RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES libunshield.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

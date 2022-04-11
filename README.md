@@ -1,7 +1,8 @@
 Unshield
 ========
 
-[![Build Status](https://travis-ci.org/twogood/unshield.png?branch=master)](https://travis-ci.org/twogood/unshield)
+[![Packaging status](https://repology.org/badge/tiny-repos/unshield.svg)](https://repology.org/project/unshield/versions)
+[![Homebrew package](https://repology.org/badge/version-for-repo/homebrew/unshield.svg)](https://repology.org/project/unshield/versions)
 
 
 Support Unshield development
@@ -81,4 +82,13 @@ like, but don't blame me if anything goes wrong".
 See the file LICENSE for details.
 
 
+Build From Source
+-----------------
 
+Just use the standard CMake build process:
+
+``` sh
+cmake .
+make
+make install
+```
