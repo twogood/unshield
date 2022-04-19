@@ -1,4 +1,3 @@
-/* $Id$ */
 #include "internal.h"
 #if USE_OUR_OWN_MD5
 #include "md5/global.h"
