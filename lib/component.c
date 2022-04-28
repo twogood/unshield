@@ -1,4 +1,3 @@
-/* $Id$ */
 #include "internal.h"
 #include "log.h"
 #include <stdlib.h>

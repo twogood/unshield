@@ -1,4 +1,3 @@
-/* $Id$ */
 #ifndef __internal_h__
 #define __internal_h__
 
