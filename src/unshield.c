@@ -44,13 +44,6 @@
   #define NAME_MAX FILENAME_MAX
 #endif
 
-typedef enum 
-{
-  OVERWRITE_ASK,
-  OVERWRITE_NEVER,
-  OVERWRITE_ALWAYS,
-} OVERWRITE;
-
 typedef enum
 {
   ACTION_EXTRACT,
@@ -75,9 +68,7 @@ static const char* component_name     = NULL;
 static bool junk_paths                = false;
 static bool make_lowercase            = false;
 static bool raw_filename              = false;
-static bool verbose                   = false;
 static ACTION action                  = ACTION_EXTRACT;
-static OVERWRITE overwrite            = OVERWRITE_ASK;
 static int log_level                  = UNSHIELD_LOG_LEVEL_LOWEST;
 static int exit_status                = 0;
 static FORMAT format                  = FORMAT_NEW;
@@ -218,12 +209,6 @@ static void show_usage(const char* name)
       "\n"
       ,
       name);
-
-#if 0
-      "\t-n            Never overwrite files\n"
-      "\t-o            Overwrite files WITHOUT prompting\n"
-      "\t-v            Verbose output\n"
-#endif
 }
 
 static bool handle_parameters(
@@ -238,7 +223,7 @@ static bool handle_parameters(
        { NULL, 0, NULL, 0 }
     };
 
-    while ((c = getopt_long(argc, argv, "c:d:D:g:hi:e:jLnoOrRV", long_options, NULL)) != -1)
+    while ((c = getopt_long(argc, argv, "c:d:D:g:hi:e:jLOrRV", long_options, NULL)) != -1)
     {
     switch (c)
     {
@@ -284,24 +269,12 @@ static bool handle_parameters(
         raw_filename = true;
         break;
 
-      case 'n':
-        overwrite = OVERWRITE_NEVER;
-        break;
-
-      case 'o':
-        overwrite = OVERWRITE_ALWAYS;
-        break;
-
       case 'O':
         format = FORMAT_OLD;
         break;
         
       case 'r':
         format = FORMAT_RAW;
-        break;
-
-      case 'v':
-        verbose = true;
         break;
 
       case 'V':
