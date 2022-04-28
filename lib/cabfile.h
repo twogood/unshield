@@ -1,4 +1,3 @@
-/* $Id$ */
 #ifndef __cabfile_h__
 #define __cabfile_h__
 
