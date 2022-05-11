@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.7)
 project(unshield C)
 
 # Mimic CMP0048 which is avaliable only for cmake 3.0 and later
@@ -12,6 +12,7 @@ option(BUILD_STATIC "Build static version of libunshield" OFF)
 include(CheckIncludeFiles)
 include(CheckSymbolExists)
 include(CheckCSourceCompiles)
+include(CTest)
 include(GNUInstallDirs)
 
 check_include_files(dlfcn.h HAVE_DLFCN_H)
@@ -82,3 +83,5 @@ add_subdirectory(src)
 
 install(FILES man/unshield.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libunshield.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+
+add_subdirectory(test)

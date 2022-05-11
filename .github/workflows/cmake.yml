@@ -17,6 +17,7 @@ jobs:
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ${{matrix.os}}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
@@ -26,6 +27,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        lfs: 'true'
 
     - name: Install dependencies on windows
       if: startsWith(matrix.os, 'windows')
@@ -37,13 +40,12 @@ jobs:
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/build -G "${{matrix.generator}}" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -B ${{github.workspace}}/build -G "${{matrix.generator}}" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_STATIC=ON
 
     - name: Build
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build
 
     - name: Test
-      if: startsWith(matrix.os, 'ubuntu')
-      working-directory: ${{github.workspace}}
-      run: UNSHIELD=${{github.workspace}}/build/src/unshield ./run-tests.sh
+      working-directory: ${{github.workspace}}/build
+      run: ctest --output-on-failure
