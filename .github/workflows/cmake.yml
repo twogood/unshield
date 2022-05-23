@@ -49,3 +49,33 @@ jobs:
     - name: Test
       working-directory: ${{github.workspace}}/build
       run: ctest --output-on-failure
+
+    - name: Install
+      run: cmake --install ${{github.workspace}}/build --strip --prefix ${{github.workspace}}/build/install/unshield
+
+    - name: Install license file
+      run: cmake -E copy ${{github.workspace}}/LICENSE ${{github.workspace}}/build/install/unshield
+
+    - name: Create archive for windows
+      if: startsWith(matrix.os, 'windows')
+      working-directory: ${{github.workspace}}/build/install
+      run: cmake -E tar c unshield_${{matrix.os}}.zip --format=zip unshield
+
+    - name: Create archive for gnu/linux
+      if: startsWith(matrix.os, 'ubuntu')
+      working-directory: ${{github.workspace}}/build/install
+      run: cmake -E tar cj unshield_${{matrix.os}}.tar.bz2 unshield
+
+    - name: Upload windows artifacts
+      if: startsWith(matrix.os, 'windows')
+      uses: actions/upload-artifact@v3
+      with:
+        name: unshield_${{matrix.os}}
+        path: ${{github.workspace}}/build/install/unshield_${{matrix.os}}.zip
+
+    - name: Upload gnu/linux artifacts
+      if: startsWith(matrix.os, 'ubuntu')
+      uses: actions/upload-artifact@v3
+      with:
+        name: unshield_${{matrix.os}}
+        path: ${{github.workspace}}/build/install/unshield_${{matrix.os}}.tar.bz2
