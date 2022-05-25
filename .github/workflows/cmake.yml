@@ -39,7 +39,10 @@ jobs:
       with:
         msystem: MINGW64
         update: true
-        install: cmake zlib-devel mingw-w64-x86_64-cc make
+        install: git make
+        pacboy: >-
+          toolchain:p
+          cmake:p
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
