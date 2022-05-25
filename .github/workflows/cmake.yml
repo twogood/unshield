@@ -37,8 +37,9 @@ jobs:
       if: startsWith(matrix.os, 'windows')
       uses: msys2/setup-msys2@v2
       with:
+        msystem: MINGW64
         update: true
-        install: cmake zlib-devel
+        install: cmake zlib-devel mingw-w64-x86_64-cc
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
