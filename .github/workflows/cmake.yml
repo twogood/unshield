@@ -26,7 +26,7 @@ jobs:
           - os: ubuntu-latest
             generator: "Unix Makefiles"
           - os: windows-latest
-            generator: "MSYS Makefiles"
+            generator: "Unix Makefiles"
 
     steps:
     - uses: actions/checkout@v2
