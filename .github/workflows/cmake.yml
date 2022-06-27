@@ -27,8 +27,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-      with:
-        lfs: 'true'
 
     - name: Install dependencies on windows
       if: startsWith(matrix.os, 'windows')
