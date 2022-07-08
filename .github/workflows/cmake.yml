@@ -6,10 +6,6 @@ on:
   pull_request:
     branches: [ main ]
 
-env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
-
 jobs:
   build:
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
@@ -19,11 +15,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
+        # These will make permutations
+        os: [ubuntu-latest, windows-latest]
+        generator: ["Unix Makefiles", "MSYS Makefiles"]
+        # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+        build-type: [Release]
+        # It's easier to exclude permutations based on a subset than to include each case as parameters grow
+        exclude:
           - os: ubuntu-latest
-            generator: "Unix Makefiles"
-          - os: windows-latest
             generator: "MSYS Makefiles"
+          - os: windows-latest
+            generator: "Unix Makefiles"
 
     steps:
     - uses: actions/checkout@v2
@@ -38,7 +40,7 @@ jobs:
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/build -G "${{matrix.generator}}" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_STATIC=ON
+      run: cmake -B ${{github.workspace}}/build -G "${{matrix.generator}}" -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -DBUILD_STATIC=ON
 
     - name: Build
       # Build your program with the given configuration
