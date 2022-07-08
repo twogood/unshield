@@ -16,13 +16,15 @@ jobs:
       fail-fast: false
       matrix:
         # These will make permutations
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         generator: ["Unix Makefiles", "MSYS Makefiles"]
         # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
         build-type: [Release]
         # It's easier to exclude permutations based on a subset than to include each case as parameters grow
         exclude:
           - os: ubuntu-latest
+            generator: "MSYS Makefiles"
+          - os: macos-latest
             generator: "MSYS Makefiles"
           - os: windows-latest
             generator: "Unix Makefiles"
