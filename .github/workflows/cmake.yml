@@ -62,3 +62,13 @@ jobs:
 
     - name: Test
       run: ctest --test-dir build --output-on-failure
+
+    - name: Install
+      run: cmake --install build --strip --prefix install
+
+    - name: Upload
+      uses: actions/upload-artifact@v3
+      with:
+        name: unshield-${{github.sha}} (${{matrix.platform.name}})
+        path:  install
+        if-no-files-found: error
