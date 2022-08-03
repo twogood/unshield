@@ -243,6 +243,7 @@ static bool unshield_read_headers(Unshield* unshield, int version)/*{{{*/
       if (header->size < 4)
       {
         unshield_error("Header file %i too small", i);
+        FCLOSE(file);
         goto error;
       }
 
@@ -250,6 +251,7 @@ static bool unshield_read_headers(Unshield* unshield, int version)/*{{{*/
       if (!header->data)
       {
         unshield_error("Failed to allocate memory for header file %i", i);
+        FCLOSE(file);
         goto error;
       }
 
