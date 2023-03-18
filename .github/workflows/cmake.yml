@@ -26,7 +26,7 @@ jobs:
             generator: "MSYS Makefiles"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Install dependencies on windows
       if: startsWith(matrix.os, 'windows')
