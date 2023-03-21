@@ -3,10 +3,7 @@
 #include "md5/global.h"
 #include "md5/md5.h"
 #else
-#include <openssl/md5.h>
-#define MD5Init MD5_Init
-#define MD5Update MD5_Update
-#define MD5Final MD5_Final
+#include <openssl/evp.h>
 #endif
 #include "cabfile.h"
 #include "log.h"
@@ -742,9 +739,15 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
   uLong total_written = 0;
   UnshieldReader* reader = NULL;
   FileDescriptor* file_descriptor;
-	MD5_CTX md5;
 
-	MD5Init(&md5);
+#if USE_OUR_OWN_MD5
+  MD5_CTX md5;
+  MD5Init(&md5);
+#else
+  EVP_MD_CTX *md5 = EVP_MD_CTX_new();
+  EVP_MD_CTX_init(md5);
+  EVP_DigestInit_ex(md5, EVP_md5(), NULL);
+#endif
 
   if (!unshield)
     goto exit;
@@ -872,7 +875,11 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
       bytes_left -= bytes_to_write;
     }
 
+#if USE_OUR_OWN_MD5
     MD5Update(&md5, output_buffer, bytes_to_write);
+#else
+    EVP_DigestUpdate(md5, output_buffer, bytes_to_write);
+#endif
 
     if (output)
     {
@@ -896,7 +903,11 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
   if (unshield->header_list->major_version >= 6)
   {
     unsigned char md5result[16];
+#if USE_OUR_OWN_MD5
     MD5Final(md5result, &md5);
+#else
+    EVP_DigestFinal_ex(md5, md5result, NULL);
+#endif
 
     if (0 != memcmp(md5result, file_descriptor->md5, 16))
     {
@@ -909,6 +920,10 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
   success = true;
   
 exit:
+#ifndef USE_OUR_OWN_MD5
+  EVP_MD_CTX_free(md5);
+  md5 = NULL;
+#endif
   unshield_reader_destroy(reader);
   FCLOSE(output);
   FREE(input_buffer);
