@@ -1084,7 +1084,7 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
 
   if (file_descriptor->link_flags & LINK_PREV)
   {
-    success = unshield_file_save(unshield, file_descriptor->link_previous, filename);
+    success = unshield_file_save_old(unshield, file_descriptor->link_previous, filename);
     goto exit;
   }
 
