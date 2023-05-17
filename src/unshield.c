@@ -516,6 +516,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   realpath(output_directory, real_output_directory);
   realpath(filename, real_filename);
 #pragma GCC diagnostic pop
+	strncat(real_output_directory, "/", PATH_MAX);
   if (real_filename == NULL || strncmp(real_filename,
                                        real_output_directory,
                                        strlen(real_output_directory)) != 0)
