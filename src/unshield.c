@@ -493,6 +493,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   /* use GNU extension to return non-existing files to real_output_directory */
   realpath(output_directory, real_output_directory);
   realpath(filename, real_filename);
+	strncat(real_output_directory, "/", PATH_MAX);
   if (real_filename == NULL || strncmp(real_filename,
                                        real_output_directory,
                                        strlen(real_output_directory)) != 0)
