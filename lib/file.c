@@ -536,8 +536,17 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
 #endif
     if (bytes_to_read == 0)
     {
-      unshield_error("bytes_to_read can't be zero");
-      goto exit;
+      if ((reader->file_descriptor->flags & FILE_SPLIT) &&
+          reader->volume_bytes_left == 0)
+      {
+        unshield_warning("Split file, proceeding to next volume");
+        goto next_volume;
+      }
+      else
+      {
+        unshield_error("bytes_to_read can't be zero");
+        goto exit;
+      }
     }
 
     if (bytes_to_read != fread(p, 1, bytes_to_read, reader->volume_file))
@@ -565,11 +574,11 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
     /*
        Open next volume
      */
-
+next_volume:
     if (!unshield_reader_open_volume(reader, reader->volume + 1))
     {
       unshield_error("Failed to open volume %i to read %i more bytes",
-          reader->volume + 1, bytes_to_read);
+          reader->volume + 1, bytes_left);
       goto exit;
     }
   }
@@ -815,7 +824,6 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
       {
         unshield_error("Failed to read %i bytes of file %i (%s) from input cabinet file %i",
             sizeof(bytes_to_read_bytes), index, unshield_file_name(unshield, index), file_descriptor->volume);
-        goto exit;
       }
 
       bytes_to_read = READ_UINT16(bytes_to_read_bytes);
