@@ -25,7 +25,7 @@ jobs:
         build-type: [Release]
         build-static: [ON]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Setup GNU/Linux dependencies
       if: runner.os == 'Linux'
