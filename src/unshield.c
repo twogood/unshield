@@ -172,7 +172,7 @@ static void show_usage(const char* name)
   fprintf(stderr,
       "Syntax:\n"
       "\n"
-      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-i VERSION] [-e ENCODING] [-GhlOrV] c|g|l|t|x CABFILE [FILENAME...]\n"
+      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-h] [-i VERSION] [-e ENCODING] [-j] [-L] [-O] [-r] [-R] [-V] c|g|l|t|x CABFILE [FILENAME...]\n"
       "\n"
       "Options:\n"
       "\t-c COMPONENT  Only list/extract this component\n"
@@ -190,7 +190,7 @@ static void show_usage(const char* name)
       "\t-L            Make file and directory names lowercase\n"
       "\t-O            Use old compression\n"
       "\t-r            Save raw data (do not decompress)\n"
-      "\t-R            Don't do any conversion to file and directory names when extracting.\n"
+      "\t-R            Don't do any conversion to file and directory names when extracting\n"
       "\t-V --version  Print copyright and version information\n"
       "\n"
       "Commands:\n"
@@ -278,7 +278,7 @@ static bool handle_parameters(
         break;
 
       case 'V':
-        printf("Unshield version " VERSION ". MIT License. (C) 2003-2022 David Eriksson.\n");
+        printf("Unshield version " VERSION ". MIT License. (C) 2003-2023 David Eriksson.\n");
         exit(0);
         break;
 
