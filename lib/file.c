@@ -328,8 +328,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
     uint8_t tmp[COMMON_HEADER_SIZE];
     uint8_t* p = tmp;
 
-    if (COMMON_HEADER_SIZE !=
-        reader->unshield->io_callbacks->fread(&tmp, 1, COMMON_HEADER_SIZE, reader->volume_file, reader->unshield->io_userdata))
+    if (COMMON_HEADER_SIZE != unshield_fread(reader->unshield, &tmp, 1, COMMON_HEADER_SIZE, reader->volume_file))
       goto exit;
 
     if (!unshield_read_common_header(&p, &common_header))
@@ -347,7 +346,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
         uint8_t* p = five_header;
 
         if (VOLUME_HEADER_SIZE_V5 !=
-            reader->unshield->io_callbacks->fread(&five_header, 1, VOLUME_HEADER_SIZE_V5, reader->volume_file, reader->unshield->io_userdata))
+            unshield_fread(reader->unshield, &five_header, 1, VOLUME_HEADER_SIZE_V5, reader->volume_file))
           goto exit;
 
         reader->volume_header.data_offset                = READ_UINT32(p); p += 4;
@@ -384,7 +383,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
         uint8_t* p = six_header;
 
         if (VOLUME_HEADER_SIZE_V6 !=
-            reader->unshield->io_callbacks->fread(&six_header, 1, VOLUME_HEADER_SIZE_V6, reader->volume_file, reader->unshield->io_userdata))
+            unshield_fread(reader->unshield, &six_header, 1, VOLUME_HEADER_SIZE_V6, reader->volume_file))
           goto exit;
 
         reader->volume_header.data_offset                       = READ_UINT32(p); p += 4;
@@ -540,7 +539,7 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
       goto exit;
     }
 
-    if (bytes_to_read != reader->unshield->io_callbacks->fread(p, 1, bytes_to_read, reader->volume_file, reader->unshield->io_userdata))
+    if (bytes_to_read != unshield_fread(reader->unshield, p, 1, bytes_to_read, reader->volume_file))
     {
       unshield_error("Failed to read 0x%08x bytes of file %i (%s) from volume %i. Current offset = 0x%08x",
           bytes_to_read, reader->index, 
@@ -589,8 +588,8 @@ int copy_file(Unshield* unshield, FILE* infile, FILE* outfile) {
     char buffer[SIZE];
     size_t bytes;
 
-    while (0 < (bytes = unshield->io_callbacks->fread(buffer, 1, sizeof(buffer), infile, unshield->io_userdata)))
-        unshield->io_callbacks->fwrite(buffer, 1, bytes, outfile, unshield->io_userdata);
+    while (0 < (bytes = unshield_fread(unshield, buffer, 1, sizeof(buffer), infile)))
+        unshield_fwrite(unshield, buffer, 1, bytes, outfile);
 
     return 0;
 }

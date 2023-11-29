@@ -331,7 +331,7 @@ static bool unshield_read_headers(Unshield* unshield, int version)/*{{{*/
         goto error;
       }
 
-      bytes_read = unshield->io_callbacks->fread(header->data, 1, header->size, file, unshield->io_userdata);
+      bytes_read = unshield_fread(unshield, header->data, 1, header->size, file);
       FCLOSE(unshield, file);
 
       if (bytes_read != header->size)

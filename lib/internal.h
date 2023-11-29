@@ -86,6 +86,50 @@ const char* unshield_get_utf8_string(Header* header, const void* buffer);
 const char* unshield_header_get_string(Header* header, uint32_t offset);
 uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset);
 
+static inline void* unshield_fopen(Unshield* unshield, const char *filename, const char *modes)
+{
+    return unshield->io_callbacks->fopen(filename, modes, unshield->io_userdata);
+}
+
+static inline int unshield_fseek(Unshield* unshield, void *file, long int offset, int whence)
+{
+    return unshield->io_callbacks->fseek(file, offset, whence, unshield->io_userdata);
+}
+
+static inline long int unshield_ftell(Unshield* unshield, void *file)
+{
+    return unshield->io_callbacks->ftell(file, unshield->io_userdata);
+}
+
+static inline size_t unshield_fread(Unshield* unshield, void *ptr, size_t size, size_t n, void *file)
+{
+    return unshield->io_callbacks->fread(ptr, size, n, file, unshield->io_userdata);
+}
+
+static inline size_t unshield_fwrite(Unshield* unshield, const void *ptr, size_t size, size_t n, void *file)
+{
+    return unshield->io_callbacks->fwrite(ptr, size, n, file, unshield->io_userdata);
+}
+
+static inline int unshield_fclose(Unshield* unshield, void *ptr)
+{
+    return unshield->io_callbacks->fclose(ptr, unshield->io_userdata);
+}
+
+static inline void * unshield_opendir(Unshield* unshield, const char *name)
+{
+    return unshield->io_callbacks->opendir(name, unshield->io_userdata);
+}
+
+static inline int unshield_closedir(Unshield* unshield, void *dir)
+{
+    return unshield->io_callbacks->closedir(dir, unshield->io_userdata);
+}
+
+static inline struct dirent* unshield_readdir(Unshield* unshield, void *dir)
+{
+    return unshield->io_callbacks->readdir(dir, unshield->io_userdata);
+}
 
 /*
    Constants
@@ -102,7 +146,7 @@ uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset);
 #define STRDUP(str)     ((str) ? strdup(str) : NULL)
 #define NEW(type, count)      ((type*)calloc(count, sizeof(type)))
 #define NEW1(type)      ((type*)calloc(1, sizeof(type)))
-#define FCLOSE(unshield, file) if (file) { unshield->io_callbacks->fclose(file, unshield->io_userdata); (file) = NULL; }
+#define FCLOSE(unshield, file) if (file) { unshield_fclose(unshield, file); (file) = NULL; }
 #define FSIZE(unshield, file)     ((file) ? unshield_fsize(unshield, file) : 0)
 #define STREQ(s1,s2)    (0 == strcmp(s1,s2))
 
