@@ -239,6 +239,12 @@ static bool unshield_read_headers(Unshield* unshield, int version)/*{{{*/
       Header* header = NEW1(Header);
       header->index = i;
 
+      if (UNSHIELD_HANDLE_EXCEPTION(header->exception)) {
+        unshield_error("An exception occurred while reading .hdr file %i: [%s:%i] %s",
+                       i, header->exception.function, header->exception.line, header->exception.message);
+        goto error;
+      }
+
       header->size = FSIZE(file);
       if (header->size < 4)
       {

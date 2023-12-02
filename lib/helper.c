@@ -194,11 +194,17 @@ bool unshield_read_common_header(uint8_t** buffer, CommonHeader* common)
   */
 uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset)
 {
-  if (offset)
-    return 
+  if (offset){
+    if (header->common.cab_descriptor_offset + offset > header->size)
+    {
+      UNSHIELD_THROW_EXCEPTION(&header->exception, "cab_descriptor_offset + offset > header->size");
+    }
+
+    return
       header->data +
       header->common.cab_descriptor_offset +
       offset;
+  }
   else
     return NULL;
 }
