@@ -32,7 +32,7 @@ target_include_directories(libunshield PUBLIC
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_link_libraries(libunshield PUBLIC ZLIB::ZLIB PRIVATE convert_utf)
 set_target_properties(libunshield PROPERTIES OUTPUT_NAME unshield)
-set_target_properties(libunshield PROPERTIES VERSION 0.0.0 SOVERSION 0)
+set_target_properties(libunshield PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION_MAJOR})
 
 if(USE_OUR_OWN_MD5)
     target_link_libraries(libunshield PUBLIC md5)
