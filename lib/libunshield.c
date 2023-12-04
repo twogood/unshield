@@ -6,6 +6,82 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
+
+#ifdef _WIN32
+  #define unshield_native_fseek _fseeki64
+  #define unshield_native_ftell _ftelli64
+#else
+  #define unshield_native_fseek fseek
+  #define unshield_native_ftell ftell
+#endif
+
+
+void *unshield_default_fopen(const char *filename, const char *modes, void *userdata)
+{
+  (void)userdata;
+  return fopen(filename, modes);
+}
+
+int unshield_default_fseek(void *file, long int offset, int whence, void *userdata)
+{
+  (void)userdata;
+  return unshield_native_fseek(file, offset, whence);
+}
+
+long int unshield_default_ftell(void *file, void *userdata)
+{
+  (void)userdata;
+  return unshield_native_ftell(file);
+}
+
+size_t unshield_default_fread(void *ptr, size_t size, size_t n, void *file, void *userdata)
+{
+  (void)userdata;
+  return fread(ptr, size, n, file);
+}
+
+size_t unshield_default_fwrite(const void *ptr, size_t size, size_t n, void *file, void *userdata)
+{
+  (void)userdata;
+  return fwrite(ptr, size, n, file);
+}
+
+int unshield_default_fclose(void *file, void *userdata)
+{
+  (void)userdata;
+  return fclose(file);
+}
+
+void *unshield_default_opendir(const char *name, void *userdata)
+{
+  (void)userdata;
+  return opendir(name);
+}
+
+int unshield_default_closedir(void *dir, void *userdata)
+{
+  (void)userdata;
+  return closedir(dir);
+}
+
+struct dirent* unshield_default_readdir(void *dir, void *userdata)
+{
+  (void)userdata;
+  return readdir(dir);
+}
+
+static UnshieldIoCallbacks unshield_default_io_callbacks = {
+  .fopen = unshield_default_fopen,
+  .fseek = unshield_default_fseek,
+  .ftell = unshield_default_ftell,
+  .fread = unshield_default_fread,
+  .fwrite = unshield_default_fwrite,
+  .fclose = unshield_default_fclose,
+  .opendir = unshield_default_opendir,
+  .closedir = unshield_default_closedir,
+  .readdir = unshield_default_readdir,
+};
 
 /**
   Create filename pattern used by unshield_fopen_for_reading()
@@ -239,11 +315,11 @@ static bool unshield_read_headers(Unshield* unshield, int version)/*{{{*/
       Header* header = NEW1(Header);
       header->index = i;
 
-      header->size = FSIZE(file);
+      header->size = FSIZE(unshield, file);
       if (header->size < 4)
       {
         unshield_error("Header file %i too small", i);
-        FCLOSE(file);
+        FCLOSE(unshield, file);
         goto error;
       }
 
@@ -251,12 +327,12 @@ static bool unshield_read_headers(Unshield* unshield, int version)/*{{{*/
       if (!header->data)
       {
         unshield_error("Failed to allocate memory for header file %i", i);
-        FCLOSE(file);
+        FCLOSE(unshield, file);
         goto error;
       }
 
-      bytes_read = fread(header->data, 1, header->size, file);
-      FCLOSE(file);
+      bytes_read = unshield_fread(unshield, header->data, 1, header->size, file);
+      FCLOSE(unshield, file);
 
       if (bytes_read != header->size)
       {
@@ -347,12 +423,25 @@ Unshield* unshield_open(const char* filename)/*{{{*/
 
 Unshield* unshield_open_force_version(const char* filename, int version)/*{{{*/
 {
+  return unshield_open2_force_version(filename, version, NULL, NULL);
+}/*}}}*/
+
+Unshield* unshield_open2(const char* filename, const UnshieldIoCallbacks* callbacks, void* userdata)/*{{{*/
+{
+  return unshield_open2_force_version(filename, -1, callbacks, userdata);
+}/*}}}*/
+
+Unshield* unshield_open2_force_version(const char* filename, int version, const UnshieldIoCallbacks* callbacks, void* userdata)/*{{{*/
+{
   Unshield* unshield = NEW1(Unshield);
   if (!unshield)
   {
     unshield_error("Failed to allocate memory for Unshield structure");
     goto error;
   }
+
+  unshield->io_callbacks = callbacks == NULL ? &unshield_default_io_callbacks : callbacks;
+  unshield->io_userdata = userdata;
 
   if (!unshield_create_filename_pattern(unshield, filename))
   {

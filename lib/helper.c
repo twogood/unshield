@@ -11,8 +11,6 @@
 #include <unistd.h>
 
 #ifdef _WIN32
-  #define fseek _fseeki64
-  #define ftell _ftelli64
   #define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
   #include <direct.h>
   #ifndef PATH_MAX
@@ -103,11 +101,12 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
     else
       q=filename;
 
-    sourcedir = opendir(dirname);
+    sourcedir = unshield_opendir(unshield, dirname);
     /* Search for the File case independent */
     if (sourcedir)
     {
-      for (dent=readdir(sourcedir);dent;dent=readdir(sourcedir))
+      for (dent=unshield_readdir(unshield, sourcedir);dent;
+           dent=unshield_readdir(unshield, sourcedir))
       {
         if (!(strcasecmp(q, dent->d_name)))
         {
@@ -134,11 +133,11 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
 #if VERBOSE
     unshield_trace("Opening file '%s'", filename);
 #endif
-    result = fopen(filename, "rb");
+    result = unshield_fopen(unshield, filename, "rb");
 
 exit:
     if (sourcedir)
-      closedir(sourcedir);
+      unshield_closedir(unshield, sourcedir);
     free(filename);
     free(dirname);
     return result;
@@ -147,13 +146,13 @@ exit:
   return NULL;
 }
 
-long long unshield_fsize(FILE* file)
+long long unshield_fsize(Unshield* unshield, FILE* file)
 {
   long long result;
-  long long previous = ftell(file);
-  fseek(file, 0L, SEEK_END);
-  result = ftell(file);
-  fseek(file, previous, SEEK_SET);
+  long long previous = unshield_ftell(unshield, file);
+  unshield_fseek(unshield, file, 0L, SEEK_END);
+  result = unshield_ftell(unshield, file);
+  unshield_fseek(unshield, file, previous, SEEK_SET);
   return result;
 }
 

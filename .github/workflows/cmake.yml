@@ -55,11 +55,10 @@ jobs:
           ${{matrix.platform.msys-env}}-zlib
 
     - name: Configure CMake
-      run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -DBUILD_STATIC=${{matrix.build-static}}
+      run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -DBUILD_STATIC=${{matrix.build-static}} -DBUILD_TESTING=ON
 
     - name: Build
       run: cmake --build build
 
     - name: Test
-      working-directory: build
-      run: ctest --output-on-failure
+      run: ctest --test-dir build --output-on-failure
