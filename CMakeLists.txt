@@ -84,6 +84,7 @@ add_subdirectory(src)
 
 install(FILES man/unshield.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libunshield.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+install(EXPORT unshieldConfig NAMESPACE unshield:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/unshield)
 
 if (BUILD_TESTING)
     add_subdirectory(test)

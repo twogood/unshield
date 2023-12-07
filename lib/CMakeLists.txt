@@ -27,10 +27,12 @@ else()
     add_library(libunshield SHARED ${LIBUNSHIELD_HEADERS} ${LIBUNSHIELD_SOURCES})
 endif()
 
-target_include_directories(libunshield PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(libunshield PUBLIC ZLIB::ZLIB convert_utf)
+target_include_directories(libunshield PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+target_link_libraries(libunshield PUBLIC ZLIB::ZLIB PRIVATE convert_utf)
 set_target_properties(libunshield PROPERTIES OUTPUT_NAME unshield)
-set_target_properties(libunshield PROPERTIES VERSION 0.0.0 SOVERSION 0)
+set_target_properties(libunshield PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION_MAJOR})
 
 if(USE_OUR_OWN_MD5)
     target_link_libraries(libunshield PUBLIC md5)
@@ -38,5 +40,4 @@ else()
     target_link_libraries(libunshield PUBLIC OpenSSL::Crypto)
 endif()
 
-install(TARGETS libunshield RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-install(FILES libunshield.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(TARGETS libunshield EXPORT unshieldConfig RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
