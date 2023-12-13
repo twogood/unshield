@@ -39,7 +39,7 @@ if(USE_OUR_OWN_MD5)
     target_link_libraries(libunshield PRIVATE md5)
     list(APPEND TARGETS_TO_INSTALL md5)
 else()
-    target_link_libraries(libunshield PUBLIC OpenSSL::Crypto)
+    target_link_libraries(libunshield PRIVATE OpenSSL::Crypto)
 endif()
 
 install(TARGETS ${TARGETS_TO_INSTALL} EXPORT unshieldConfig RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
