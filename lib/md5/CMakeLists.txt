@@ -11,4 +11,4 @@ if(BUILD_STATIC AND MSVC)
     set_msvc_runtime_static()
 endif()
 
-add_library(md5 STATIC ${LIBMD5_HEADERS} ${LIBMD5_SOURCES})
+add_library(md5 OBJECT ${LIBMD5_HEADERS} ${LIBMD5_SOURCES})
