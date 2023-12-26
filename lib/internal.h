@@ -85,6 +85,7 @@ bool unshield_read_common_header(uint8_t** buffer, CommonHeader* common);
 const char* unshield_get_utf8_string(Header* header, const void* buffer);
 const char* unshield_header_get_string(Header* header, uint32_t offset);
 uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset);
+char *unshield_get_last_path_separator(char *path);
 
 static inline void* unshield_fopen(Unshield* unshield, const char *filename, const char *modes)
 {

@@ -96,15 +96,35 @@ static bool make_sure_directory_exists(const char* directory)/*{{{*/
       p+=2;
     else if (0 == strncmp(p, "../", 3))
       p+=3;
+#ifdef WIN32
+    if ('\\' == *p)
+      p++;
+    else if (0 == strncmp(p, ".\\", 2))
+      p += 2;
+    else if (0 == strncmp(p, "..\\", 3))
+      p += 3;
+#endif
     else
     {
+      int is_win_root = 0;
       const char* slash = strchr(p, '/');
+#ifdef WIN32
+      const char* backslash = strchr(p, '\\');
+      if (NULL != backslash && (NULL == slash || backslash < slash))
+        slash = backslash;
+#endif
+
       current = strdup(directory);
       
       if (slash)
         current[slash-directory] = '\0';
 
-      if (stat(current, &dir_stat) < 0)
+#ifdef WIN32
+      if (slash - directory == 2 && current[1] == ':')
+        is_win_root = 1;
+#endif
+
+      if (!is_win_root && stat(current, &dir_stat) < 0)
       {
         #if defined (__MINGW32__) || defined (_WIN32)
         if (_mkdir(current) < 0)

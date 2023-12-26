@@ -43,7 +43,7 @@ long int unshield_get_path_max(Unshield* unshield)
 
 char *unshield_get_base_directory_name(Unshield *unshield) {
     long int path_max = unshield_get_path_max(unshield);
-    char *p = strrchr(unshield->filename_pattern, '/');
+    char *p = unshield_get_last_path_separator(unshield->filename_pattern);
     char *dirname = malloc(path_max);
 
     if (p) {
@@ -95,7 +95,7 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
     DIR *sourcedir = NULL;
     long int path_max = unshield_get_path_max(unshield);
 
-    q=strrchr(filename,'/');
+    q=unshield_get_last_path_separator(filename);
     if (q)
       q++;
     else
@@ -202,6 +202,22 @@ uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset)
     return NULL;
 }
 
+/**
+ Returns the last path separator in a filesystem path
+ */
+char *unshield_get_last_path_separator(char *path)
+{
+  char *p = strrchr(path, '/');
+
+#ifdef WIN32
+  char *pbs = strrchr(path, '\\');
+
+  if (NULL != pbs && (NULL == p || pbs > p))
+    return pbs;
+#endif
+
+  return p;
+}
 
 static int unshield_strlen_utf16(const uint16_t* utf16)
 {
