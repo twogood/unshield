@@ -25,6 +25,7 @@ if(BUILD_STATIC)
     add_library(libunshield STATIC ${LIBUNSHIELD_HEADERS} ${LIBUNSHIELD_SOURCES})
 else()
     add_library(libunshield SHARED ${LIBUNSHIELD_HEADERS} ${LIBUNSHIELD_SOURCES})
+    add_compile_definitions(LIBUNSHIELD_DYNAMIC_LIBRARY)
 endif()
 
 target_include_directories(libunshield PUBLIC
