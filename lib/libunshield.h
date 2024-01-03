@@ -1,6 +1,7 @@
 #ifndef __unshield_h__
 #define __unshield_h__
 
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -51,7 +52,9 @@ typedef struct _Unshield Unshield;
 
 #define UNSHIELD_LOG_LEVEL_HIGHEST   4
 
+typedef void (UnshieldLogCallback)(void* userdata, int level, const char* file, int line, const char* format, va_list ap);
 UNSHIELD_API void unshield_set_log_level(int level);
+UNSHIELD_API void unshield_set_log_handler(UnshieldLogCallback* handler, void* userdata);
 
 /*
    Open/close functions
