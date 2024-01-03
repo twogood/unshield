@@ -3,14 +3,6 @@
 
 #include "internal.h"
 
-#define UNSHIELD_LOG_LEVEL_LOWEST    0
-
-#define UNSHIELD_LOG_LEVEL_ERROR     1
-#define UNSHIELD_LOG_LEVEL_WARNING   2
-#define UNSHIELD_LOG_LEVEL_TRACE     3
-
-#define UNSHIELD_LOG_LEVEL_HIGHEST   4
-
 #ifdef __cplusplus
 extern "C"
 {
