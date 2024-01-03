@@ -97,7 +97,7 @@ static bool unshield_create_filename_pattern(Unshield* unshield, const char* fil
   {
     char pattern[256];
     char* prefix = strdup(filename);
-    char* p = strrchr(prefix, '/');
+    char* p = unshield_get_last_path_separator(prefix);
     if (!p)
       p = prefix;
 
