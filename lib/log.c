@@ -1,3 +1,4 @@
+#include "libunshield.h"
 #include "log.h"
 #include <stdarg.h>
 #include <stdio.h>
