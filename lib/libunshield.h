@@ -17,10 +17,14 @@
 extern "C" {
 #endif
 
-#if defined(_MSC_VER) && defined(LIBUNSHIELD_DYNAMIC_LIBRARY)
-#define UNSHIELD_DLLEXPORT __declspec(dllexport)
+#if defined(_WIN32) && defined(UNSHIELD_DYNAMIC_LIBRARY)
+#  if defined(UNSHIELD_EXPORTS)
+#    define UNSHIELD_API __declspec(dllexport)
+#  else
+#    define UNSHIELD_API __declspec(dllimport)
+#  endif
 #else
-#define UNSHIELD_DLLEXPORT
+#  define UNSHIELD_API
 #endif
  
 typedef struct _Unshield Unshield;
@@ -30,16 +34,16 @@ typedef struct _Unshield Unshield;
    Logging
  */
 
-UNSHIELD_DLLEXPORT void unshield_set_log_level(int level);
+UNSHIELD_API void unshield_set_log_level(int level);
 
 
 /*
    Open/close functions
  */
 
-UNSHIELD_DLLEXPORT Unshield* unshield_open(const char* filename);
-UNSHIELD_DLLEXPORT Unshield* unshield_open_force_version(const char* filename, int version);
-UNSHIELD_DLLEXPORT void unshield_close(Unshield* unshield);
+UNSHIELD_API Unshield* unshield_open(const char* filename);
+UNSHIELD_API Unshield* unshield_open_force_version(const char* filename, int version);
+UNSHIELD_API void unshield_close(Unshield* unshield);
 
 typedef struct
 {
@@ -54,8 +58,8 @@ typedef struct
     struct dirent* (*readdir)(void *dir, void *userdata);
 } UnshieldIoCallbacks;
 
-UNSHIELD_DLLEXPORT Unshield* unshield_open2(const char* filename, const UnshieldIoCallbacks* callbacks, void* userdata);
-UNSHIELD_DLLEXPORT Unshield* unshield_open2_force_version(const char* filename, int version, const UnshieldIoCallbacks* callbacks, void* userdata);
+UNSHIELD_API Unshield* unshield_open2(const char* filename, const UnshieldIoCallbacks* callbacks, void* userdata);
+UNSHIELD_API Unshield* unshield_open2_force_version(const char* filename, int version, const UnshieldIoCallbacks* callbacks, void* userdata);
 
 /*
    Component functions
@@ -68,8 +72,8 @@ typedef struct
   const char** file_group_names;
 } UnshieldComponent;
 
-UNSHIELD_DLLEXPORT int         unshield_component_count    (Unshield* unshield);
-UNSHIELD_DLLEXPORT const char* unshield_component_name     (Unshield* unshield, int index);
+UNSHIELD_API int         unshield_component_count    (Unshield* unshield);
+UNSHIELD_API const char* unshield_component_name     (Unshield* unshield, int index);
 
 /*
    File group functions
@@ -82,40 +86,40 @@ typedef struct
   unsigned last_file;
 } UnshieldFileGroup;
 
-UNSHIELD_DLLEXPORT int                 unshield_file_group_count (Unshield* unshield);
-UNSHIELD_DLLEXPORT UnshieldFileGroup*  unshield_file_group_get   (Unshield* unshield, int index);
-UNSHIELD_DLLEXPORT UnshieldFileGroup*  unshield_file_group_find  (Unshield* unshield, const char* name);
-UNSHIELD_DLLEXPORT const char*         unshield_file_group_name  (Unshield* unshield, int index);
+UNSHIELD_API int                 unshield_file_group_count (Unshield* unshield);
+UNSHIELD_API UnshieldFileGroup*  unshield_file_group_get   (Unshield* unshield, int index);
+UNSHIELD_API UnshieldFileGroup*  unshield_file_group_find  (Unshield* unshield, const char* name);
+UNSHIELD_API const char*         unshield_file_group_name  (Unshield* unshield, int index);
 
 /*
    Directory functions
  */
 
-UNSHIELD_DLLEXPORT int         unshield_directory_count    (Unshield* unshield);
-UNSHIELD_DLLEXPORT const char* unshield_directory_name     (Unshield* unshield, int index);
+UNSHIELD_API int         unshield_directory_count    (Unshield* unshield);
+UNSHIELD_API const char* unshield_directory_name     (Unshield* unshield, int index);
 
 /*
    File functions
  */
 
-UNSHIELD_DLLEXPORT int         unshield_file_count         (Unshield* unshield);
-UNSHIELD_DLLEXPORT const char* unshield_file_name          (Unshield* unshield, int index);
-UNSHIELD_DLLEXPORT bool        unshield_file_is_valid      (Unshield* unshield, int index);
-UNSHIELD_DLLEXPORT bool        unshield_file_save          (Unshield* unshield, int index, const char* filename);
-UNSHIELD_DLLEXPORT int         unshield_file_directory     (Unshield* unshield, int index);
-UNSHIELD_DLLEXPORT size_t      unshield_file_size          (Unshield* unshield, int index);
+UNSHIELD_API int         unshield_file_count         (Unshield* unshield);
+UNSHIELD_API const char* unshield_file_name          (Unshield* unshield, int index);
+UNSHIELD_API bool        unshield_file_is_valid      (Unshield* unshield, int index);
+UNSHIELD_API bool        unshield_file_save          (Unshield* unshield, int index, const char* filename);
+UNSHIELD_API int         unshield_file_directory     (Unshield* unshield, int index);
+UNSHIELD_API size_t      unshield_file_size          (Unshield* unshield, int index);
 
 /** For investigation of compressed data */
-UNSHIELD_DLLEXPORT bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename);
+UNSHIELD_API bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename);
 
 /** Maybe it's just gzip without size? */
-UNSHIELD_DLLEXPORT bool unshield_file_save_old(Unshield* unshield, int index, const char* filename);
+UNSHIELD_API bool unshield_file_save_old(Unshield* unshield, int index, const char* filename);
 
 /** Deobfuscate a buffer. Seed is 0 at file start */
-UNSHIELD_DLLEXPORT void unshield_deobfuscate(unsigned char* buffer, size_t size, unsigned* seed);
+UNSHIELD_API void unshield_deobfuscate(unsigned char* buffer, size_t size, unsigned* seed);
 
 /** Is the archive Unicode-capable? */
-UNSHIELD_DLLEXPORT bool unshield_is_unicode(Unshield* unshield);
+UNSHIELD_API bool unshield_is_unicode(Unshield* unshield);
 
 #ifdef __cplusplus
 }
