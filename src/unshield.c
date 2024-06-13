@@ -455,6 +455,9 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
       case '>':
       case '[':
       case ']':
+        if (raw_filename)
+          break;
+
         *p = '_';
         break;
 
