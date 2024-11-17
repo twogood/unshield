@@ -1,8 +1,8 @@
 #define _BSD_SOURCE 1
 #define _DEFAULT_SOURCE 1
 #include "internal.h"
+#include "converter.h"
 #include "log.h"
-#include "convert_utf/ConvertUTF.h"
 #include <sys/types.h>
 #include <dirent.h>
 #include <stdlib.h>
@@ -242,14 +242,9 @@ static const char* unshield_utf16_to_utf8(Header* header, const uint16_t* utf16)
   int length = unshield_strlen_utf16(utf16);
   int buffer_size = 3 * length + 1;
   char* target = string_buffer->string = NEW(char, buffer_size);
-  ConversionResult result = ConvertUTF16toUTF8(
-      (const UTF16**)&utf16, utf16 + length + 1, 
-      (UTF8**)&target, (UTF8*)(target + buffer_size), lenientConversion);
-  if (result != conversionOK)
-  {
-    /* fail fast */
-    abort();
-  }
+  size_t result = utf16_to_utf8(
+      utf16, length + 1,
+      target, buffer_size);
   return string_buffer->string;
 }
 

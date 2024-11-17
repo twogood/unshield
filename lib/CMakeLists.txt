@@ -1,5 +1,3 @@
-add_subdirectory(convert_utf)
-
 if(USE_OUR_OWN_MD5)
     add_subdirectory(md5)
 endif()
@@ -9,10 +7,12 @@ set(LIBUNSHIELD_HEADERS
     libunshield.h
     log.h
     cabfile.h
+    converter.h
 )
 
 set(LIBUNSHIELD_SOURCES
     component.c
+    converter.c
     directory.c
     file.c
     file_group.c
@@ -31,7 +31,7 @@ endif()
 target_include_directories(libunshield PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-target_link_libraries(libunshield PUBLIC ZLIB::ZLIB PRIVATE $<TARGET_OBJECTS:convert_utf>)
+target_link_libraries(libunshield PUBLIC ZLIB::ZLIB)
 target_compile_definitions(libunshield PRIVATE UNSHIELD_EXPORT)
 set_target_properties(libunshield PROPERTIES OUTPUT_NAME unshield)
 set_target_properties(libunshield PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION_MAJOR})
