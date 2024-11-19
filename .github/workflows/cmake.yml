@@ -38,7 +38,7 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew install \
-            cmake ninja openssl zlib
+            ninja zlib
         echo "CMAKE_PREFIX_PATH=$(brew --prefix openssl):$(brew --prefix zlib)" >> $GITHUB_ENV
 
 
@@ -67,7 +67,7 @@ jobs:
       run: cmake --install build --strip --prefix install
 
     - name: Upload
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: unshield-${{github.sha}} (${{matrix.platform.name}})
         path:  install
