@@ -65,7 +65,12 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
 
       fd->expanded_size     = READ_UINT32(p); p += 4;
       fd->compressed_size   = READ_UINT32(p); p += 4;
-      p += 0x14;
+
+      p += 4;
+      fd->dos_date          = (uint16_t)READ_UINT32(p); p += 4;
+      fd->dos_time          = (uint16_t)READ_UINT32(p); p += 4;
+      p += 8;
+
       fd->data_offset       = READ_UINT32(p); p += 4;
       
 #if VERBOSE >= 2
@@ -74,6 +79,8 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       unshield_trace("Flags:            %04x", fd->flags);
       unshield_trace("Expanded size:    %08x", fd->expanded_size);
       unshield_trace("Compressed size:  %08x", fd->compressed_size);
+      unshield_trace("DOS date:         %04x", fd->dos_date);
+      unshield_trace("DOS time:         %04x", fd->dos_time);
       unshield_trace("Data offset:      %08x", fd->data_offset);
 #endif
 
@@ -114,8 +121,12 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       assert(fd->directory_index < unshield_directory_count(unshield));
 
       assert((p - saved_p) == 0x40);
-      
-      p += 0xc;
+
+      p += 4;
+      fd->dos_date = READ_UINT16(p); p += 2;
+      fd->dos_time = READ_UINT16(p); p += 2;
+
+      p += 4;
       fd->link_previous     = READ_UINT32(p); p += 4;
       fd->link_next         = READ_UINT32(p); p += 4;
       fd->link_flags        = *p; p ++;
