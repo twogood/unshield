@@ -991,6 +991,21 @@ bool unshield_file_iso_date (Unshield* unshield, int index, char* buf, size_t si
   return fd ? true : false;
 }/*}}}*/
 
+time_t unshield_file_timestamp (Unshield* unshield, int index)/*{{{*/
+{
+  FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
+  struct tm date;
+
+  if (fd)
+  {
+    unshield_dos_to_tm(fd->dos_date, fd->dos_time, &date);
+    return mktime(&date);
+  }
+
+  unshield_warning("Failed to get file descriptor %i", index);
+  return 0;
+}/*}}}*/
+
 bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
 {
   /* XXX: Thou Shalt Not Cut & Paste... */

@@ -110,6 +110,7 @@ UNSHIELD_API bool        unshield_file_save          (Unshield* unshield, int in
 UNSHIELD_API int         unshield_file_directory     (Unshield* unshield, int index);
 UNSHIELD_API size_t      unshield_file_size          (Unshield* unshield, int index);
 UNSHIELD_API bool        unshield_file_iso_date      (Unshield* unshield, int index, char* buf, size_t size);
+UNSHIELD_API time_t      unshield_file_timestamp     (Unshield* unshield, int index);
 
 /** For investigation of compressed data */
 UNSHIELD_API bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename);
