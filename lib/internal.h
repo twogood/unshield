@@ -87,6 +87,8 @@ const char* unshield_header_get_string(Header* header, uint32_t offset);
 uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset);
 char *unshield_get_last_path_separator(char *path);
 
+void unshield_dos_to_tm(uint16_t dos_date, uint16_t dos_time, struct tm* tm);
+
 static inline void* unshield_fopen(Unshield* unshield, const char *filename, const char *modes)
 {
     return unshield->io_callbacks->fopen(filename, modes, unshield->io_userdata);
