@@ -77,6 +77,8 @@ typedef struct
   uint64_t data_offset;
   uint8_t md5[16];
   uint16_t volume;
+  uint16_t dos_date;
+  uint16_t dos_time;
   uint32_t link_previous;
   uint32_t link_next;
   uint8_t link_flags;
