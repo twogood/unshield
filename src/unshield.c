@@ -683,10 +683,13 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
   for (i = first; i <= last; i++)
   {
     char dirname[4096];
+    char date[32];
 
     if (unshield_file_is_valid(unshield, i) && should_process_file(unshield, i))
     {
       valid_count++;
+
+      (void)unshield_file_iso_date(unshield, i, date, sizeof(date));
 
       if (prefix && prefix[0])
       {
@@ -708,10 +711,11 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
       if (dirname[strlen(dirname)-1] != '\\')
         strcat(dirname, "\\");
 
-      printf(" %8" SIZE_FORMAT "  %s%s\n",
+      printf(" %8" SIZE_FORMAT "  %s  %s%s\n",
           unshield_file_size(unshield, i),
+          date,
           dirname,
-          unshield_file_name(unshield, i)); 
+          unshield_file_name(unshield, i));
     }
   }
 
@@ -748,7 +752,7 @@ static bool do_action(Unshield* unshield, ActionHelper helper)
     }
   }
 
-  printf(" --------  -------\n          %i files\n", count);
+  printf(" --------  -------------------  -------\n          %i files\n", count);
 
   return true;
 }

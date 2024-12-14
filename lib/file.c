@@ -967,6 +967,30 @@ size_t unshield_file_size(Unshield* unshield, int index)/*{{{*/
     return 0;
 }/*}}}*/
 
+/* This uses the ISO 8601 date format (except for milliseconds) */
+bool unshield_file_iso_date (Unshield* unshield, int index, char* buf, size_t size)/*{{{*/
+{
+  FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
+  struct tm date;
+
+  if (size < 32)
+  {
+    unshield_error("Buffer size %" SIZE_FORMAT " is too small", size);
+    return false;
+  }
+
+  if (fd)
+    unshield_dos_to_tm(fd->dos_date, fd->dos_time, &date);
+  else
+  {
+    unshield_warning("Failed to get file descriptor %i", index);
+    memset(&date, 0, sizeof(date));
+  }
+
+  (void)strftime(buf, size, "%Y-%m-%d %H:%M:%S", &date);
+  return fd ? true : false;
+}/*}}}*/
+
 bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
 {
   /* XXX: Thou Shalt Not Cut & Paste... */
