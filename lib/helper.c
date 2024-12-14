@@ -268,4 +268,26 @@ const char* unshield_header_get_string(Header* header, uint32_t offset)
   return unshield_get_utf8_string(header, unshield_header_get_buffer(header, offset));
 }
 
+/**
+  Based on MIT Wine code and DosDateTimeToFileTime() MSDN documentation
+ */
+void unshield_dos_to_tm(uint16_t dos_date, uint16_t dos_time, struct tm* tm)
+{
+  memset(tm, 0, sizeof(*tm));
+
+  if (dos_date)
+  {
+    tm->tm_year = (dos_date >> 9) + 80;
+    tm->tm_mon = ((dos_date >> 5) & 0x0f) - 1;
+    tm->tm_mday = dos_date & 0x1f;
+  }
+
+  if (dos_time)
+  {
+    tm->tm_hour = dos_time >> 11;
+    tm->tm_min = (dos_time >> 5) & 0x3f;
+    tm->tm_sec = (dos_time & 0x1f) * 2;
+  }
+}
+
 
