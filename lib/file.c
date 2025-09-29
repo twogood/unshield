@@ -57,7 +57,8 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       fd->volume            = header->index;
 
       fd->name_offset       = READ_UINT32(p); p += 4;
-      fd->directory_index   = READ_UINT32(p); p += 4;
+      fd->directory_index   = READ_UINT16(p); p += 2;
+      p += 2;
 
       fd->flags             = READ_UINT16(p); p += 2;
 
