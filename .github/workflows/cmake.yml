@@ -19,7 +19,8 @@ jobs:
       matrix:
         platform:
         - { name: macOS,             os: macos-latest,   shell: sh }
-        - { name: Ubuntu,            os: ubuntu-latest,  shell: sh }
+        - { name: Ubuntu GCC 14,     os: ubuntu-latest,  shell: sh, gcc: 14 }
+        - { name: Ubuntu GCC 15,     os: ubuntu-latest,  shell: sh, gcc: 15 }
         - { name: Windows - mingw32, os: windows-latest, shell: 'msys2 {0}', msystem: mingw32, msys-env: mingw-w64-i686 }
         - { name: Windows - mingw64, os: windows-latest, shell: 'msys2 {0}', msystem: mingw64, msys-env: mingw-w64-x86_64 }
         build-type: [Release]
@@ -33,6 +34,15 @@ jobs:
         sudo apt-get update
         sudo apt-get install \
             libssl-dev ninja-build zlib1g-dev
+
+    - name: Select GCC version
+      if: runner.os == 'Linux'
+      run: |
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+        sudo apt-get update
+        sudo apt-get install -y gcc-${{matrix.platform.gcc}} g++-${{matrix.platform.gcc}}
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${{matrix.platform.gcc}} 100
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${{matrix.platform.gcc}} 100
 
     - name: Setup macOS dependencies
       if: runner.os == 'macOS'
