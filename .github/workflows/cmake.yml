@@ -38,7 +38,7 @@ jobs:
     - name: Select GCC version
       if: runner.os == 'Linux'
       run: |
-        sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa -y
         sudo apt-get update
         sudo apt-get install -y gcc-${{matrix.platform.gcc}} g++-${{matrix.platform.gcc}}
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${{matrix.platform.gcc}} 100
