@@ -1,8 +1,8 @@
-.TH UNSHIELD "1" "November 2023" "The Unshield project" "https://github.com/twogood/unshield"
+.TH UNSHIELD "1" "December 2024" "The Unshield project" "https://github.com/twogood/unshield"
 .SH NAME
 unshield \- extract CAB files from an InstallShield installer archive
 .SH SYNOPSIS
-unshield [\-c COMPONENT] [\-d DIRECTORY] [\-D LEVEL] [\-g GROUP] [\-h] [\-i VERSION] [\-e ENCODING] [\-j] [\-L] [\-O] [\-r] [\-R] [\-V] c|g|l|t|x CABFILE [FILENAME...]
+unshield [\-c COMPONENT] [\-d DIRECTORY] [\-D LEVEL] [\-g GROUP] [\-h] [\-i VERSION] [\-e ENCODING] [\-j] [\-L] [\-O] [\-r] [\-R] [\-t] [\-V] c|g|l|t|x CABFILE [FILENAME...]
 .SH DESCRIPTION
 Unshield extracts CAB files from InstallShield installers, used to 
 install software on Microsoft Windows based machines.
@@ -49,6 +49,9 @@ Save raw data (do not decompress)
 .TP
 \fB\-R\fR
 Don't do any conversion to file and directory names when extracting
+.TP
+\fB-t\fR
+Set the modification date/time from the metadata when extracting
 .TP
 \fB\-V\fR, \fB\-\-version\fR
 Print version information

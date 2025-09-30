@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <utime.h>
 #include <getopt.h>
 #include "../lib/libunshield.h"
 #ifdef HAVE_CONFIG_H
@@ -68,6 +69,7 @@ static const char* component_name     = NULL;
 static bool junk_paths                = false;
 static bool make_lowercase            = false;
 static bool raw_filename              = false;
+static bool set_timestamp             = false;
 static ACTION action                  = ACTION_EXTRACT;
 static int log_level                  = UNSHIELD_LOG_LEVEL_LOWEST;
 static int exit_status                = 0;
@@ -192,7 +194,7 @@ static void show_usage(const char* name)
   fprintf(stderr,
       "Syntax:\n"
       "\n"
-      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-h] [-i VERSION] [-e ENCODING] [-j] [-L] [-O] [-r] [-R] [-V] c|g|l|t|x CABFILE [FILENAME...]\n"
+      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-h] [-i VERSION] [-e ENCODING] [-j] [-L] [-O] [-r] [-R] [-t] [-V] c|g|l|t|x CABFILE [FILENAME...]\n"
       "\n"
       "Options:\n"
       "\t-c COMPONENT  Only list/extract this component\n"
@@ -211,6 +213,7 @@ static void show_usage(const char* name)
       "\t-O            Use old compression\n"
       "\t-r            Save raw data (do not decompress)\n"
       "\t-R            Don't do any conversion to file and directory names when extracting\n"
+      "\t-t            Set the modification date/time from the metadata when extracting\n"
       "\t-V --version  Print copyright and version information\n"
       "\n"
       "Commands:\n"
@@ -243,7 +246,7 @@ static bool handle_parameters(
        { NULL, 0, NULL, 0 }
     };
 
-    while ((c = getopt_long(argc, argv, "c:d:D:g:hi:e:jLOrRV", long_options, NULL)) != -1)
+    while ((c = getopt_long(argc, argv, "c:d:D:g:hi:e:jLOrRtV", long_options, NULL)) != -1)
     {
     switch (c)
     {
@@ -295,6 +298,10 @@ static bool handle_parameters(
         
       case 'r':
         format = FORMAT_RAW;
+        break;
+
+      case 't':
+        set_timestamp = true;
         break;
 
       case 'V':
@@ -540,6 +547,18 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
       break;
   }
 
+  if (success && set_timestamp)
+  {
+    /* XXX: Use file function wrappers? */
+    struct utimbuf utim;
+    struct stat info;
+
+    stat(filename, &info);
+    utim.actime = info.st_atim.tv_sec;
+    utim.modtime = unshield_file_timestamp(unshield, index);
+    utime(filename, &utim);
+  }
+
 exit:
   if (!success)
   {
@@ -683,10 +702,13 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
   for (i = first; i <= last; i++)
   {
     char dirname[4096];
+    char date[32];
 
     if (unshield_file_is_valid(unshield, i) && should_process_file(unshield, i))
     {
       valid_count++;
+
+      (void)unshield_file_iso_date(unshield, i, date, sizeof(date));
 
       if (prefix && prefix[0])
       {
@@ -708,10 +730,11 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
       if (dirname[strlen(dirname)-1] != '\\')
         strcat(dirname, "\\");
 
-      printf(" %8" SIZE_FORMAT "  %s%s\n",
+      printf(" %8" SIZE_FORMAT "  %s  %s%s\n",
           unshield_file_size(unshield, i),
+          date,
           dirname,
-          unshield_file_name(unshield, i)); 
+          unshield_file_name(unshield, i));
     }
   }
 
@@ -748,7 +771,7 @@ static bool do_action(Unshield* unshield, ActionHelper helper)
     }
   }
 
-  printf(" --------  -------\n          %i files\n", count);
+  printf(" --------  -------------------  -------\n          %i files\n", count);
 
   return true;
 }
