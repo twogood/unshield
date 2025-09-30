@@ -105,5 +105,5 @@ docker build -t unshield:latest .
 
 Now just enter your work directory with cab files and use
 ``` sh
-docker run -it --rm --volume $(pwd):/data unshield:latest [ARGS]
+docker run -it --rm -u$(id -u):$(id -g) --volume $(pwd):/data unshield:latest [ARGS]
 ```
