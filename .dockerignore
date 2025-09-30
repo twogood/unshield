@@ -1,0 +1,6 @@
+Dockerfile
+.*
+ChangeLog
+LICENSE
+README.md
+*.sh
