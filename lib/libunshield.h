@@ -82,8 +82,8 @@ UNSHIELD_API const char* unshield_component_name     (Unshield* unshield, int in
 typedef struct
 {
   const char* name;
-  unsigned first_file;
-  unsigned last_file;
+  int first_file;
+  int last_file;
 } UnshieldFileGroup;
 
 UNSHIELD_API int                 unshield_file_group_count (Unshield* unshield);
