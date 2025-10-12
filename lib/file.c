@@ -57,8 +57,10 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       fd->volume            = header->index;
 
       fd->name_offset       = READ_UINT32(p); p += 4;
-      fd->directory_index   = READ_UINT32(p); p += 4;
+      fd->directory_index   = READ_UINT16(p); p += 2;
+      assert(fd->directory_index < unshield_directory_count(unshield));
 
+      p += 2;
       fd->flags             = READ_UINT16(p); p += 2;
 
       fd->expanded_size     = READ_UINT32(p); p += 4;
@@ -109,6 +111,7 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       p += 0x10;
       fd->name_offset       = READ_UINT32(p); p += 4;
       fd->directory_index   = READ_UINT16(p); p += 2;
+      assert(fd->directory_index < unshield_directory_count(unshield));
 
       assert((p - saved_p) == 0x40);
       
@@ -935,6 +938,7 @@ int unshield_file_directory(Unshield* unshield, int index)/*{{{*/
   FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
   if (fd)
   {
+    assert(fd->directory_index < unshield_directory_count(unshield));
     return fd->directory_index;
   }
   else
