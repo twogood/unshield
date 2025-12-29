@@ -743,7 +743,7 @@ static bool do_action(Unshield* unshield, ActionHelper helper)
     for (i = 0; i < unshield_file_group_count(unshield); i++)
     {
       UnshieldFileGroup* file_group = unshield_file_group_get(unshield, i);
-      if (file_group)
+      if (file_group && file_group->first_file != -1)
         count += helper(unshield, file_group->name, file_group->first_file, file_group->last_file);
     }
   }
