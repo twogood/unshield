@@ -37,8 +37,7 @@ jobs:
     - name: Setup macOS dependencies
       if: runner.os == 'macOS'
       run: |
-        brew install \
-            ninja zlib
+        brew install zlib
         echo "CMAKE_PREFIX_PATH=$(brew --prefix openssl):$(brew --prefix zlib)" >> $GITHUB_ENV
 
 
