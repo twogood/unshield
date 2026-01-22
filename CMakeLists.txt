@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.21)
 project(unshield C)
 
+option(ENABLE_ASSERTS_FOR_RELEASE_BUILDS "Enable assert statements for 'Release' builds" OFF)
+if(${ENABLE_ASSERTS_FOR_RELEASE_BUILDS})
+    string(REPLACE "-DNDEBUG" "" CMAKE_C_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE})
+endif()
+
 # Mimic CMP0048 which is avaliable only for cmake 3.0 and later
 set(PROJECT_VERSION_MAJOR 1)
 set(PROJECT_VERSION_MINOR 6)
@@ -57,6 +62,7 @@ endif()
 message(STATUS "OPENSSL_FOUND: ${OPENSSL_FOUND}")
 message(STATUS "USE_OUR_OWN_MD5: ${USE_OUR_OWN_MD5}")
 message(STATUS "BUILD_STATIC: ${BUILD_STATIC}")
+message(STATUS "ENABLE_ASSERTS_FOR_RELEASE_BUILDS: ${ENABLE_ASSERTS_FOR_RELEASE_BUILDS}")
 if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test")
     message(STATUS "BUILD_TESTING: ${BUILD_TESTING}")
 else()
