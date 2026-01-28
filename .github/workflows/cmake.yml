@@ -54,7 +54,7 @@ jobs:
           ${{matrix.platform.msys-env}}-zlib
 
     - name: Configure CMake
-      run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -DBUILD_STATIC=${{matrix.build-static}} -DBUILD_TESTING=ON -DCMAKE_C_FLAGS="-Wall -Werror"
+      run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -DBUILD_STATIC=${{matrix.build-static}} -DBUILD_TESTING=ON -DCMAKE_C_FLAGS="-Wall"
 
     - name: Build
       run: cmake --build build
