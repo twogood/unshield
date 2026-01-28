@@ -12,6 +12,15 @@
 
 #define UNSHIELD_LOG_LEVEL_HIGHEST   4
 
+#ifdef NDEBUG
+#undef NDEBUG
+#include <assert.h>
+#define UNSHIELD_ASSERT(x) assert(x)
+#define NDEBUG
+#else
+#include <assert.h>
+#define UNSHIELD_ASSERT(x) assert(x)
+#endif
 
 #ifdef __cplusplus
 extern "C" {
