@@ -242,9 +242,9 @@ static const char* unshield_utf16_to_utf8(Header* header, const uint16_t* utf16)
   int length = unshield_strlen_utf16(utf16);
   int buffer_size = 3 * length + 1;
   char* target = string_buffer->string = NEW(char, buffer_size);
-  size_t result = utf16_to_utf8(
+  utf16_to_utf8(
       utf16, length + 1,
-      target, buffer_size);
+      (utf8_t*)target, buffer_size);
   return string_buffer->string;
 }
 
