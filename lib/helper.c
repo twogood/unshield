@@ -47,11 +47,9 @@ char *unshield_get_base_directory_name(Unshield *unshield) {
     char *dirname = malloc(path_max);
 
     if (p) {
-        strncpy(dirname, unshield->filename_pattern, path_max);
-        if ((unsigned int) (p - unshield->filename_pattern) > path_max) {
-            dirname[path_max - 1] = 0;
-        } else
-            dirname[(p - unshield->filename_pattern)] = 0;
+        UNSHIELD_ASSERT((unsigned int) (p - unshield->filename_pattern) < path_max);
+        strncpy(dirname, unshield->filename_pattern, path_max - 1);
+        dirname[(p - unshield->filename_pattern)] = 0;
     } else
         strcpy(dirname, ".");
 
