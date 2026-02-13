@@ -1,7 +1,6 @@
 #ifndef __log_h__
 #define __log_h__
 
-#include "internal.h"
 
 #define UNSHIELD_LOG_LEVEL_LOWEST    0
 
