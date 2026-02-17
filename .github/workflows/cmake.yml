@@ -47,8 +47,7 @@ jobs:
     - name: Setup macOS dependencies
       if: runner.os == 'macOS'
       run: |
-        brew install \
-            ninja zlib
+        brew install zlib
         echo "CMAKE_PREFIX_PATH=$(brew --prefix openssl):$(brew --prefix zlib)" >> $GITHUB_ENV
 
 
@@ -65,7 +64,7 @@ jobs:
           ${{matrix.platform.msys-env}}-zlib
 
     - name: Configure CMake
-      run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -DBUILD_STATIC=${{matrix.build-static}} -DBUILD_TESTING=ON
+      run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -DBUILD_STATIC=${{matrix.build-static}} -DBUILD_TESTING=ON -DCMAKE_C_FLAGS="-Wall"
 
     - name: Build
       run: cmake --build build

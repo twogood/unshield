@@ -47,11 +47,9 @@ char *unshield_get_base_directory_name(Unshield *unshield) {
     char *dirname = malloc(path_max);
 
     if (p) {
-        strncpy(dirname, unshield->filename_pattern, path_max);
-        if ((unsigned int) (p - unshield->filename_pattern) > path_max) {
-            dirname[path_max - 1] = 0;
-        } else
-            dirname[(p - unshield->filename_pattern)] = 0;
+        UNSHIELD_ASSERT((unsigned int) (p - unshield->filename_pattern) < path_max);
+        strncpy(dirname, unshield->filename_pattern, path_max - 1);
+        dirname[(p - unshield->filename_pattern)] = 0;
     } else
         strcpy(dirname, ".");
 
@@ -242,9 +240,9 @@ static const char* unshield_utf16_to_utf8(Header* header, const uint16_t* utf16)
   int length = unshield_strlen_utf16(utf16);
   int buffer_size = 3 * length + 1;
   char* target = string_buffer->string = NEW(char, buffer_size);
-  size_t result = utf16_to_utf8(
+  utf16_to_utf8(
       utf16, length + 1,
-      target, buffer_size);
+      (utf8_t*)target, buffer_size);
   return string_buffer->string;
 }
 
