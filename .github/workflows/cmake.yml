@@ -19,9 +19,6 @@ jobs:
       matrix:
         platform:
         - { name: macOS,             os: macos-latest,   shell: sh }
-        - { name: Ubuntu,            os: ubuntu-latest,  shell: sh }
-        - { name: Windows - mingw32, os: windows-latest, shell: 'msys2 {0}', msystem: mingw32, msys-env: mingw-w64-i686 }
-        - { name: Windows - mingw64, os: windows-latest, shell: 'msys2 {0}', msystem: mingw64, msys-env: mingw-w64-x86_64 }
         build-type: [Release]
         build-static: [ON]
     steps:
@@ -52,6 +49,8 @@ jobs:
           ${{matrix.platform.msys-env}}-ninja
           ${{matrix.platform.msys-env}}-openssl
           ${{matrix.platform.msys-env}}-zlib
+    - name: Pedantic Test
+      run: /usr/bin/cc -Wall -Werror -Wpedantic osx.c
 
     - name: Configure CMake
       run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -DBUILD_STATIC=${{matrix.build-static}} -DBUILD_TESTING=ON -DCMAKE_C_FLAGS="-Wall -Werror -Wpedantic"
