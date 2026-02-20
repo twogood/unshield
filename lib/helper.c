@@ -32,6 +32,7 @@
 long int unshield_get_path_max(Unshield* unshield)
 {
 #ifdef PATH_MAX
+    (void)unshield;
     return PATH_MAX;
 #else
     long int path_max = pathconf(unshield->filename_pattern, _PC_PATH_MAX);
