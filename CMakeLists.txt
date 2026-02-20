@@ -48,7 +48,7 @@ if(NOT SIZE_FORMAT_ZI)
 endif()
 
 find_package(ZLIB REQUIRED)
-find_package(OpenSSL)
+find_package(OpenSSL COMPONENTS Crypto)
 
 if(${OpenSSL_FOUND})
     option(USE_OUR_OWN_MD5 "Build using own md5 implementation" OFF)
