@@ -369,7 +369,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   char* filename;
   char* p;
   int directory = unshield_file_directory(unshield, index);
-  long int path_max;
+  size_t path_max;
   char* real_output_directory;
   char* real_filename;
 
