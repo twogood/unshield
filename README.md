@@ -92,3 +92,18 @@ cmake .
 make
 make install
 ```
+
+Build From Dockerfile
+-----------------
+
+Process requires having Docker Engine installed
+
+First build image
+``` sh
+docker build -t unshield:latest .
+```
+
+Now just enter your work directory with cab files and use
+``` sh
+docker run -it --rm -u$(id -u):$(id -g) --volume $(pwd):/data unshield:latest [ARGS]
+```
