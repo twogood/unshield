@@ -1,7 +1,7 @@
 #include "internal.h"
 #include "log.h"
 
-int unshield_directory_count(Unshield* unshield)
+uint32_t unshield_directory_count(Unshield* unshield)
 {
   if (unshield)
   {
@@ -11,7 +11,7 @@ int unshield_directory_count(Unshield* unshield)
     return header->cab.directory_count;
   }
   else
-    return -1;
+    return 0;
 }
 
 const char* unshield_directory_name(Unshield* unshield, int index)
