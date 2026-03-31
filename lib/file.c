@@ -636,7 +636,7 @@ static UnshieldReader* unshield_reader_create_external(/*{{{*/
          * Workaround: Create a temporary file with the correct end of chunk.
          */
 
-        long diff = file_descriptor->compressed_size - file_size;
+        uint64_t diff = file_descriptor->compressed_size - file_size;
         if (diff > 0) {
             diff = MIN(sizeof(END_OF_CHUNK), diff);
             temporary_file = tmpfile();
