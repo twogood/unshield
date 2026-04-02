@@ -163,7 +163,7 @@ static FileDescriptor* unshield_get_file_descriptor(Unshield* unshield, int inde
   return header->file_descriptors[index];
 }
 
-int unshield_file_count (Unshield* unshield)/*{{{*/
+UNSHIELD_API int unshield_file_count (Unshield* unshield)/*{{{*/
 {
   if (unshield)
   {
@@ -176,7 +176,7 @@ int unshield_file_count (Unshield* unshield)/*{{{*/
     return -1;
 }/*}}}*/
 
-const char* unshield_file_name (Unshield* unshield, int index)/*{{{*/
+UNSHIELD_API const char* unshield_file_name (Unshield* unshield, int index)/*{{{*/
 {
   FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
 
@@ -196,7 +196,7 @@ const char* unshield_file_name (Unshield* unshield, int index)/*{{{*/
   return NULL;
 }/*}}}*/
 
-bool unshield_file_is_valid(Unshield* unshield, int index)
+UNSHIELD_API bool unshield_file_is_valid(Unshield* unshield, int index)
 {
   bool is_valid = false;
   FileDescriptor* fd;
@@ -496,7 +496,7 @@ exit:
   return success;
 }/*}}}*/
 
-void unshield_deobfuscate(unsigned char* buffer, size_t size, unsigned* seed)
+UNSHIELD_API void unshield_deobfuscate(unsigned char* buffer, size_t size, unsigned* seed)
 {
   unsigned tmp_seed = *seed;
   
@@ -730,7 +730,7 @@ static void unshield_reader_destroy(UnshieldReader* reader)/*{{{*/
 /*
  * If filename is NULL, just throw away the result
  */
-bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{{{*/
+UNSHIELD_API bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{{{*/
 {
   bool success = false;
   FILE* output = NULL;
@@ -932,7 +932,7 @@ exit:
   return success;
 }/*}}}*/
 
-int unshield_file_directory(Unshield* unshield, int index)/*{{{*/
+UNSHIELD_API int unshield_file_directory(Unshield* unshield, int index)/*{{{*/
 {
   FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
   if (fd)
@@ -944,7 +944,7 @@ int unshield_file_directory(Unshield* unshield, int index)/*{{{*/
     return -1;
 }/*}}}*/
 
-size_t unshield_file_size(Unshield* unshield, int index)/*{{{*/
+UNSHIELD_API size_t unshield_file_size(Unshield* unshield, int index)/*{{{*/
 {
   FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
   if (fd)
@@ -955,7 +955,7 @@ size_t unshield_file_size(Unshield* unshield, int index)/*{{{*/
     return 0;
 }/*}}}*/
 
-bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
+UNSHIELD_API bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
 {
   /* XXX: Thou Shalt Not Cut & Paste... */
   bool success = false;
@@ -1071,7 +1071,7 @@ static uint8_t* find_bytes(
   return NULL;
 }
 
-bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)/*{{{*/
+UNSHIELD_API bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)/*{{{*/
 {
   /* XXX: Thou Shalt Not Cut & Paste... */
   bool success = false;

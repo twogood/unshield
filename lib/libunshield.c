@@ -415,22 +415,22 @@ error:
   return (unshield->header_list != NULL);
 }/*}}}*/
 
-Unshield* unshield_open(const char* filename)/*{{{*/
+UNSHIELD_API Unshield* unshield_open(const char* filename)/*{{{*/
 {
   return unshield_open_force_version(filename, -1);
 }/*}}}*/
 
-Unshield* unshield_open_force_version(const char* filename, int version)/*{{{*/
+UNSHIELD_API Unshield* unshield_open_force_version(const char* filename, int version)/*{{{*/
 {
   return unshield_open2_force_version(filename, version, NULL, NULL);
 }/*}}}*/
 
-Unshield* unshield_open2(const char* filename, const UnshieldIoCallbacks* callbacks, void* userdata)/*{{{*/
+UNSHIELD_API Unshield* unshield_open2(const char* filename, const UnshieldIoCallbacks* callbacks, void* userdata)/*{{{*/
 {
   return unshield_open2_force_version(filename, -1, callbacks, userdata);
 }/*}}}*/
 
-Unshield* unshield_open2_force_version(const char* filename, int version, const UnshieldIoCallbacks* callbacks, void* userdata)/*{{{*/
+UNSHIELD_API Unshield* unshield_open2_force_version(const char* filename, int version, const UnshieldIoCallbacks* callbacks, void* userdata)/*{{{*/
 {
   Unshield* unshield = NEW1(Unshield);
   if (!unshield)
@@ -476,7 +476,7 @@ static void unshield_free_string_buffers(Header* header)
   }
 }
 
-void unshield_close(Unshield* unshield)/*{{{*/
+UNSHIELD_API void unshield_close(Unshield* unshield)/*{{{*/
 {
   if (unshield)
   {
@@ -523,7 +523,7 @@ void unshield_close(Unshield* unshield)/*{{{*/
   }
 }/*}}}*/
 
-bool unshield_is_unicode(Unshield* unshield)
+UNSHIELD_API bool unshield_is_unicode(Unshield* unshield)
 {
   if (unshield)
   {

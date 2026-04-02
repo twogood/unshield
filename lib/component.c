@@ -3,13 +3,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-int unshield_component_count(Unshield* unshield)
+UNSHIELD_API int unshield_component_count(Unshield* unshield)
 {
   Header* header = unshield->header_list;
   return header->component_count;
 }
 
-const char* unshield_component_name(Unshield* unshield, int index)
+UNSHIELD_API const char* unshield_component_name(Unshield* unshield, int index)
 {
   Header* header = unshield->header_list;
 
