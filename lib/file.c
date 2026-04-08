@@ -955,6 +955,24 @@ size_t unshield_file_size(Unshield* unshield, int index)/*{{{*/
     return 0;
 }/*}}}*/
 
+UNSHIELD_API uint64_t unshield_file_size_compressed(Unshield* unshield, int index)/*{{{*/
+{
+  FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
+  if (fd) {
+    return fd->compressed_size;
+  } else
+    return 0;
+}/*}}}*/
+
+UNSHIELD_API uint16_t unshield_file_flags_raw(Unshield* unshield, int index)/*{{{*/
+{
+  FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
+  if (fd) {
+    return fd->flags;
+  } else
+    return 0;
+}/*}}}*/
+
 bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
 {
   /* XXX: Thou Shalt Not Cut & Paste... */
