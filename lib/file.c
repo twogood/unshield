@@ -537,6 +537,16 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
 #endif
     if (bytes_to_read == 0)
     {
+      if ((reader->file_descriptor->flags & FILE_SPLIT) && reader->volume_bytes_left == 0)
+      {
+        if (!unshield_reader_open_volume(reader, reader->volume + 1))
+        {
+          unshield_error("bytes_to_read is zero and failed to open next volume %i",
+              reader->volume + 1);
+          goto exit;
+        }
+        continue;
+      }
       unshield_error("bytes_to_read can't be zero");
       goto exit;
     }
