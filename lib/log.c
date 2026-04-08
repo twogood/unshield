@@ -1,3 +1,4 @@
+#include "internal.h"
 #include "log.h"
 #include <stdarg.h>
 #include <stdio.h>
@@ -5,7 +6,7 @@
 /* evil static data */
 static int current_log_level = UNSHIELD_LOG_LEVEL_HIGHEST;
 
-void unshield_set_log_level(int level)
+UNSHIELD_API void unshield_set_log_level(int level)
 {
 	current_log_level = level;
 }

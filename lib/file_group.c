@@ -37,13 +37,13 @@ void unshield_file_group_destroy(UnshieldFileGroup* self)/*{{{*/
   FREE(self);
 }/*}}}*/
 
-int unshield_file_group_count(Unshield* unshield)/*{{{*/
+UNSHIELD_API int unshield_file_group_count(Unshield* unshield)/*{{{*/
 {
   Header* header = unshield->header_list;
   return header->file_group_count;
 }/*}}}*/
 
-UnshieldFileGroup* unshield_file_group_get(Unshield* unshield, int index)
+UNSHIELD_API UnshieldFileGroup* unshield_file_group_get(Unshield* unshield, int index)
 {
   Header* header = unshield->header_list;
 
@@ -53,7 +53,7 @@ UnshieldFileGroup* unshield_file_group_get(Unshield* unshield, int index)
     return NULL;
 }
 
-UnshieldFileGroup* unshield_file_group_find(Unshield* unshield, const char* name)
+UNSHIELD_API UnshieldFileGroup* unshield_file_group_find(Unshield* unshield, const char* name)
 {
   Header* header = unshield->header_list;
   int i;
@@ -67,7 +67,7 @@ UnshieldFileGroup* unshield_file_group_find(Unshield* unshield, const char* name
   return NULL;
 }
 
-const char* unshield_file_group_name(Unshield* unshield, int index)/*{{{*/
+UNSHIELD_API const char* unshield_file_group_name(Unshield* unshield, int index)/*{{{*/
 {
   Header* header = unshield->header_list;
 

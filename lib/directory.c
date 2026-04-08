@@ -1,7 +1,7 @@
 #include "internal.h"
 #include "log.h"
 
-int unshield_directory_count(Unshield* unshield)
+UNSHIELD_API int unshield_directory_count(Unshield* unshield)
 {
   if (unshield)
   {
@@ -14,7 +14,7 @@ int unshield_directory_count(Unshield* unshield)
     return -1;
 }
 
-const char* unshield_directory_name(Unshield* unshield, int index)
+UNSHIELD_API const char* unshield_directory_name(Unshield* unshield, int index)
 {
   if (unshield && index >= 0)
   {
