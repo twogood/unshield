@@ -32,6 +32,9 @@ add_test(
     COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_WORKING_DIRECTORY}
 )
 
+set_property(TEST wireplay_new_compression PROPERTY ENVIRONMENT_MODIFICATION PATH=path_list_append:$<TARGET_RUNTIME_DLL_DIRS:unshield>)
+set_property(TEST wireplay_old_compression PROPERTY ENVIRONMENT_MODIFICATION PATH=path_list_append:$<TARGET_RUNTIME_DLL_DIRS:unshield>)
+
 set_tests_properties(wireplay_new_compression wireplay_old_compression wireplay_hashes_match PROPERTIES LABELS wireplay)
 
 set_tests_properties(wireplay_new_compression PROPERTIES WILL_FAIL True)
@@ -43,4 +46,9 @@ set_tests_properties(wireplay_cleanup PROPERTIES FIXTURES_CLEANUP wireplay_Clean
 set_tests_properties(wireplay_old_compression wireplay_new_compression PROPERTIES FIXTURES_REQUIRED "wireplay_Extract;wireplay_CleanUp")
 
 set_tests_properties(wireplay_old_compression PROPERTIES FIXTURES_SETUP wireplay_Unshield)
+if(MSVC)
+    # Enable tests after https://github.com/twogood/unshield/issues/229 has been fixed.
+    set_tests_properties(wireplay_old_compression PROPERTIES DISABLED True)
+    set_tests_properties(wireplay_hashes_match PROPERTIES DISABLED True)
+endif()
 set_tests_properties(wireplay_hashes_match PROPERTIES FIXTURES_REQUIRED "wireplay_Extract;wireplay_Unshield;wireplay_CleanUp")

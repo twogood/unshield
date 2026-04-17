@@ -15,6 +15,8 @@ extern "C"
 {
 #endif
 
+void _unshield_set_log_level(int level);
+
 void _unshield_log(int level, const char* file, int line, const char* format, ...);
 
 #define unshield_trace(format, ...) \

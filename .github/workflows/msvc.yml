@@ -1,0 +1,50 @@
+name: MSVC
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.platform.os }}
+
+    defaults:
+      run:
+        shell: ${{ matrix.platform.shell }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+        - { name: windows-msvc-x86, os: windows-latest, shell: pwsh, triplet: x86-windows, arch: Win32 }
+        - { name: windows-msvc-x64, os: windows-latest, shell: pwsh, triplet: x64-windows, arch: x64 }
+        build-type: [ Release ]
+        build-static:
+        - { name: static, value: ON }
+        - { name: dynamic, value: OFF }
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Setup Windows dependencies
+      run: c:\vcpkg\vcpkg.exe install openssl zlib --triplet ${{ matrix.platform.triplet }}
+
+    - name: Configure CMake
+      run: cmake -B build -G "Visual Studio 17 2022" -DBUILD_STATIC=${{ matrix.build-static.value }} -A ${{ matrix.platform.arch }} -DCMAKE_TOOLCHAIN_FILE="c:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build-type }} --parallel
+
+    - name: Test
+      run: ctest --test-dir build --build-config ${{ matrix.build-type }} --output-on-failure
+
+    - name: Install
+      run: cmake --install build --strip --prefix install
+
+    - name: Upload
+      uses: actions/upload-artifact@v6
+      with:
+        name: unshield_${{ github.sha }}_${{ matrix.platform.name }}_${{ matrix.build-static.name }}
+        path: install
+        if-no-files-found: error

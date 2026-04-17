@@ -1,4 +1,4 @@
-name: CMake
+name: GCC
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ${{matrix.platform.os}}
+    runs-on: ${{ matrix.platform.os }}
 
     defaults:
       run:
@@ -18,12 +18,18 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-        - { name: macOS,             os: macos-latest,   shell: sh }
-        - { name: Ubuntu,            os: ubuntu-latest,  shell: sh }
-        - { name: Windows - mingw32, os: windows-latest, shell: 'msys2 {0}', msystem: mingw32, msys-env: mingw-w64-i686 }
-        - { name: Windows - mingw64, os: windows-latest, shell: 'msys2 {0}', msystem: mingw64, msys-env: mingw-w64-x86_64 }
+        - { name: macos-clang,     os: macos-latest,   shell: sh }
+        - { name: ubuntu-gcc,      os: ubuntu-latest,  shell: sh }
+        - { name: windows-mingw32, os: windows-latest, shell: 'msys2 {0}', msystem: mingw32, msys-env: mingw-w64-i686 }
+        - { name: windows-mingw64, os: windows-latest, shell: 'msys2 {0}', msystem: mingw64, msys-env: mingw-w64-x86_64 }
         build-type: [Release]
-        build-static: [ON]
+        build-static:
+        - { name: static, value: ON }
+        - { name: dynamic, value: OFF }
+        exclude:
+          - platform: { name: macos-clang, os: macos-latest, shell: sh }
+            build-type: Release
+            build-static: { name: static, value: ON }
     steps:
     - uses: actions/checkout@v6
 
@@ -45,7 +51,7 @@ jobs:
       if: runner.os == 'Windows'
       uses: msys2/setup-msys2@v2
       with:
-        msystem: ${{matrix.platform.msystem}}
+        msystem: ${{ matrix.platform.msystem }}
         install: >-
           ${{matrix.platform.msys-env}}-gcc
           ${{matrix.platform.msys-env}}-cmake
@@ -54,7 +60,7 @@ jobs:
           ${{matrix.platform.msys-env}}-zlib
 
     - name: Configure CMake
-      run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -DBUILD_STATIC=${{matrix.build-static}} -DBUILD_TESTING=ON -DCMAKE_C_FLAGS="-Wall -Werror -Wpedantic"
+      run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DBUILD_STATIC=${{ matrix.build-static.value }} -DBUILD_TESTING=ON -DCMAKE_C_FLAGS="-Wall -Werror -Wpedantic"
 
     - name: Build
       run: cmake --build build
@@ -68,6 +74,6 @@ jobs:
     - name: Upload
       uses: actions/upload-artifact@v6
       with:
-        name: unshield-${{github.sha}} (${{matrix.platform.name}})
-        path:  install
+        name: unshield_${{ github.sha }}_${{ matrix.platform.name }}_${{ matrix.build-static.name }}
+        path: install
         if-no-files-found: error

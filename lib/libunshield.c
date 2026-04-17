@@ -15,6 +15,10 @@
   #define unshield_native_ftell ftell
 #endif
 
+void unshield_set_log_level(int level)
+{
+  _unshield_set_log_level(level);
+}
 
 void *unshield_default_fopen(const char *filename, const char *modes, void *userdata)
 {

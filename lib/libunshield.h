@@ -26,16 +26,8 @@
 extern "C" {
 #endif
 
-#if defined(_WIN32) && defined(UNSHIELD_DYNAMIC_LIBRARY)
-#  if defined(UNSHIELD_EXPORTS)
-#    define UNSHIELD_API __declspec(dllexport)
-#  else
-#    define UNSHIELD_API __declspec(dllimport)
-#  endif
-#else
-#  define UNSHIELD_API
-#endif
- 
+#include "libunshield_export.h"
+
 typedef struct _Unshield Unshield;
 
 

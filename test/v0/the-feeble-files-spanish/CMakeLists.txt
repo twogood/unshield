@@ -32,6 +32,9 @@ add_test(
     COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_WORKING_DIRECTORY}
 )
 
+set_property(TEST the-feeble-files_new_compression PROPERTY ENVIRONMENT_MODIFICATION PATH=path_list_append:$<TARGET_RUNTIME_DLL_DIRS:unshield>)
+set_property(TEST the-feeble-files_old_compression PROPERTY ENVIRONMENT_MODIFICATION PATH=path_list_append:$<TARGET_RUNTIME_DLL_DIRS:unshield>)
+
 set_tests_properties(the-feeble-files_new_compression the-feeble-files_old_compression the-feeble-files_hashes_match PROPERTIES LABELS the-feeble-files)
 
 set_tests_properties(the-feeble-files_new_compression PROPERTIES WILL_FAIL True)
