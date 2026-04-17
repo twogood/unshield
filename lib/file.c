@@ -955,7 +955,7 @@ size_t unshield_file_size(Unshield* unshield, int index)/*{{{*/
     return 0;
 }/*}}}*/
 
-UNSHIELD_API uint64_t unshield_file_size_compressed(Unshield* unshield, int index)/*{{{*/
+uint64_t unshield_file_size_compressed(Unshield* unshield, int index)/*{{{*/
 {
   FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
   if (fd) {
@@ -964,7 +964,7 @@ UNSHIELD_API uint64_t unshield_file_size_compressed(Unshield* unshield, int inde
     return 0;
 }/*}}}*/
 
-UNSHIELD_API uint16_t unshield_file_flags_raw(Unshield* unshield, int index)/*{{{*/
+uint16_t unshield_file_flags_raw(Unshield* unshield, int index)/*{{{*/
 {
   FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
   if (fd) {
