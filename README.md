@@ -73,6 +73,45 @@ implementation are:
 - Be able to extract files from InstallShield Cabinet Files
 
 
+Usage
+-----
+
+List the files in an InstallShield cabinet, or extract them to a directory:
+
+``` sh
+unshield l data1.cab
+unshield -d extracted x data1.cab
+```
+
+See `unshield -h` or the [manual page](man/unshield.1) for more options.
+
+### Troubleshooting extraction failures
+
+If extraction fails, enable debug logging with `-D 3`:
+
+``` sh
+unshield -D 3 -d extracted-debug x data1.cab
+```
+
+Some older InstallShield cabinets require the old-compression option,
+`-O`. If the cabinet uses that format, retry with:
+
+``` sh
+unshield -O -d extracted-old x data1.cab
+```
+
+Use a new output directory for each attempt. An unsuccessful extraction
+can still leave successfully extracted files behind; their presence alone
+does not mean that the whole cabinet was extracted. Check the exit status
+and any reported errors.
+
+`-O` selects a compression method, not a general repair mode for damaged
+or unsupported cabinets. If extraction still fails, include the Unshield
+version (`unshield -V`), command used and relevant `-D 3` diagnostics when
+reporting the problem. Review logs for private paths or other sensitive
+information before sharing them.
+
+
 License
 -------
 
