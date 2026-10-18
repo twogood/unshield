@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.21)
 project(unshield C)
 
-# Mimic CMP0048 which is avaliable only for cmake 3.0 and later
+set (CMAKE_C_STANDARD 23)
+
+# Mimic CMP0048 which is available only for cmake 3.0 and later
 set(PROJECT_VERSION_MAJOR 1)
 set(PROJECT_VERSION_MINOR 6)
 set(PROJECT_VERSION_PATCH 2)
@@ -32,13 +34,13 @@ check_symbol_exists(fnmatch fnmatch.h HAVE_FNMATCH)
 check_symbol_exists(iconv iconv.h HAVE_ICONV)
 
 set(SIZE_FORMAT "zi")
-check_c_source_compiles("#include <stdio.h>\nint main(int argc, char **argv) { size_t value = 0; printf(\"%${SIZE_FORMAT}\", value); return 0; }" SIZE_FORMAT_ZI)
+check_c_source_compiles("#include <stdio.h>\nint main(void) { size_t value = 0; printf(\"%${SIZE_FORMAT}\", value); return 0; }" SIZE_FORMAT_ZI)
 if(NOT SIZE_FORMAT_ZI)
     set(SIZE_FORMAT "i")
-    check_c_source_compiles("#include <stdio.h>\nint main(int argc, char **argv) { size_t value = 0; printf(\"%${SIZE_FORMAT}\", value); return 0; }" SIZE_FORMAT_I)
+    check_c_source_compiles("#include <stdio.h>\nint main(void) { size_t value = 0; printf(\"%${SIZE_FORMAT}\", value); return 0; }" SIZE_FORMAT_I)
     if(NOT SIZE_FORMAT_I)
         set(SIZE_FORMAT "li")
-        check_c_source_compiles("#include <stdio.h>\nint main(int argc, char **argv) { size_t value = 0; printf(\"%${SIZE_FORMAT}\", value); return 0; }" SIZE_FORMAT_LI)
+        check_c_source_compiles("#include <stdio.h>\nint main(void) { size_t value = 0; printf(\"%${SIZE_FORMAT}\", value); return 0; }" SIZE_FORMAT_LI)
         if(NOT SIZE_FORMAT_LI)
             message(FATAL_ERROR "You must be using a really weird platform!")
         endif()
@@ -46,7 +48,7 @@ if(NOT SIZE_FORMAT_ZI)
 endif()
 
 find_package(ZLIB REQUIRED)
-find_package(OpenSSL)
+find_package(OpenSSL COMPONENTS Crypto)
 
 if(${OpenSSL_FOUND})
     option(USE_OUR_OWN_MD5 "Build using own md5 implementation" OFF)

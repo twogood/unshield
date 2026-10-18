@@ -510,9 +510,12 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 #endif
 
 #ifdef __GLIBC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
   /* use GNU extension to return non-existing files to real_output_directory */
   realpath(output_directory, real_output_directory);
   realpath(filename, real_filename);
+#pragma GCC diagnostic pop
   if (real_filename == NULL || strncmp(real_filename,
                                        real_output_directory,
                                        strlen(real_output_directory)) != 0)
