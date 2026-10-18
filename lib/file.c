@@ -64,7 +64,12 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
 
       fd->expanded_size     = READ_UINT32(p); p += 4;
       fd->compressed_size   = READ_UINT32(p); p += 4;
-      p += 0x14;
+
+      p += 4;
+      fd->dos_date          = (uint16_t)READ_UINT32(p); p += 4;
+      fd->dos_time          = (uint16_t)READ_UINT32(p); p += 4;
+      p += 8;
+
       fd->data_offset       = READ_UINT32(p); p += 4;
       
 #if VERBOSE >= 2
@@ -73,6 +78,8 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       unshield_trace("Flags:            %04x", fd->flags);
       unshield_trace("Expanded size:    %08x", fd->expanded_size);
       unshield_trace("Compressed size:  %08x", fd->compressed_size);
+      unshield_trace("DOS date:         %04x", fd->dos_date);
+      unshield_trace("DOS time:         %04x", fd->dos_time);
       unshield_trace("Data offset:      %08x", fd->data_offset);
 #endif
 
@@ -113,8 +120,12 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       UNSHIELD_ASSERT(fd->directory_index < unshield_directory_count(unshield));
 
       UNSHIELD_ASSERT((p - saved_p) == 0x40);
-      
-      p += 0xc;
+
+      p += 4;
+      fd->dos_date = READ_UINT16(p); p += 2;
+      fd->dos_time = READ_UINT16(p); p += 2;
+
+      p += 4;
       fd->link_previous     = READ_UINT32(p); p += 4;
       fd->link_next         = READ_UINT32(p); p += 4;
       fd->link_flags        = *p; p ++;
@@ -953,6 +964,40 @@ size_t unshield_file_size(Unshield* unshield, int index)/*{{{*/
   }
   else
     return 0;
+}/*}}}*/
+
+/* This uses the ISO 8601 date format (except for milliseconds) */
+bool unshield_file_iso_date (Unshield* unshield, int index, char* buf, size_t size)/*{{{*/
+{
+  FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
+  struct tm date;
+
+  if (size < 32)
+  {
+    unshield_error("Buffer size %" SIZE_FORMAT " is too small", size);
+    return false;
+  }
+
+  buf[0] = '\0';
+  if (!fd || !unshield_dos_to_tm(fd->dos_date, fd->dos_time, &date))
+    return false;
+
+  return strftime(buf, size, "%Y-%m-%d %H:%M:%S", &date) != 0;
+}/*}}}*/
+
+time_t unshield_file_timestamp (Unshield* unshield, int index)/*{{{*/
+{
+  FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
+  struct tm date;
+
+  if (fd && unshield_dos_to_tm(fd->dos_date, fd->dos_time, &date))
+  {
+    time_t timestamp = mktime(&date);
+    if (timestamp != (time_t)-1)
+      return timestamp;
+  }
+
+  return 0;
 }/*}}}*/
 
 uint64_t unshield_file_size_compressed(Unshield* unshield, int index)/*{{{*/

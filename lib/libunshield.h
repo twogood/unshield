@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <time.h>
 #include <stdint.h>
 
 #define UNSHIELD_LOG_LEVEL_LOWEST    0
@@ -134,6 +135,9 @@ UNSHIELD_API bool        unshield_file_is_valid      (Unshield* unshield, int in
 UNSHIELD_API bool        unshield_file_save          (Unshield* unshield, int index, const char* filename);
 UNSHIELD_API int         unshield_file_directory     (Unshield* unshield, int index);
 UNSHIELD_API size_t      unshield_file_size          (Unshield* unshield, int index);
+UNSHIELD_API bool        unshield_file_iso_date      (Unshield* unshield, int index, char* buf, size_t size);
+/* Returns 0 if the date is missing, invalid, or cannot be converted to time_t. */
+UNSHIELD_API time_t      unshield_file_timestamp     (Unshield* unshield, int index);
 UNSHIELD_API uint64_t    unshield_file_size_compressed(Unshield* unshield, int index);
 /** Raw file flags (UNSHIELD_FILE_* bits), or 0 if the index is invalid. */
 UNSHIELD_API uint16_t    unshield_file_flags_raw      (Unshield* unshield, int index);

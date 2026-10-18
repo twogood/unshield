@@ -266,4 +266,31 @@ const char* unshield_header_get_string(Header* header, uint32_t offset)
   return unshield_get_utf8_string(header, unshield_header_get_buffer(header, offset));
 }
 
+/**
+  Based on MIT Wine code and DosDateTimeToFileTime() MSDN documentation
+ */
+bool unshield_dos_to_tm(uint16_t dos_date, uint16_t dos_time, struct tm* tm)
+{
+  static const int month_days[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+  int year, days;
+
+  memset(tm, 0, sizeof(*tm));
+  tm->tm_isdst = -1;
+  tm->tm_year = (dos_date >> 9) + 80;
+  tm->tm_mon = ((dos_date >> 5) & 0x0f) - 1;
+  tm->tm_mday = dos_date & 0x1f;
+  tm->tm_hour = dos_time >> 11;
+  tm->tm_min = (dos_time >> 5) & 0x3f;
+  tm->tm_sec = (dos_time & 0x1f) * 2;
+
+  if (tm->tm_mon < 0 || tm->tm_mon > 11 ||
+      tm->tm_hour > 23 || tm->tm_min > 59 || tm->tm_sec > 59)
+    return false;
+
+  year = tm->tm_year + 1900;
+  days = month_days[tm->tm_mon];
+  if (tm->tm_mon == 1 && year % 4 == 0 && (year % 100 != 0 || year % 400 == 0))
+    days++;
+  return tm->tm_mday >= 1 && tm->tm_mday <= days;
+}
 
