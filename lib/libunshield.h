@@ -4,7 +4,6 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
 
 #define UNSHIELD_LOG_LEVEL_LOWEST    0
 
@@ -115,7 +114,7 @@ UNSHIELD_API const char*         unshield_file_group_name  (Unshield* unshield, 
    Directory functions
  */
 
-UNSHIELD_API uint32_t    unshield_directory_count    (Unshield* unshield);
+UNSHIELD_API int         unshield_directory_count    (Unshield* unshield);
 UNSHIELD_API const char* unshield_directory_name     (Unshield* unshield, int index);
 
 /*
