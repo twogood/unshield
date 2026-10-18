@@ -21,8 +21,8 @@ jobs:
         - { name: macOS,             os: macos-latest,   shell: sh }
         - { name: Ubuntu GCC 14,     os: ubuntu-26.04,   shell: sh, gcc: 14 }
         - { name: Ubuntu GCC 15,     os: ubuntu-26.04,   shell: sh, gcc: 15 }
-        - { name: Windows - mingw32, os: windows-latest, shell: 'msys2 {0}', msystem: mingw32, msys-env: mingw-w64-i686 }
-        - { name: Windows - mingw64, os: windows-latest, shell: 'msys2 {0}', msystem: mingw64, msys-env: mingw-w64-x86_64 }
+        - { name: Windows - mingw32 (deprecated), os: windows-latest, shell: 'msys2 {0}', msystem: mingw32, msys-env: mingw-w64-i686 }
+        - { name: Windows - ucrt64,  os: windows-latest, shell: 'msys2 {0}', msystem: ucrt64, msys-env: mingw-w64-ucrt-x86_64 }
         build-type: [Release]
         build-static: [ON]
     steps:
@@ -56,6 +56,7 @@ jobs:
       uses: msys2/setup-msys2@v2
       with:
         msystem: ${{matrix.platform.msystem}}
+        suppress-deprecation-warnings: ${{ matrix.platform.msystem == 'mingw32' && 'msystem-mingw32' || '' }}
         install: >-
           ${{matrix.platform.msys-env}}-gcc
           ${{matrix.platform.msys-env}}-cmake
