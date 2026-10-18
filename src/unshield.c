@@ -96,15 +96,35 @@ static bool make_sure_directory_exists(const char* directory)/*{{{*/
       p+=2;
     else if (0 == strncmp(p, "../", 3))
       p+=3;
+#ifdef WIN32
+    if ('\\' == *p)
+      p++;
+    else if (0 == strncmp(p, ".\\", 2))
+      p += 2;
+    else if (0 == strncmp(p, "..\\", 3))
+      p += 3;
+#endif
     else
     {
+      int is_win_root = 0;
       const char* slash = strchr(p, '/');
+#ifdef WIN32
+      const char* backslash = strchr(p, '\\');
+      if (NULL != backslash && (NULL == slash || backslash < slash))
+        slash = backslash;
+#endif
+
       current = strdup(directory);
       
       if (slash)
         current[slash-directory] = '\0';
 
-      if (stat(current, &dir_stat) < 0)
+#ifdef WIN32
+      if (slash - directory == 2 && current[1] == ':')
+        is_win_root = 1;
+#endif
+
+      if (!is_win_root && stat(current, &dir_stat) < 0)
       {
         #if defined (__MINGW32__) || defined (_WIN32)
         if (_mkdir(current) < 0)
@@ -172,7 +192,7 @@ static void show_usage(const char* name)
   fprintf(stderr,
       "Syntax:\n"
       "\n"
-      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-i VERSION] [-e ENCODING] [-GhlOrV] c|g|l|t|x CABFILE [FILENAME...]\n"
+      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-h] [-i VERSION] [-e ENCODING] [-j] [-L] [-O] [-r] [-R] [-V] c|g|l|t|x CABFILE [FILENAME...]\n"
       "\n"
       "Options:\n"
       "\t-c COMPONENT  Only list/extract this component\n"
@@ -190,7 +210,7 @@ static void show_usage(const char* name)
       "\t-L            Make file and directory names lowercase\n"
       "\t-O            Use old compression\n"
       "\t-r            Save raw data (do not decompress)\n"
-      "\t-R            Don't do any conversion to file and directory names when extracting.\n"
+      "\t-R            Don't do any conversion to file and directory names when extracting\n"
       "\t-V --version  Print copyright and version information\n"
       "\n"
       "Commands:\n"
@@ -278,7 +298,7 @@ static bool handle_parameters(
         break;
 
       case 'V':
-        printf("Unshield version " VERSION ". MIT License. (C) 2003-2022 David Eriksson.\n");
+        printf("Unshield version " VERSION ". MIT License. (C) 2003-2023 David Eriksson.\n");
         exit(0);
         break;
 
@@ -344,7 +364,7 @@ static bool handle_parameters(
 
 static bool extract_file(Unshield* unshield, const char* prefix, int index)
 {
-  bool success;
+  bool success = false;
   char* dirname;
   char* filename;
   char* p;
@@ -490,9 +510,12 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 #endif
 
 #ifdef __GLIBC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
   /* use GNU extension to return non-existing files to real_output_directory */
   realpath(output_directory, real_output_directory);
   realpath(filename, real_filename);
+#pragma GCC diagnostic pop
 	strncat(real_output_directory, "/", PATH_MAX);
   if (real_filename == NULL || strncmp(real_filename,
                                        real_output_directory,
@@ -576,7 +599,7 @@ static int extract_helper(Unshield* unshield, const char* prefix, int first, int
 
 static bool test_file(Unshield* unshield, int index)
 {
-  bool success;
+  bool success = false;
 
   printf("  testing: %s\n", unshield_file_name(unshield, index));
 
@@ -724,7 +747,7 @@ static bool do_action(Unshield* unshield, ActionHelper helper)
     for (i = 0; i < unshield_file_group_count(unshield); i++)
     {
       UnshieldFileGroup* file_group = unshield_file_group_get(unshield, i);
-      if (file_group)
+      if (file_group && file_group->first_file != -1)
         count += helper(unshield, file_group->name, file_group->first_file, file_group->last_file);
     }
   }
