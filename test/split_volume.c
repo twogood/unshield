@@ -141,6 +141,14 @@ int main(void)
   CHECK(remove("data3.cab") == 0);
   CHECK(remove("data2.cab") == 0);
 
+  /* Once reading has started, do not skip a volume missing the segment. */
+  write_volume("data1.cab", data, 2, 1, 1);
+  write_volume("data2.cab", data, 2, 0, 0);
+  write_volume("data3.cab", data + 2, size - 2, 1, 1);
+  check_extract(false);
+  CHECK(remove("data3.cab") == 0);
+  CHECK(remove("data2.cab") == 0);
+
   write_volume("data1.cab", data, 2, 0, 2);
   check_extract(false);
   CHECK(remove("data1.hdr") == 0);

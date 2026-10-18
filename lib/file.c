@@ -417,7 +417,7 @@ next_volume:
 #endif
 
   /* IS5 descriptors can name a volume preceding the file's first segment. */
-  if (reader->unshield->header_list->major_version <= 5 &&
+  if (reader->volume == 0 && reader->unshield->header_list->major_version <= 5 &&
       reader->index > reader->volume_header.last_file_index)
   {
     volume++;
