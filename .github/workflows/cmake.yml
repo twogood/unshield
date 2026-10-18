@@ -19,8 +19,8 @@ jobs:
       matrix:
         platform:
         - { name: macOS,             os: macos-latest,   shell: sh }
-        - { name: Ubuntu GCC 14,     os: ubuntu-latest,  shell: sh, gcc: 14 }
-        - { name: Ubuntu GCC 15,     os: ubuntu-latest,  shell: sh, gcc: 15 }
+        - { name: Ubuntu GCC 14,     os: ubuntu-26.04,   shell: sh, gcc: 14 }
+        - { name: Ubuntu GCC 15,     os: ubuntu-26.04,   shell: sh, gcc: 15 }
         - { name: Windows - mingw32, os: windows-latest, shell: 'msys2 {0}', msystem: mingw32, msys-env: mingw-w64-i686 }
         - { name: Windows - mingw64, os: windows-latest, shell: 'msys2 {0}', msystem: mingw64, msys-env: mingw-w64-x86_64 }
         build-type: [Release]
