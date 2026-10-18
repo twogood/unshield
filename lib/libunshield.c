@@ -2,7 +2,6 @@
 #define _DEFAULT_SOURCE 1
 #include "internal.h"
 #include "log.h"
-#include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -144,7 +143,7 @@ static bool unshield_get_cab_descriptor(Header* header)
     header->cab.file_count          = READ_UINT32(p); p += 4;
     header->cab.file_table_offset2  = READ_UINT32(p); p += 4;
 
-    assert((p - (header->data + header->common.cab_descriptor_offset)) == 0x30);
+    UNSHIELD_ASSERT((p - (header->data + header->common.cab_descriptor_offset)) == 0x30);
 
     if (header->cab.file_table_size != header->cab.file_table_size2)
       unshield_warning("File table sizes do not match");

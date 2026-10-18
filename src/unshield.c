@@ -364,7 +364,7 @@ static bool handle_parameters(
 
 static bool extract_file(Unshield* unshield, const char* prefix, int index)
 {
-  bool success;
+  bool success = false;
   char* dirname;
   char* filename;
   char* p;
@@ -510,9 +510,12 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 #endif
 
 #ifdef __GLIBC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
   /* use GNU extension to return non-existing files to real_output_directory */
   realpath(output_directory, real_output_directory);
   realpath(filename, real_filename);
+#pragma GCC diagnostic pop
   if (real_filename == NULL || strncmp(real_filename,
                                        real_output_directory,
                                        strlen(real_output_directory)) != 0)
@@ -595,7 +598,7 @@ static int extract_helper(Unshield* unshield, const char* prefix, int first, int
 
 static bool test_file(Unshield* unshield, int index)
 {
-  bool success;
+  bool success = false;
 
   printf("  testing: %s\n", unshield_file_name(unshield, index));
 
