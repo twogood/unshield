@@ -978,16 +978,11 @@ bool unshield_file_iso_date (Unshield* unshield, int index, char* buf, size_t si
     return false;
   }
 
-  if (fd)
-    unshield_dos_to_tm(fd->dos_date, fd->dos_time, &date);
-  else
-  {
-    unshield_warning("Failed to get file descriptor %i", index);
-    memset(&date, 0, sizeof(date));
-  }
+  buf[0] = '\0';
+  if (!fd || !unshield_dos_to_tm(fd->dos_date, fd->dos_time, &date))
+    return false;
 
-  (void)strftime(buf, size, "%Y-%m-%d %H:%M:%S", &date);
-  return fd ? true : false;
+  return strftime(buf, size, "%Y-%m-%d %H:%M:%S", &date) != 0;
 }/*}}}*/
 
 time_t unshield_file_timestamp (Unshield* unshield, int index)/*{{{*/
@@ -995,13 +990,13 @@ time_t unshield_file_timestamp (Unshield* unshield, int index)/*{{{*/
   FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
   struct tm date;
 
-  if (fd)
+  if (fd && unshield_dos_to_tm(fd->dos_date, fd->dos_time, &date))
   {
-    unshield_dos_to_tm(fd->dos_date, fd->dos_time, &date);
-    return mktime(&date);
+    time_t timestamp = mktime(&date);
+    if (timestamp != (time_t)-1)
+      return timestamp;
   }
 
-  unshield_warning("Failed to get file descriptor %i", index);
   return 0;
 }/*}}}*/
 

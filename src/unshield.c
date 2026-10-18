@@ -373,7 +373,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 {
   bool success = false;
   char* dirname;
-  char* filename;
+  const char* filename = unshield_file_name(unshield, index);
   char* full_filename;
   char* p;
   int directory = unshield_file_directory(unshield, index);
@@ -392,8 +392,9 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   real_output_directory = malloc(path_max);
   real_filename = malloc(path_max);
   dirname = malloc(path_max);
-  full_filename = malloc(path_max);
-  if (real_output_directory == NULL || real_filename == NULL)
+  full_filename = calloc(1, path_max);
+  if (real_output_directory == NULL || real_filename == NULL ||
+      dirname == NULL || full_filename == NULL)
   {
     fprintf(stderr,"Unable to allocate memory.");
     success=false;
@@ -494,8 +495,6 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 
   make_sure_directory_exists(dirname);
 
-  filename = unshield_file_name(unshield, index);
-
   snprintf(full_filename, path_max, "%s%s", dirname, filename);
 
   for (p = full_filename + strlen(dirname); *p != '\0'; p++)
@@ -559,7 +558,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     struct utimbuf utim;
     struct stat info;
 
-    if (!timestamp)
+    if (!timestamp || timestamp == (time_t)-1)
     {
       fprintf(stderr, "Failed to get timestamp for file '%s'.", filename);
     }
@@ -587,7 +586,8 @@ exit:
     fprintf(stderr, "Failed to extract file '%s'.%s\n",
         filename,
         (log_level < 3) ? "Run unshield again with -D 3 for more information." : "");
-    unlink(full_filename);
+    if (full_filename)
+      unlink(full_filename);
     exit_status = 1;
   }
   free(real_filename);
@@ -730,7 +730,8 @@ static int list_files_helper(Unshield* unshield, const char* prefix, int first, 
     {
       valid_count++;
 
-      (void)unshield_file_iso_date(unshield, i, date, sizeof(date));
+      if (!unshield_file_iso_date(unshield, i, date, sizeof(date)))
+        strcpy(date, "-------------------");
 
       if (prefix && prefix[0])
       {
