@@ -122,6 +122,12 @@ UNSHIELD_API const char* unshield_directory_name     (Unshield* unshield, int in
    File functions
  */
 
+/** Bit masks returned by unshield_file_flags_raw(). */
+#define UNSHIELD_FILE_SPLIT       1U  /**< File spans multiple cabinet volumes. */
+#define UNSHIELD_FILE_OBFUSCATED  2U  /**< File data is obfuscated. */
+#define UNSHIELD_FILE_COMPRESSED  4U  /**< File data is compressed. */
+#define UNSHIELD_FILE_INVALID     8U  /**< File entry is invalid. */
+
 UNSHIELD_API int         unshield_file_count         (Unshield* unshield);
 UNSHIELD_API const char* unshield_file_name          (Unshield* unshield, int index);
 UNSHIELD_API bool        unshield_file_is_valid      (Unshield* unshield, int index);
@@ -129,6 +135,7 @@ UNSHIELD_API bool        unshield_file_save          (Unshield* unshield, int in
 UNSHIELD_API int         unshield_file_directory     (Unshield* unshield, int index);
 UNSHIELD_API size_t      unshield_file_size          (Unshield* unshield, int index);
 UNSHIELD_API uint64_t    unshield_file_size_compressed(Unshield* unshield, int index);
+/** Raw file flags (UNSHIELD_FILE_* bits), or 0 if the index is invalid. */
 UNSHIELD_API uint16_t    unshield_file_flags_raw      (Unshield* unshield, int index);
 
 /** For investigation of compressed data */
