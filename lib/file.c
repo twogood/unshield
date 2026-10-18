@@ -141,7 +141,7 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       break;
   }
 
-  if (!(fd->flags & FILE_COMPRESSED) &&
+  if (!(fd->flags & UNSHIELD_FILE_COMPRESSED) &&
       fd->compressed_size != fd->expanded_size)
   {
     unshield_warning("File is not compressed but compressed size is %08x and expanded size is %08x",
@@ -215,7 +215,7 @@ bool unshield_file_is_valid(Unshield* unshield, int index)
   if (!(fd = unshield_get_file_descriptor(unshield, index)))
     goto exit;
 
-  if (fd->flags & FILE_INVALID)
+  if (fd->flags & UNSHIELD_FILE_INVALID)
     goto exit;
 
   if (!fd->name_offset)
@@ -431,18 +431,18 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
         reader->volume_header.last_file_size_compressed != reader->file_descriptor->compressed_size)
     {
       unshield_trace("IS5 split file last in volume");
-      reader->file_descriptor->flags |= FILE_SPLIT;
+      reader->file_descriptor->flags |= UNSHIELD_FILE_SPLIT;
     }
     else if (reader->index > 0 &&
         reader->index == reader->volume_header.first_file_index && 
         reader->volume_header.first_file_size_compressed != reader->file_descriptor->compressed_size)
     {
       unshield_trace("IS5 split file first in volume");
-      reader->file_descriptor->flags |= FILE_SPLIT;
+      reader->file_descriptor->flags |= UNSHIELD_FILE_SPLIT;
     }
   }
 
-  if (reader->file_descriptor->flags & FILE_SPLIT)
+  if (reader->file_descriptor->flags & UNSHIELD_FILE_SPLIT)
   {   
 #if VERBOSE
     unshield_trace(/*"Total bytes left = 0x08%x, "*/"previous data offset = 0x08%x",
@@ -490,7 +490,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
     volume_bytes_left_compressed = reader->file_descriptor->compressed_size;
   }
 
-  if (reader->file_descriptor->flags & FILE_COMPRESSED)
+  if (reader->file_descriptor->flags & UNSHIELD_FILE_COMPRESSED)
     reader->volume_bytes_left = volume_bytes_left_compressed;
   else
     reader->volume_bytes_left = volume_bytes_left_expanded;
@@ -583,7 +583,7 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
     }
   }
 
-  if (reader->file_descriptor->flags & FILE_OBFUSCATED)
+  if (reader->file_descriptor->flags & UNSHIELD_FILE_OBFUSCATED)
     unshield_reader_deobfuscate(reader, buffer, size);
 
   success = true;
@@ -634,7 +634,7 @@ static UnshieldReader* unshield_reader_create_external(/*{{{*/
         goto exit;
     }
 
-    if (file_descriptor->flags & FILE_COMPRESSED) {
+    if (file_descriptor->flags & UNSHIELD_FILE_COMPRESSED) {
         int64_t file_size = FSIZE(unshield, reader->volume_file);
         if (file_size < 0) {
             unshield_error("Failed to determine input file size");
@@ -772,7 +772,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
     goto exit;
   }
 
-  if ((file_descriptor->flags & FILE_INVALID) || 0 == file_descriptor->data_offset)
+  if ((file_descriptor->flags & UNSHIELD_FILE_INVALID) || 0 == file_descriptor->data_offset)
   {
     /* invalid file */
     goto exit;
@@ -807,7 +807,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
     }
   }
 
-  if (file_descriptor->flags & FILE_COMPRESSED)
+  if (file_descriptor->flags & UNSHIELD_FILE_COMPRESSED)
     bytes_left = file_descriptor->compressed_size;
   else
     bytes_left = file_descriptor->expanded_size;
@@ -819,7 +819,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
     uLong bytes_to_write = BUFFER_SIZE;
     int result;
 
-    if (file_descriptor->flags & FILE_COMPRESSED)
+    if (file_descriptor->flags & UNSHIELD_FILE_COMPRESSED)
     {
       uLong read_bytes;
       uint16_t bytes_to_read = 0;
@@ -968,6 +968,24 @@ size_t unshield_file_size(Unshield* unshield, int index)/*{{{*/
     return 0;
 }/*}}}*/
 
+uint64_t unshield_file_size_compressed(Unshield* unshield, int index)/*{{{*/
+{
+  FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
+  if (fd) {
+    return fd->compressed_size;
+  } else
+    return 0;
+}/*}}}*/
+
+uint16_t unshield_file_flags_raw(Unshield* unshield, int index)/*{{{*/
+{
+  FileDescriptor* fd = unshield_get_file_descriptor(unshield, index);
+  if (fd) {
+    return fd->flags;
+  } else
+    return 0;
+}/*}}}*/
+
 bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
 {
   /* XXX: Thou Shalt Not Cut & Paste... */
@@ -988,7 +1006,7 @@ bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
     goto exit;
   }
 
-  if ((file_descriptor->flags & FILE_INVALID) || 0 == file_descriptor->data_offset)
+  if ((file_descriptor->flags & UNSHIELD_FILE_INVALID) || 0 == file_descriptor->data_offset)
   {
     /* invalid file */
     goto exit;
@@ -1023,7 +1041,7 @@ bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename)
     }
   }
 
-  if (file_descriptor->flags & FILE_COMPRESSED)
+  if (file_descriptor->flags & UNSHIELD_FILE_COMPRESSED)
     bytes_left = file_descriptor->compressed_size;
   else
     bytes_left = file_descriptor->expanded_size;
@@ -1106,7 +1124,7 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
     goto exit;
   }
 
-  if ((file_descriptor->flags & FILE_INVALID) || 0 == file_descriptor->data_offset)
+  if ((file_descriptor->flags & UNSHIELD_FILE_INVALID) || 0 == file_descriptor->data_offset)
   {
     /* invalid file */
     goto exit;
@@ -1165,7 +1183,7 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
       goto exit;
     }
 
-    if (file_descriptor->flags & FILE_COMPRESSED)
+    if (file_descriptor->flags & UNSHIELD_FILE_COMPRESSED)
     {
       uLong read_bytes;
       size_t input_size = reader->volume_bytes_left;

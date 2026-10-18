@@ -10,7 +10,7 @@ int main(void)
   {
     for (size_t i = 0; i < sizeof(sizes) / sizeof(sizes[0]); ++i)
     {
-      uint8_t data[0x57] = {FILE_COMPRESSED};
+      uint8_t data[0x57] = {UNSHIELD_FILE_COMPRESSED};
       Header header = {.data = data, .major_version = 6,
                        .cab = {.file_count = 1, .directory_count = 1}};
       Unshield unshield = {.header_list = &header};

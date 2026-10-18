@@ -57,11 +57,6 @@ typedef struct
   uint32_t component_offsets [MAX_COMPONENT_COUNT];   /* 0x15a */
 } CabDescriptor;
 
-#define FILE_SPLIT			  1U
-#define FILE_OBFUSCATED   2U
-#define FILE_COMPRESSED		4U
-#define FILE_INVALID		  8U
-
 #define LINK_NONE	0
 #define LINK_PREV	1
 #define LINK_NEXT	2
