@@ -103,8 +103,16 @@ static FileDescriptor* unshield_read_file_descriptor(Unshield* unshield, int ind
       unshield_trace("File descriptor offset: %08x", p - header->data);
 #endif
       fd->flags             = READ_UINT16(p); p += 2;
-      fd->expanded_size     = READ_UINT64(p); p += 8;
-      fd->compressed_size   = READ_UINT64(p); p += 8;
+      uint64_t expanded_size = READ_UINT64(p); p += 8;
+      uint64_t compressed_size = READ_UINT64(p); p += 8;
+      if (expanded_size > INT64_MAX || compressed_size > INT64_MAX)
+      {
+        unshield_error("File size exceeds INT64_MAX");
+        free(fd);
+        return NULL;
+      }
+      fd->expanded_size     = expanded_size;
+      fd->compressed_size   = compressed_size;
       fd->data_offset       = READ_UINT64(p); p += 8;
       memcpy(fd->md5, p, 0x10); p += 0x10;
       p += 0x10;
@@ -627,7 +635,12 @@ static UnshieldReader* unshield_reader_create_external(/*{{{*/
     }
 
     if (file_descriptor->flags & FILE_COMPRESSED) {
-        long file_size = FSIZE(unshield, reader->volume_file);
+        int64_t file_size = FSIZE(unshield, reader->volume_file);
+        if (file_size < 0) {
+            unshield_error("Failed to determine input file size");
+            fclose(reader->volume_file);
+            goto exit;
+        }
         FILE *temporary_file = NULL;
 
         /*
@@ -636,9 +649,9 @@ static UnshieldReader* unshield_reader_create_external(/*{{{*/
          * Workaround: Create a temporary file with the correct end of chunk.
          */
 
-        long diff = file_descriptor->compressed_size - file_size;
+        int64_t diff = file_descriptor->compressed_size - file_size;
         if (diff > 0) {
-            diff = MIN((long)sizeof(END_OF_CHUNK), diff);
+            diff = MIN((int64_t)sizeof(END_OF_CHUNK), diff);
             temporary_file = tmpfile();
             copy_file(reader->unshield, reader->volume_file, temporary_file);
             fwrite(END_OF_CHUNK + sizeof(END_OF_CHUNK) - diff, 1, diff, temporary_file);
@@ -737,7 +750,7 @@ bool unshield_file_save (Unshield* unshield, int index, const char* filename)/*{
   unsigned char* input_buffer   = (unsigned char*)malloc(BUFFER_SIZE+1);
   unsigned char* output_buffer  = (unsigned char*)malloc(BUFFER_SIZE);
   unsigned int bytes_left;
-  uLong total_written = 0;
+  int64_t total_written = 0;
   UnshieldReader* reader = NULL;
   FileDescriptor* file_descriptor;
 
@@ -1080,7 +1093,7 @@ bool unshield_file_save_old(Unshield* unshield, int index, const char* filename)
   unsigned char* input_buffer   = (unsigned char*)malloc(BUFFER_SIZE);
   unsigned char* output_buffer  = (unsigned char*)malloc(BUFFER_SIZE);
   unsigned int bytes_left;
-  uLong total_written = 0;
+  int64_t total_written = 0;
   UnshieldReader* reader = NULL;
   FileDescriptor* file_descriptor;
 
