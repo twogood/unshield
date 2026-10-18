@@ -1,0 +1,8 @@
+file(STRINGS ${EXPECTED_HASH_VALUES_FILE} LINES)
+foreach(LINE IN LISTS LINES)
+    string(REGEX MATCH "([a-zA-Z0-9]+)  \\./(.+)" MATCHES ${LINE})
+    file(MD5 ${CMAKE_MATCH_2} ACTUAL_HASH)
+    if(NOT ${ACTUAL_HASH} STREQUAL ${CMAKE_MATCH_1})
+        message(SEND_ERROR "Actual hash of ${CMAKE_MATCH_2} does not match")
+    endif()
+endforeach()

@@ -1,4 +1,3 @@
-/* $Id$ */
 #ifdef __linux__
 #define _BSD_SOURCE 1
 #define _DEFAULT_SOURCE 1
@@ -12,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <getopt.h>
 #include "../lib/libunshield.h"
 #ifdef HAVE_CONFIG_H
 #include "lib/unshield_config.h"
@@ -44,13 +44,6 @@
   #define NAME_MAX FILENAME_MAX
 #endif
 
-typedef enum 
-{
-  OVERWRITE_ASK,
-  OVERWRITE_NEVER,
-  OVERWRITE_ALWAYS,
-} OVERWRITE;
-
 typedef enum
 {
   ACTION_EXTRACT,
@@ -75,9 +68,7 @@ static const char* component_name     = NULL;
 static bool junk_paths                = false;
 static bool make_lowercase            = false;
 static bool raw_filename              = false;
-static bool verbose                   = false;
 static ACTION action                  = ACTION_EXTRACT;
-static OVERWRITE overwrite            = OVERWRITE_ASK;
 static int log_level                  = UNSHIELD_LOG_LEVEL_LOWEST;
 static int exit_status                = 0;
 static FORMAT format                  = FORMAT_NEW;
@@ -105,17 +96,37 @@ static bool make_sure_directory_exists(const char* directory)/*{{{*/
       p+=2;
     else if (0 == strncmp(p, "../", 3))
       p+=3;
+#ifdef WIN32
+    if ('\\' == *p)
+      p++;
+    else if (0 == strncmp(p, ".\\", 2))
+      p += 2;
+    else if (0 == strncmp(p, "..\\", 3))
+      p += 3;
+#endif
     else
     {
+      int is_win_root = 0;
       const char* slash = strchr(p, '/');
+#ifdef WIN32
+      const char* backslash = strchr(p, '\\');
+      if (NULL != backslash && (NULL == slash || backslash < slash))
+        slash = backslash;
+#endif
+
       current = strdup(directory);
       
       if (slash)
         current[slash-directory] = '\0';
 
-      if (stat(current, &dir_stat) < 0)
+#ifdef WIN32
+      if (slash - directory == 2 && current[1] == ':')
+        is_win_root = 1;
+#endif
+
+      if (!is_win_root && stat(current, &dir_stat) < 0)
       {
-        #ifdef __MINGW32__
+        #if defined (__MINGW32__) || defined (_WIN32)
         if (_mkdir(current) < 0)
         #else
         if (mkdir(current, 0700) < 0)
@@ -181,7 +192,7 @@ static void show_usage(const char* name)
   fprintf(stderr,
       "Syntax:\n"
       "\n"
-      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-i VERSION] [-e ENCODING] [-GhlOrV] c|g|l|t|x CABFILE [FILENAME...]\n"
+      "\t%s [-c COMPONENT] [-d DIRECTORY] [-D LEVEL] [-g GROUP] [-h] [-i VERSION] [-e ENCODING] [-j] [-L] [-O] [-r] [-R] [-V] c|g|l|t|x CABFILE [FILENAME...]\n"
       "\n"
       "Options:\n"
       "\t-c COMPONENT  Only list/extract this component\n"
@@ -199,8 +210,8 @@ static void show_usage(const char* name)
       "\t-L            Make file and directory names lowercase\n"
       "\t-O            Use old compression\n"
       "\t-r            Save raw data (do not decompress)\n"
-      "\t-R            Don't do any conversion to file and directory names when extracting.\n"
-      "\t-V            Print copyright and version information\n"
+      "\t-R            Don't do any conversion to file and directory names when extracting\n"
+      "\t-V --version  Print copyright and version information\n"
       "\n"
       "Commands:\n"
       "\tc             List components\n"         
@@ -218,23 +229,23 @@ static void show_usage(const char* name)
       "\n"
       ,
       name);
-
-#if 0
-      "\t-n            Never overwrite files\n"
-      "\t-o            Overwrite files WITHOUT prompting\n"
-      "\t-v            Verbose output\n"
-#endif
 }
 
 static bool handle_parameters(
     int argc, 
     char* const argv[])
 {
-	int c;
+    int c;
 
-	while ((c = getopt(argc, argv, "c:d:D:g:hi:e:jLnoOrRV")) != -1)
-	{
-		switch (c)
+    static struct option long_options[] =
+    {
+       { "version", no_argument, NULL, 'V' },
+       { NULL, 0, NULL, 0 }
+    };
+
+    while ((c = getopt_long(argc, argv, "c:d:D:g:hi:e:jLOrRV", long_options, NULL)) != -1)
+    {
+    switch (c)
     {
       case 'c':
         component_name = optarg;
@@ -278,14 +289,6 @@ static bool handle_parameters(
         raw_filename = true;
         break;
 
-      case 'n':
-        overwrite = OVERWRITE_NEVER;
-        break;
-
-      case 'o':
-        overwrite = OVERWRITE_ALWAYS;
-        break;
-
       case 'O':
         format = FORMAT_OLD;
         break;
@@ -294,12 +297,8 @@ static bool handle_parameters(
         format = FORMAT_RAW;
         break;
 
-      case 'v':
-        verbose = true;
-        break;
-
       case 'V':
-        printf("Unshield version " VERSION ". Copyright (C) 2003-2013 David Eriksson.\n");
+        printf("Unshield version " VERSION ". MIT License. (C) 2003-2023 David Eriksson.\n");
         exit(0);
         break;
 
@@ -365,7 +364,7 @@ static bool handle_parameters(
 
 static bool extract_file(Unshield* unshield, const char* prefix, int index)
 {
-  bool success;
+  bool success = false;
   char* dirname;
   char* filename;
   char* p;
@@ -510,19 +509,25 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   }
 #endif
 
+#ifdef __GLIBC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
   /* use GNU extension to return non-existing files to real_output_directory */
   realpath(output_directory, real_output_directory);
   realpath(filename, real_filename);
+#pragma GCC diagnostic pop
   if (real_filename == NULL || strncmp(real_filename,
                                        real_output_directory,
                                        strlen(real_output_directory)) != 0)
   {
     fprintf(stderr, "\n\nExtraction failed.\n");
+    fprintf(stderr, "Error: %s (%d).\n", strerror(errno), errno);
     fprintf(stderr, "Possible directory traversal attack for: %s\n", filename);
     fprintf(stderr, "To be placed at: %s\n\n", real_filename);
     success = false;
     goto exit;
   }
+#endif
 
   printf("  extracting: %s\n", filename);
   switch (format)
@@ -541,7 +546,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 exit:
   if (!success)
   {
-    fprintf(stderr, "Failed to extract file '%s'.%s\n", 
+    fprintf(stderr, "Failed to extract file '%s'.%s\n",
         unshield_file_name(unshield, index),
         (log_level < 3) ? "Run unshield again with -D 3 for more information." : "");
     unlink(filename);
@@ -593,10 +598,22 @@ static int extract_helper(Unshield* unshield, const char* prefix, int first, int
 
 static bool test_file(Unshield* unshield, int index)
 {
-  bool success;
+  bool success = false;
 
   printf("  testing: %s\n", unshield_file_name(unshield, index));
-  success = unshield_file_save(unshield, index, NULL);
+
+    switch (format)
+    {
+        case FORMAT_NEW:
+            success = unshield_file_save(unshield, index, NULL);
+            break;
+        case FORMAT_OLD:
+            success = unshield_file_save_old(unshield, index, NULL);
+            break;
+        case FORMAT_RAW:
+            success = unshield_file_save_raw(unshield, index, NULL);
+            break;
+    }
 
   if (!success)
   {
@@ -729,7 +746,7 @@ static bool do_action(Unshield* unshield, ActionHelper helper)
     for (i = 0; i < unshield_file_group_count(unshield); i++)
     {
       UnshieldFileGroup* file_group = unshield_file_group_get(unshield, i);
-      if (file_group)
+      if (file_group && file_group->first_file != -1)
         count += helper(unshield, file_group->name, file_group->first_file, file_group->last_file);
     }
   }

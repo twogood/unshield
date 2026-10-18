@@ -1,8 +1,8 @@
 #define _BSD_SOURCE 1
 #define _DEFAULT_SOURCE 1
 #include "internal.h"
+#include "converter.h"
 #include "log.h"
-#include "convert_utf/ConvertUTF.h"
 #include <sys/types.h>
 #include <dirent.h>
 #include <stdlib.h>
@@ -29,65 +29,82 @@
   #define strncasecmp _strnicmp
 #endif
 
+long int unshield_get_path_max(Unshield* unshield)
+{
+#ifdef PATH_MAX
+    return PATH_MAX;
+#else
+    long int path_max = pathconf(unshield->filename_pattern, _PC_PATH_MAX);
+    if (path_max <= 0)
+      path_max = 4096;
+    return path_max;
+#endif
+}
+
+char *unshield_get_base_directory_name(Unshield *unshield) {
+    long int path_max = unshield_get_path_max(unshield);
+    char *p = unshield_get_last_path_separator(unshield->filename_pattern);
+    char *dirname = malloc(path_max);
+
+    if (p) {
+        UNSHIELD_ASSERT((unsigned int) (p - unshield->filename_pattern) < path_max);
+        strncpy(dirname, unshield->filename_pattern, path_max - 1);
+        dirname[(p - unshield->filename_pattern)] = 0;
+    } else
+        strcpy(dirname, ".");
+
+    return dirname;
+}
+
+
+static char* get_filename(Unshield* unshield, int index, const char* suffix) {
+    if (unshield && unshield->filename_pattern)
+    {
+        long path_max = unshield_get_path_max(unshield);
+        char* filename  = malloc(path_max);
+
+        if (filename == NULL) {
+            unshield_error("Unable to allocate memory.\n");
+            goto exit;
+        }
+
+        if (snprintf(filename, path_max, unshield->filename_pattern, index, suffix) >= path_max) {
+            unshield_error("Pathname exceeds system limits.\n");
+            goto exit;
+        }
+
+    exit:
+        return filename;
+    }
+
+    return NULL;
+}
+
+
 FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suffix)
 {
   if (unshield && unshield->filename_pattern)
   {
     FILE* result = NULL;
-    char* filename = NULL;
-    char* dirname = NULL;
-    char * p = strrchr(unshield->filename_pattern, '/');
+    char* filename = get_filename(unshield, index, suffix);
+    char* dirname = unshield_get_base_directory_name(unshield);
     const char *q;
     struct dirent *dent = NULL;
     DIR *sourcedir = NULL;
-    long int path_max;
+    long int path_max = unshield_get_path_max(unshield);
 
-    #ifdef PATH_MAX
-    path_max = PATH_MAX;
-    #else
-    path_max = pathconf(unshield->filename_pattern, _PC_PATH_MAX);
-    if (path_max <= 0)
-      path_max = 4096;
-    #endif
-
-    dirname = malloc(path_max);
-    filename = malloc(path_max);
-    if (filename == NULL || dirname == NULL)
-    {
-      unshield_error("Unable to allocate memory.\n");
-      goto exit;
-    }
-
-    if(snprintf(filename, path_max, unshield->filename_pattern, index, suffix)>=path_max)
-    {
-      unshield_error("Pathname exceeds system limits.\n");
-      goto exit;
-    }
-    q=strrchr(filename,'/');
+    q=unshield_get_last_path_separator(filename);
     if (q)
       q++;
     else
       q=filename;
 
-    if (p)
-    {
-      strncpy( dirname, unshield->filename_pattern,path_max);
-      if ((unsigned int)(p-unshield->filename_pattern) > path_max)
-      {
-        unshield_trace("WARN: size\n");
-        dirname[path_max-1]=0;
-      }
-      else
-        dirname[(p-unshield->filename_pattern)] = 0;
-    }
-    else
-      strcpy(dirname,".");
-
-    sourcedir = opendir(dirname);
+    sourcedir = unshield_opendir(unshield, dirname);
     /* Search for the File case independent */
     if (sourcedir)
     {
-      for (dent=readdir(sourcedir);dent;dent=readdir(sourcedir))
+      for (dent=unshield_readdir(unshield, sourcedir);dent;
+           dent=unshield_readdir(unshield, sourcedir))
       {
         if (!(strcasecmp(q, dent->d_name)))
         {
@@ -114,11 +131,11 @@ FILE* unshield_fopen_for_reading(Unshield* unshield, int index, const char* suff
 #if VERBOSE
     unshield_trace("Opening file '%s'", filename);
 #endif
-    result = fopen(filename, "rb");
+    result = unshield_fopen(unshield, filename, "rb");
 
 exit:
     if (sourcedir)
-      closedir(sourcedir);
+      unshield_closedir(unshield, sourcedir);
     free(filename);
     free(dirname);
     return result;
@@ -127,13 +144,13 @@ exit:
   return NULL;
 }
 
-long unshield_fsize(FILE* file)
+long long unshield_fsize(Unshield* unshield, FILE* file)
 {
-  long result;
-  long previous = ftell(file);
-  fseek(file, 0L, SEEK_END);
-  result = ftell(file);
-  fseek(file, previous, SEEK_SET);
+  long long result;
+  long long previous = unshield_ftell(unshield, file);
+  unshield_fseek(unshield, file, 0L, SEEK_END);
+  result = unshield_ftell(unshield, file);
+  unshield_fseek(unshield, file, previous, SEEK_SET);
   return result;
 }
 
@@ -189,6 +206,22 @@ uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset)
     return NULL;
 }
 
+/**
+ Returns the last path separator in a filesystem path
+ */
+char *unshield_get_last_path_separator(char *path)
+{
+  char *p = strrchr(path, '/');
+
+#ifdef WIN32
+  char *pbs = strrchr(path, '\\');
+
+  if (NULL != pbs && (NULL == p || pbs > p))
+    return pbs;
+#endif
+
+  return p;
+}
 
 static int unshield_strlen_utf16(const uint16_t* utf16)
 {
@@ -211,16 +244,11 @@ static const char* unshield_utf16_to_utf8(Header* header, const uint16_t* utf16)
 {
   StringBuffer* string_buffer = unshield_add_string_buffer(header); 
   int length = unshield_strlen_utf16(utf16);
-  int buffer_size = 2 * length + 1;
+  int buffer_size = 3 * length + 1;
   char* target = string_buffer->string = NEW(char, buffer_size);
-  ConversionResult result = ConvertUTF16toUTF8(
-      (const UTF16**)&utf16, utf16 + length + 1, 
-      (UTF8**)&target, (UTF8*)(target + buffer_size), lenientConversion);
-  if (result != conversionOK)
-  {
-    /* fail fast */
-    abort();
-  }
+  utf16_to_utf8(
+      utf16, length + 1,
+      (utf8_t*)target, buffer_size);
   return string_buffer->string;
 }
 

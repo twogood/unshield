@@ -1,4 +1,3 @@
-/* $Id$ */
 #include "internal.h"
 #include "log.h"
 #include <stdlib.h>
@@ -22,8 +21,8 @@ UnshieldFileGroup* unshield_file_group_new(Header* header, uint32_t offset)/*{{{
   else
     p += 0x12;
 
-  self->first_file = READ_UINT32(p); p += 4;
-  self->last_file  = READ_UINT32(p); p += 4;
+  self->first_file = READ_INT32(p); p += 4;
+  self->last_file  = READ_INT32(p); p += 4;
 
 #if VERBOSE
   unshield_trace("File group %08x first file = %i, last file = %i", 
