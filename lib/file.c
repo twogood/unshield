@@ -313,6 +313,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
   uint64_t volume_bytes_left_expanded;
   CommonHeader common_header;
 
+next_volume:
 #if VERBOSE >= 2
   unshield_trace("Open volume %i", volume);
 #endif
@@ -415,6 +416,14 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
       reader->volume_header.first_file_offset, reader->volume_header.last_file_offset);
 #endif
 
+  /* IS5 descriptors can name a volume preceding the file's first segment. */
+  if (reader->volume == 0 && reader->unshield->header_list->major_version <= 5 &&
+      reader->index > reader->volume_header.last_file_index)
+  {
+    volume++;
+    goto next_volume;
+  }
+
   /* enable support for split archives for IS5 */
   if (reader->unshield->header_list->major_version == 5)
   {
@@ -466,7 +475,7 @@ static bool unshield_reader_open_volume(UnshieldReader* reader, int volume)/*{{{
     }
     else
     {
-      success = true;
+      unshield_error("Split file %i has no segment in volume %i", reader->index, volume);
       goto exit;
     }
 
@@ -537,6 +546,16 @@ static bool unshield_reader_read(UnshieldReader* reader, void* buffer, size_t si
 #endif
     if (bytes_to_read == 0)
     {
+      if ((reader->file_descriptor->flags & FILE_SPLIT) && reader->volume_bytes_left == 0)
+      {
+        if (!unshield_reader_open_volume(reader, reader->volume + 1))
+        {
+          unshield_error("bytes_to_read is zero and failed to open next volume %i",
+              reader->volume + 1);
+          goto exit;
+        }
+        continue;
+      }
       unshield_error("bytes_to_read can't be zero");
       goto exit;
     }
@@ -685,26 +704,11 @@ static UnshieldReader* unshield_reader_create(/*{{{*/
   reader->index             = index;
   reader->file_descriptor   = file_descriptor;
 
-  for (;;)
+  if (!unshield_reader_open_volume(reader, file_descriptor->volume))
   {
-    if (!unshield_reader_open_volume(reader, file_descriptor->volume))
-    {
-      unshield_error("Failed to open volume %i",
-          file_descriptor->volume);
-      goto exit;
-    }
-
-    /* Start with the correct volume for IS5 cabinets */
-    if (reader->unshield->header_list->major_version <= 5 &&
-        index > (int)reader->volume_header.last_file_index)
-    {
-      unshield_trace("Trying next volume...");
-      file_descriptor->volume++;
-      continue;
-    }
-      
-    break;  
-  };
+    unshield_error("Failed to open volume %i", file_descriptor->volume);
+    goto exit;
+  }
 
   success = true;
 
@@ -712,6 +716,7 @@ exit:
   if (success)
     return reader;
 
+  FCLOSE(reader->unshield, reader->volume_file);
   FREE(reader);
   return NULL;
 }/*}}}*/
