@@ -40,7 +40,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install \
-            libssl-dev ninja-build zlib1g-dev
+            libjitterentropy3-dev libssl-dev ninja-build zlib1g-dev
 
     - name: Select GCC version
       if: runner.os == 'Linux'
