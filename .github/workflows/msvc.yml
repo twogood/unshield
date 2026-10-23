@@ -25,7 +25,7 @@ jobs:
         - { name: static, value: ON }
         - { name: dynamic, value: OFF }
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Setup Windows dependencies
       run: c:\vcpkg\vcpkg.exe install openssl zlib --triplet ${{ matrix.platform.triplet }}
@@ -43,7 +43,7 @@ jobs:
       run: cmake --install build --strip --prefix install
 
     - name: Upload
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: unshield_${{ github.sha }}_${{ matrix.platform.name }}_${{ matrix.build-static.name }}
         path: install
