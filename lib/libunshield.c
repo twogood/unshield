@@ -185,13 +185,37 @@ static bool unshield_get_cab_descriptor(Header* header)
 
 static bool unshield_get_file_table(Header* header)
 {
-  uint8_t* p = header->data +
-        header->common.cab_descriptor_offset +
-        header->cab.file_table_offset;
-  int count = header->cab.directory_count + header->cab.file_count;
-  int i;
-  
+  uint64_t start = (uint64_t)header->common.cab_descriptor_offset +
+                   (uint64_t)header->cab.file_table_offset;
+  uint64_t count = (uint64_t)header->cab.directory_count +
+                   (uint64_t)header->cab.file_count;
+  uint64_t bytes = count * (uint64_t)sizeof(uint32_t);
+  uint8_t* p;
+  uint64_t i;
+
+  if (count == 0)
+  {
+    unshield_error("File table is empty");
+    return false;
+  }
+
+  if (start > header->size || bytes > (uint64_t)header->size - start)
+  {
+    unshield_error("File table (offset %lu, %lu bytes) is out of bounds "
+        "for header of %lu bytes",
+        (unsigned long)start, (unsigned long)bytes,
+        (unsigned long)header->size);
+    return false;
+  }
+
+  p = header->data + start;
+
   header->file_table = calloc(count, sizeof(uint32_t));
+  if (!header->file_table)
+  {
+    unshield_error("Failed to allocate file table");
+    return false;
+  }
 
   for (i = 0; i < count; i++)
   {

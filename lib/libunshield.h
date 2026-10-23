@@ -1,8 +1,10 @@
 #ifndef __unshield_h__
 #define __unshield_h__
 
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #define UNSHIELD_LOG_LEVEL_LOWEST    0
 
@@ -35,8 +37,17 @@ typedef struct _Unshield Unshield;
    Logging
  */
 
-UNSHIELD_API void unshield_set_log_level(int level);
+#define UNSHIELD_LOG_LEVEL_LOWEST    0
 
+#define UNSHIELD_LOG_LEVEL_ERROR     1
+#define UNSHIELD_LOG_LEVEL_WARNING   2
+#define UNSHIELD_LOG_LEVEL_TRACE     3
+
+#define UNSHIELD_LOG_LEVEL_HIGHEST   4
+
+typedef void (UnshieldLogCallback)(void* userdata, int level, const char* file, int line, const char* format, va_list ap);
+UNSHIELD_API void unshield_set_log_level(int level);
+UNSHIELD_API void unshield_set_log_handler(UnshieldLogCallback* handler, void* userdata);
 
 /*
    Open/close functions
@@ -103,12 +114,21 @@ UNSHIELD_API const char* unshield_directory_name     (Unshield* unshield, int in
    File functions
  */
 
+/** Bit masks returned by unshield_file_flags_raw(). */
+#define UNSHIELD_FILE_SPLIT       1U  /**< File spans multiple cabinet volumes. */
+#define UNSHIELD_FILE_OBFUSCATED  2U  /**< File data is obfuscated. */
+#define UNSHIELD_FILE_COMPRESSED  4U  /**< File data is compressed. */
+#define UNSHIELD_FILE_INVALID     8U  /**< File entry is invalid. */
+
 UNSHIELD_API int         unshield_file_count         (Unshield* unshield);
 UNSHIELD_API const char* unshield_file_name          (Unshield* unshield, int index);
 UNSHIELD_API bool        unshield_file_is_valid      (Unshield* unshield, int index);
 UNSHIELD_API bool        unshield_file_save          (Unshield* unshield, int index, const char* filename);
 UNSHIELD_API int         unshield_file_directory     (Unshield* unshield, int index);
 UNSHIELD_API size_t      unshield_file_size          (Unshield* unshield, int index);
+UNSHIELD_API uint64_t    unshield_file_size_compressed(Unshield* unshield, int index);
+/** Raw file flags (UNSHIELD_FILE_* bits), or 0 if the index is invalid. */
+UNSHIELD_API uint16_t    unshield_file_flags_raw      (Unshield* unshield, int index);
 
 /** For investigation of compressed data */
 UNSHIELD_API bool unshield_file_save_raw(Unshield* unshield, int index, const char* filename);
