@@ -28,10 +28,6 @@ jobs:
         build-static:
         - { name: static, value: ON }
         - { name: dynamic, value: OFF }
-        exclude:
-          - platform: { name: macos-clang, os: macos-latest, shell: sh }
-            build-type: Release
-            build-static: { name: static, value: ON }
     steps:
     - uses: actions/checkout@v7
 
