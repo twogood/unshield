@@ -3,7 +3,7 @@ target_link_libraries(test_stack_memory_file libunshield)
 
 if(BUILD_STATIC)
     if(CMAKE_C_COMPILER_ID MATCHES "^(GNU|Clang)$")
-        target_link_libraries(test_stack_memory_file -static)
+        target_link_options(test_stack_memory_file PRIVATE -static)
     endif()
 endif()
 

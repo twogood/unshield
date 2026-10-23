@@ -14,8 +14,8 @@ target_link_libraries(unshield-deobfuscate libunshield)
 
 if(BUILD_STATIC)
     if(CMAKE_C_COMPILER_ID MATCHES "^(GNU|Clang)$")
-        target_link_libraries(unshield -static)
-        target_link_libraries(unshield-deobfuscate -static)
+        target_link_options(unshield PRIVATE -static)
+        target_link_options(unshield-deobfuscate PRIVATE -static)
     endif()
 endif()
 
