@@ -84,3 +84,15 @@ add_subdirectory(src)
 install(FILES man/unshield.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libunshield.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 install(EXPORT unshieldConfig NAMESPACE unshield:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/unshield)
+
+install(RUNTIME_DEPENDENCY_SET WIN_DLL_SET
+    DIRECTORIES
+        $<TARGET_RUNTIME_DLL_DIRS:unshield>
+        $<TARGET_RUNTIME_DLL_DIRS:libunshield>
+    PRE_EXCLUDE_REGEXES
+        "api-ms-.*"
+        "ext-ms-.*"
+    POST_EXCLUDE_REGEXES
+        ".*/system32/.*"
+    RUNTIME DESTINATION bin
+)
