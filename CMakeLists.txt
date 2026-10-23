@@ -88,7 +88,7 @@ install(EXPORT unshieldConfig NAMESPACE unshield:: DESTINATION ${CMAKE_INSTALL_L
 install(RUNTIME_DEPENDENCY_SET WIN_DLL_SET
     DIRECTORIES
         $<TARGET_RUNTIME_DLL_DIRS:unshield>
-        $<TARGET_RUNTIME_DLL_DIRS:libunshield>
+        $<$<BOOL:${BUILD_SHARED_LIBS}>:$<TARGET_RUNTIME_DLL_DIRS:libunshield>>
     PRE_EXCLUDE_REGEXES
         "api-ms-.*"
         "ext-ms-.*"
