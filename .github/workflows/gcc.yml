@@ -18,11 +18,11 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-        - { name: macOS,             os: macos-latest,   shell: sh }
-        - { name: Ubuntu GCC 14,     os: ubuntu-26.04,   shell: sh, gcc: 14 }
-        - { name: Ubuntu GCC 15,     os: ubuntu-26.04,   shell: sh, gcc: 15 }
-        - { name: Windows - mingw32 (deprecated), os: windows-latest, shell: 'msys2 {0}', msystem: mingw32, msys-env: mingw-w64-i686 }
-        - { name: Windows - ucrt64,  os: windows-latest, shell: 'msys2 {0}', msystem: ucrt64, msys-env: mingw-w64-ucrt-x86_64 }
+        - { name: macos-clang,     os: macos-latest,   shell: sh }
+        - { name: ubuntu_gcc14,    os: ubuntu-26.04,   shell: sh, gcc: 14 }
+        - { name: ubuntu_gcc15,    os: ubuntu-26.04,   shell: sh, gcc: 15 }
+        - { name: windows-mingw32-deprecated, os: windows-latest, shell: 'msys2 {0}', msystem: mingw32, msys-env: mingw-w64-i686 }
+        - { name: windows-ucrt64,  os: windows-latest, shell: 'msys2 {0}', msystem: ucrt64, msys-env: mingw-w64-ucrt-x86_64 }
 
         build-type: [Release]
         build-static:
