@@ -85,10 +85,14 @@ install(FILES man/unshield.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libunshield.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 install(EXPORT unshieldConfig NAMESPACE unshield:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/unshield)
 
+set(WIN_DLL_DIRS "$<TARGET_RUNTIME_DLL_DIRS:unshield>")
+if(BUILD_SHARED_LIBS)
+    list(APPEND WIN_DLL_DIRS "$<TARGET_RUNTIME_DLL_DIRS:libunshield>")
+endif()
+
 install(RUNTIME_DEPENDENCY_SET WIN_DLL_SET
     DIRECTORIES
-        $<TARGET_RUNTIME_DLL_DIRS:unshield>
-        $<$<BOOL:${BUILD_SHARED_LIBS}>:$<TARGET_RUNTIME_DLL_DIRS:libunshield>>
+        ${WIN_DLL_DIRS}
     PRE_EXCLUDE_REGEXES
         "api-ms-.*"
         "ext-ms-.*"
