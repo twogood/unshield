@@ -1,22 +1,15 @@
-cmake_minimum_required(VERSION 3.21)
-project(unshield C)
+cmake_minimum_required(VERSION 3.27)
+project(unshield VERSION 1.6.2 LANGUAGES C)
 
-set (CMAKE_C_STANDARD 23)
+if(POLICY CMP0207)
+    cmake_policy(SET CMP0207 OLD) # normalized paths (since 4.3)
+endif()
 
-# Mimic CMP0048 which is available only for cmake 3.0 and later
-set(PROJECT_VERSION_MAJOR 1)
-set(PROJECT_VERSION_MINOR 6)
-set(PROJECT_VERSION_PATCH 2)
-set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
-
-option(BUILD_STATIC "Build static version of libunshield" OFF)
+set(CMAKE_C_STANDARD 23)
 
 include(CheckIncludeFiles)
 include(CheckSymbolExists)
 include(CheckCSourceCompiles)
-if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test")
-    include(CTest)
-endif()
 include(GNUInstallDirs)
 
 check_include_files(dlfcn.h HAVE_DLFCN_H)
@@ -47,6 +40,20 @@ if(NOT SIZE_FORMAT_ZI)
     endif()
 endif()
 
+if(MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/win32_msvc)
+endif()
+
+option(BUILD_STATIC "Build static version of unshield and libunshield" OFF)
+if(BUILD_STATIC)
+    set(BUILD_SHARED_LIBS OFF)
+    set(OPENSSL_USE_STATIC_LIBS ON)
+    set(ZLIB_USE_STATIC_LIBS ON)
+else()
+    set(BUILD_SHARED_LIBS ON)
+endif()
+
 find_package(ZLIB REQUIRED)
 find_package(OpenSSL COMPONENTS Crypto)
 
@@ -59,8 +66,19 @@ endif()
 message(STATUS "OpenSSL_FOUND: ${OpenSSL_FOUND}")
 message(STATUS "USE_OUR_OWN_MD5: ${USE_OUR_OWN_MD5}")
 message(STATUS "BUILD_STATIC: ${BUILD_STATIC}")
+
+set(UNSHIELD_RUNTIME_DEPENDENCY_ARGS)
+if(WIN32)
+    list(APPEND UNSHIELD_RUNTIME_DEPENDENCY_ARGS
+        RUNTIME_DEPENDENCY_SET WIN_DLL_SET)
+endif()
+
 if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test")
+    include(CTest)
     message(STATUS "BUILD_TESTING: ${BUILD_TESTING}")
+    if(BUILD_TESTING)
+        add_subdirectory(test)
+    endif()
 else()
     set(BUILD_TESTING OFF)
 endif()
@@ -71,22 +89,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libunshield.pc.in ${CMAKE_CURRENT_BIN
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/lib)
 
-# Function to change MSVC runtime linkage to static
-function(set_msvc_runtime_static)
-    foreach(flag_var
-        CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-        CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-        if(${flag_var} MATCHES "/MD")
-            string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-        endif()
-    endforeach()
-endfunction()
-
-if (MSVC)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/win32_msvc)
-endif ()
-
 add_subdirectory(lib)
 add_subdirectory(src)
 
@@ -94,6 +96,26 @@ install(FILES man/unshield.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libunshield.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 install(EXPORT unshieldConfig NAMESPACE unshield:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/unshield)
 
-if(BUILD_TESTING)
-    add_subdirectory(test)
+if(WIN32)
+    set(WIN_DLL_DIRS "$<TARGET_RUNTIME_DLL_DIRS:unshield>")
+    if(BUILD_SHARED_LIBS)
+        list(APPEND WIN_DLL_DIRS "$<TARGET_RUNTIME_DLL_DIRS:libunshield>")
+    endif()
+
+    if(MINGW)
+        get_filename_component(MINGW_RUNTIME_DLL_DIR "${CMAKE_C_COMPILER}" DIRECTORY)
+        list(APPEND WIN_DLL_DIRS "${MINGW_RUNTIME_DLL_DIR}")
+    endif()
+
+    install(RUNTIME_DEPENDENCY_SET WIN_DLL_SET
+        DIRECTORIES
+            ${WIN_DLL_DIRS}
+        PRE_EXCLUDE_REGEXES
+            "api-ms-.*"
+            "ext-ms-.*"
+            "wtdccm\\.dll"
+        POST_EXCLUDE_REGEXES
+            "[/\\\\][Ss]ystem32[/\\\\].*"
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
 endif()

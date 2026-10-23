@@ -5,21 +5,25 @@ endif()
 
 add_executable(unshield unshield.c)
 target_link_libraries(unshield libunshield)
-if(WIN32)
-    if(HAVE_ICONV)
-        target_link_libraries(unshield iconv)
-    endif()
-    target_link_libraries(unshield ${ZLIB_LIBRARIES})
+if(WIN32 AND HAVE_ICONV)
+    target_link_libraries(unshield iconv)
 endif()
 
 add_executable(unshield-deobfuscate unshield-deobfuscate.c)
 target_link_libraries(unshield-deobfuscate libunshield)
-if(WIN32)
-    target_link_libraries(unshield-deobfuscate ${ZLIB_LIBRARIES})
+
+if(BUILD_STATIC)
+    if(CMAKE_C_COMPILER_ID MATCHES "^(GNU|Clang)$")
+        target_link_options(unshield PRIVATE -static)
+        target_link_options(unshield-deobfuscate PRIVATE -static)
+    endif()
 endif()
 
-if(BUILD_STATIC AND MSVC)
-    set_msvc_runtime_static()
-endif()
-
-install(TARGETS unshield EXPORT unshieldConfig RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(
+    TARGETS unshield
+    EXPORT unshieldConfig
+    ${UNSHIELD_RUNTIME_DEPENDENCY_ARGS}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)

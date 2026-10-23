@@ -12,7 +12,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
-#include "../lib/libunshield.h"
+#include "libunshield.h"
 #ifdef HAVE_CONFIG_H
 #include "lib/unshield_config.h"
 #endif
