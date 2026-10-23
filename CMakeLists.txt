@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.27)
 project(unshield VERSION 1.6.2 LANGUAGES C)
 
-cmake_policy(SET CMP0207 OLD) # normalized paths (since 4.3)
+if(POLICY CMP0207)
+    cmake_policy(SET CMP0207 OLD) # normalized paths (since 4.3)
+endif()
 
 set(CMAKE_C_STANDARD 23)
 
