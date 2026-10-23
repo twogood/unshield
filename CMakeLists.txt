@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.27)
 project(unshield VERSION 1.6.2 LANGUAGES C)
 
+cmake_policy(SET CMP0207 OLD) # normalized paths (since 4.3)
+
 set(CMAKE_C_STANDARD 23)
 
 include(CheckIncludeFiles)
@@ -96,7 +98,8 @@ install(RUNTIME_DEPENDENCY_SET WIN_DLL_SET
     PRE_EXCLUDE_REGEXES
         "api-ms-.*"
         "ext-ms-.*"
+        "wtdccm\\.dll"
     POST_EXCLUDE_REGEXES
-        ".*/system32/.*"
+        "[/\\\\][Ss]ystem32[/\\\\].*"
     RUNTIME DESTINATION bin
 )
