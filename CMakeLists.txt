@@ -66,6 +66,13 @@ endif()
 message(STATUS "OpenSSL_FOUND: ${OpenSSL_FOUND}")
 message(STATUS "USE_OUR_OWN_MD5: ${USE_OUR_OWN_MD5}")
 message(STATUS "BUILD_STATIC: ${BUILD_STATIC}")
+
+set(UNSHIELD_RUNTIME_DEPENDENCY_ARGS)
+if(WIN32)
+    list(APPEND UNSHIELD_RUNTIME_DEPENDENCY_ARGS
+        RUNTIME_DEPENDENCY_SET WIN_DLL_SET)
+endif()
+
 if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test")
     include(CTest)
     message(STATUS "BUILD_TESTING: ${BUILD_TESTING}")
@@ -89,24 +96,26 @@ install(FILES man/unshield.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libunshield.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 install(EXPORT unshieldConfig NAMESPACE unshield:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/unshield)
 
-set(WIN_DLL_DIRS "$<TARGET_RUNTIME_DLL_DIRS:unshield>")
-if(BUILD_SHARED_LIBS)
-    list(APPEND WIN_DLL_DIRS "$<TARGET_RUNTIME_DLL_DIRS:libunshield>")
-endif()
+if(WIN32)
+    set(WIN_DLL_DIRS "$<TARGET_RUNTIME_DLL_DIRS:unshield>")
+    if(BUILD_SHARED_LIBS)
+        list(APPEND WIN_DLL_DIRS "$<TARGET_RUNTIME_DLL_DIRS:libunshield>")
+    endif()
 
-if(MINGW)
-    get_filename_component(MINGW_RUNTIME_DLL_DIR "${CMAKE_C_COMPILER}" DIRECTORY)
-    list(APPEND WIN_DLL_DIRS "${MINGW_RUNTIME_DLL_DIR}")
-endif()
+    if(MINGW)
+        get_filename_component(MINGW_RUNTIME_DLL_DIR "${CMAKE_C_COMPILER}" DIRECTORY)
+        list(APPEND WIN_DLL_DIRS "${MINGW_RUNTIME_DLL_DIR}")
+    endif()
 
-install(RUNTIME_DEPENDENCY_SET WIN_DLL_SET
-    DIRECTORIES
-        ${WIN_DLL_DIRS}
-    PRE_EXCLUDE_REGEXES
-        "api-ms-.*"
-        "ext-ms-.*"
-        "wtdccm\\.dll"
-    POST_EXCLUDE_REGEXES
-        "[/\\\\][Ss]ystem32[/\\\\].*"
-    RUNTIME DESTINATION bin
-)
+    install(RUNTIME_DEPENDENCY_SET WIN_DLL_SET
+        DIRECTORIES
+            ${WIN_DLL_DIRS}
+        PRE_EXCLUDE_REGEXES
+            "api-ms-.*"
+            "ext-ms-.*"
+            "wtdccm\\.dll"
+        POST_EXCLUDE_REGEXES
+            "[/\\\\][Ss]ystem32[/\\\\].*"
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+endif()
