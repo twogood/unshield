@@ -7,14 +7,35 @@
 
 UnshieldFileGroup* unshield_file_group_new(Header* header, uint32_t offset)/*{{{*/
 {
+  /* Major versions 0-5 use a 0x54-byte group record; later versions use
+     0x1e, so requiring 0x54 would reject valid records that end near the
+     header boundary. */
+  const size_t record_size = (header->major_version <= 5) ? 0x54 : 0x1e;
   UnshieldFileGroup* self = NEW1(UnshieldFileGroup);
-  uint8_t* p = unshield_header_get_buffer(header, offset);
+  uint8_t* p = unshield_header_get_buffer_checked(header, offset, record_size);
+
+  if (!self)
+    return NULL;
 
 #if VERBOSE
   unshield_trace("File group descriptor offset: %08x", offset);
 #endif
 
+  if (!p)
+  {
+    unshield_error("File group descriptor (offset %08x) is out of bounds "
+        "for header of %lu bytes", offset, (unsigned long)header->size);
+    unshield_file_group_destroy(self);
+    return NULL;
+  }
+
   self->name = unshield_header_get_string(header, READ_UINT32(p)); p += 4;
+  if (!self->name)
+  {
+    unshield_error("File group name (offset %08x) is out of bounds", offset);
+    unshield_file_group_destroy(self);
+    return NULL;
+  }
 
   if (header->major_version <= 5)
     p += 0x48;

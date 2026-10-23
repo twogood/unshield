@@ -189,15 +189,29 @@ bool unshield_read_common_header(uint8_t** buffer, CommonHeader* common)
 /**
   Get pointer at cab descriptor + offset
   */
+uint8_t* unshield_header_get_buffer_checked(Header* header, uint64_t offset,
+                                            size_t need)
+{
+  uint64_t start;
+
+  if (!header || !header->data)
+    return NULL;
+
+  start = (uint64_t)header->common.cab_descriptor_offset + offset;
+
+  if (start > (uint64_t)header->size ||
+      (uint64_t)need > (uint64_t)header->size - start)
+    return NULL;
+
+  return header->data + start;
+}
+
 uint8_t* unshield_header_get_buffer(Header* header, uint32_t offset)
 {
-  if (offset)
-    return 
-      header->data +
-      header->common.cab_descriptor_offset +
-      offset;
-  else
+  if (!offset)
     return NULL;
+
+  return unshield_header_get_buffer_checked(header, offset, 1);
 }
 
 /**
@@ -263,7 +277,33 @@ const char* unshield_get_utf8_string(Header* header, const void* buffer)
  */
 const char* unshield_header_get_string(Header* header, uint32_t offset)
 {
-  return unshield_get_utf8_string(header, unshield_header_get_buffer(header, offset));
+  uint8_t* p = unshield_header_get_buffer(header, offset);
+  uint64_t start, available;
+
+  if (!p)
+    return NULL;
+
+  start = (uint64_t)(p - header->data);
+  available = (uint64_t)header->size - start;
+
+  if (header->major_version >= 17)
+  {
+    const uint16_t* utf16 = (const uint16_t*)p;
+    uint64_t i, max = available / 2;
+
+    for (i = 0; i < max; i++)
+    {
+      if (!utf16[i])
+        return unshield_get_utf8_string(header, utf16);
+    }
+
+    return NULL;
+  }
+
+  if (!memchr(p, 0, (size_t)available))
+    return NULL;
+
+  return unshield_get_utf8_string(header, p);
 }
 
 

@@ -21,12 +21,19 @@ const char* unshield_directory_name(Unshield* unshield, int index)
     /* XXX: multi-volume support... */
     Header* header = unshield->header_list;
 
-    if (index < (int)header->cab.directory_count)
-      return unshield_get_utf8_string(header, 
-          header->data +
-          header->common.cab_descriptor_offset +
-          header->cab.file_table_offset +
-          header->file_table[index]);
+    if (header->file_table && index < (int)header->cab.directory_count)
+    {
+      uint64_t offset = (uint64_t)header->cab.file_table_offset +
+                        (uint64_t)header->file_table[index];
+
+      if (offset <= 0xffffffffu)
+      {
+        const char* name = unshield_header_get_string(header, (uint32_t)offset);
+
+        if (name)
+          return name;
+      }
+    }
   }
 
   unshield_warning("Failed to get directory name %i", index);

@@ -2,6 +2,8 @@
 #define _DEFAULT_SOURCE 1
 #include "internal.h"
 #include "log.h"
+
+static void unshield_free_string_buffers(Header* header);
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -130,8 +132,26 @@ static bool unshield_get_cab_descriptor(Header* header)
 {  
   if (header->common.cab_descriptor_size)
   {
-    uint8_t* p = header->data + header->common.cab_descriptor_offset;
+    /* On-disk descriptor layout: 0x3e bytes of fields/gaps followed by
+       MAX_FILE_GROUP_COUNT + MAX_COMPONENT_COUNT 32-bit offsets, so the
+       parser reads 0x3e + 4*(71+71) = 0x276 bytes.  Do not derive this from
+       offsetof(CabDescriptor): the in-memory struct does not model the
+       on-disk gaps (file_table_offset sits at 0x0c, etc.). */
+    const size_t descriptor_size =
+      0x3e + sizeof(header->cab.file_group_offsets) +
+      sizeof(header->cab.component_offsets);
+    uint8_t* p = unshield_header_get_buffer_checked(header, 0, descriptor_size);
     int i;
+
+    if (!p)
+    {
+      unshield_error("CAB descriptor (offset %lu, %lu bytes) is out of bounds "
+          "for header of %lu bytes",
+          (unsigned long)header->common.cab_descriptor_offset,
+          (unsigned long)descriptor_size,
+          (unsigned long)header->size);
+      return false;
+    }
 
     p += 0xc;
     header->cab.file_table_offset   = READ_UINT32(p); p += 4;
@@ -228,18 +248,30 @@ static bool unshield_header_get_components(Header* header)/*{{{*/
 	int available = 16;
 
 	header->components = malloc(available * sizeof(UnshieldComponent*));
+	if (!header->components)
+	  return false;
 
   for (i = 0; i < MAX_COMPONENT_COUNT; i++)
   {
     if (header->cab.component_offsets[i])
     {
       OffsetList list;
+      uint64_t guard = (uint64_t)header->size + 1;
 
       list.next_offset = header->cab.component_offsets[i];
 
-      while (list.next_offset)
+      while (list.next_offset && guard--)
       {
-        uint8_t* p = unshield_header_get_buffer(header, list.next_offset);
+        uint8_t* p = unshield_header_get_buffer_checked(header, list.next_offset, 12);
+        UnshieldComponent* component;
+
+        if (!p)
+        {
+          unshield_error("Component list offset %08x is out of bounds "
+              "for header of %lu bytes",
+              list.next_offset, (unsigned long)header->size);
+          return false;
+        }
 
         list.name_offset       = READ_UINT32(p); p += 4;
         list.descriptor_offset = READ_UINT32(p); p += 4;
@@ -247,11 +279,33 @@ static bool unshield_header_get_components(Header* header)/*{{{*/
 
 				if (count == available)
 				{
+					UnshieldComponent** resized;
 					available <<= 1;
-					header->components = realloc(header->components, available * sizeof(UnshieldComponent*));
+					resized = realloc(header->components, available * sizeof(UnshieldComponent*));
+					if (!resized)
+					{
+					  unshield_error("Failed to allocate component table");
+					  return false;
+					}
+					header->components = resized;
 				}
 
-        header->components[count++] = unshield_component_new(header, list.descriptor_offset);
+        component = unshield_component_new(header, list.descriptor_offset);
+        if (!component)
+        {
+          unshield_error("Failed to read component descriptor at offset %08x",
+              list.descriptor_offset);
+          return false;
+        }
+
+        header->components[count++] = component;
+        header->component_count = count;
+      }
+
+      if (list.next_offset)
+      {
+        unshield_error("Component list is too long");
+        return false;
       }
     }
   }
@@ -268,18 +322,30 @@ static bool unshield_header_get_file_groups(Header* header)/*{{{*/
 	int available = 16;
 
 	header->file_groups = malloc(available * sizeof(UnshieldFileGroup*));
+	if (!header->file_groups)
+	  return false;
 
   for (i = 0; i < MAX_FILE_GROUP_COUNT; i++)
   {
     if (header->cab.file_group_offsets[i])
     {
       OffsetList list;
+      uint64_t guard = (uint64_t)header->size + 1;
 
       list.next_offset = header->cab.file_group_offsets[i];
 
-      while (list.next_offset)
+      while (list.next_offset && guard--)
       {
-        uint8_t* p = unshield_header_get_buffer(header, list.next_offset);
+        uint8_t* p = unshield_header_get_buffer_checked(header, list.next_offset, 12);
+        UnshieldFileGroup* file_group;
+
+        if (!p)
+        {
+          unshield_error("File group list offset %08x is out of bounds "
+              "for header of %lu bytes",
+              list.next_offset, (unsigned long)header->size);
+          return false;
+        }
 
         list.name_offset       = READ_UINT32(p); p += 4;
 				list.descriptor_offset = READ_UINT32(p); p += 4;
@@ -287,11 +353,27 @@ static bool unshield_header_get_file_groups(Header* header)/*{{{*/
 
 				if (count == available)
 				{
+					UnshieldFileGroup** resized;
 					available <<= 1;
-					header->file_groups = realloc(header->file_groups, available * sizeof(UnshieldFileGroup*));
+					resized = realloc(header->file_groups, available * sizeof(UnshieldFileGroup*));
+					if (!resized)
+					{
+					  unshield_error("Failed to allocate file group table");
+					  return false;
+					}
+					header->file_groups = resized;
 				}
 
-				header->file_groups[count++] = unshield_file_group_new(header, list.descriptor_offset);
+				file_group = unshield_file_group_new(header, list.descriptor_offset);
+				if (!file_group)
+				{
+				  unshield_error("Failed to read file group descriptor at offset %08x",
+				      list.descriptor_offset);
+				  return false;
+				}
+
+				header->file_groups[count++] = file_group;
+				header->file_group_count = count;
 			}
     }
   }
@@ -428,7 +510,22 @@ static bool unshield_read_headers(Unshield* unshield, int version)/*{{{*/
 
 error:
       if (header)
+      {
+        int n;
+
+        for (n = 0; n < header->component_count; n++)
+          unshield_component_destroy(header->components[n]);
+        FREE(header->components);
+
+        for (n = 0; n < header->file_group_count; n++)
+          unshield_file_group_destroy(header->file_groups[n]);
+        FREE(header->file_groups);
+
+        FREE(header->file_table);
+
+        unshield_free_string_buffers(header);
         FREE(header->data);
+      }
       FREE(header);
       iterate = false;
     }
