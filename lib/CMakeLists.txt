@@ -19,8 +19,9 @@ set(LIBUNSHIELD_SOURCES
 
 add_library(libunshield ${LIBUNSHIELD_HEADERS} ${LIBUNSHIELD_SOURCES})
 
-set(CMAKE_C_VISIBILITY_PRESET "hidden")
-set(CMAKE_VISIBILITY_INLINES_HIDDEN TRUE)
+set_target_properties(libunshield PROPERTIES
+    C_VISIBILITY_PRESET hidden
+)
 
 include(GenerateExportHeader)
 generate_export_header(libunshield EXPORT_MACRO_NAME UNSHIELD_API)
