@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../lib/libunshield.h"
+#include "libunshield.h"
 
 int main(int argc, char** argv)
 {
