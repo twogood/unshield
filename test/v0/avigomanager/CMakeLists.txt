@@ -32,10 +32,12 @@ add_test(
     COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_WORKING_DIRECTORY}
 )
 
+set_property(TEST avigomanager_new_compression PROPERTY ENVIRONMENT_MODIFICATION PATH=path_list_append:$<TARGET_RUNTIME_DLL_DIRS:unshield>)
+set_property(TEST avigomanager_old_compression PROPERTY ENVIRONMENT_MODIFICATION PATH=path_list_append:$<TARGET_RUNTIME_DLL_DIRS:unshield>)
+
 set_tests_properties(avigomanager_new_compression avigomanager_old_compression avigomanager_hashes_match PROPERTIES LABELS avigomanager)
 
 set_tests_properties(avigomanager_new_compression PROPERTIES WILL_FAIL True)
-
 set_tests_properties(avigomanager_extract_test_data PROPERTIES DEPENDS avigomanager_create_tests_dir)
 
 set_tests_properties(avigomanager_create_tests_dir avigomanager_extract_test_data PROPERTIES FIXTURES_SETUP avigomanager_Extract)

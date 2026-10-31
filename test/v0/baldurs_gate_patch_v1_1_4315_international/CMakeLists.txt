@@ -6,9 +6,7 @@ add_test(
 
 add_test(
     NAME baldurs_gate_old_compression
-    # Enable test after https://github.com/twogood/unshield/issues/156 has been fixed.
-    # COMMAND $<TARGET_FILE:unshield> -O -d extractO x data1.cab
-    COMMAND ${CMAKE_COMMAND} -E false
+    COMMAND $<TARGET_FILE:unshield> -O -d extractO x data1.cab
     WORKING_DIRECTORY ${TESTS_WORKING_DIRECTORY}
 )
 
@@ -34,9 +32,14 @@ add_test(
     COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_WORKING_DIRECTORY}
 )
 
+set_property(TEST baldurs_gate_new_compression PROPERTY ENVIRONMENT_MODIFICATION PATH=path_list_append:$<TARGET_RUNTIME_DLL_DIRS:unshield>)
+set_property(TEST baldurs_gate_old_compression PROPERTY ENVIRONMENT_MODIFICATION PATH=path_list_append:$<TARGET_RUNTIME_DLL_DIRS:unshield>)
+
 set_tests_properties(baldurs_gate_new_compression baldurs_gate_old_compression baldurs_gate_hashes_match PROPERTIES LABELS baldurs_gate)
 
 set_tests_properties(baldurs_gate_old_compression PROPERTIES WILL_FAIL True)
+# Enable test after https://github.com/twogood/unshield/issues/156 has been fixed.
+set_tests_properties(baldurs_gate_old_compression PROPERTIES DISABLED True)
 
 set_tests_properties(baldurs_gate_extract_test_data PROPERTIES DEPENDS baldurs_gate_create_tests_dir)
 set_tests_properties(baldurs_gate_create_tests_dir baldurs_gate_extract_test_data PROPERTIES FIXTURES_SETUP baldurs_gate_Extract)

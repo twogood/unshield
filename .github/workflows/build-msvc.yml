@@ -1,0 +1,50 @@
+name: Build MSVC
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.platform.os }}
+
+    defaults:
+      run:
+        shell: ${{ matrix.platform.shell }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+        - { name: windows-msvc-x86, os: windows-latest, shell: pwsh, triplet: x86-windows, arch: Win32 }
+        - { name: windows-msvc-x64, os: windows-latest, shell: pwsh, triplet: x64-windows, arch: x64 }
+        build-type: [ Release ]
+        build-static:
+        - { name: static-md, value: ON, triplet_suffix: -static-md }
+        - { name: dynamic, value: OFF, triplet_suffix: '' }
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Setup Windows dependencies
+      run: c:\vcpkg\vcpkg.exe install openssl zlib --triplet ${{ matrix.platform.triplet }}${{ matrix.build-static.triplet_suffix }}
+
+    - name: Configure CMake
+      run: cmake -B build -G "Visual Studio 18 2026" -DBUILD_STATIC=${{ matrix.build-static.value }} -DVCPKG_TARGET_TRIPLET=${{ matrix.platform.triplet }}${{ matrix.build-static.triplet_suffix }} -A ${{ matrix.platform.arch }} -DCMAKE_TOOLCHAIN_FILE="c:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build-type }} --parallel
+
+    - name: Test
+      run: ctest --test-dir build --build-config ${{ matrix.build-type }} --output-on-failure
+
+    - name: Install
+      run: cmake --install build --strip --prefix install
+
+    - name: Upload
+      uses: actions/upload-artifact@v7
+      with:
+        name: unshield_${{ github.sha }}_${{ matrix.platform.name }}_${{ matrix.build-static.name }}
+        path: install
+        if-no-files-found: error
