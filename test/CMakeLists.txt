@@ -2,6 +2,7 @@ set(MD5SUM_CMAKE ${CMAKE_CURRENT_SOURCE_DIR}/md5sum.cmake)
 set(TESTS_WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test_tmp_dir)
 
 add_executable(test_file_sizes test_file_sizes.c)
+target_include_directories(test_file_sizes PRIVATE "${CMAKE_BINARY_DIR}")
 target_link_libraries(test_file_sizes PRIVATE libunshield)
 add_test(NAME file_sizes COMMAND test_file_sizes)
 
