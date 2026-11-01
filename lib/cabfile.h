@@ -67,8 +67,8 @@ typedef struct
   uint32_t name_offset;
   uint32_t directory_index;
   uint16_t flags;
-  uint64_t expanded_size;
-  uint64_t compressed_size;
+  int64_t expanded_size;
+  int64_t compressed_size;
   uint64_t data_offset;
   uint8_t md5[16];
   uint16_t volume;
