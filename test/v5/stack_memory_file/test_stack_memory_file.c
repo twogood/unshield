@@ -69,7 +69,7 @@ int stack_memory_fseek(void *file, long int offset, int whence, void *userdata)
     default:
       return 1;
   }
-  if (new_offset < 0 && new_offset > stack_file->size)
+  if (new_offset < 0 || (uint64_t)new_offset > stack_file->size)
     return 1;
   stack_file->current_pointer = new_offset;
   return 0;
