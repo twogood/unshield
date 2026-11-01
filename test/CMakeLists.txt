@@ -4,7 +4,16 @@ set(TESTS_WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test_tmp_dir)
 add_executable(test_file_sizes test_file_sizes.c)
 target_include_directories(test_file_sizes PRIVATE "${CMAKE_BINARY_DIR}")
 target_link_libraries(test_file_sizes PRIVATE libunshield)
-add_test(NAME file_sizes COMMAND test_file_sizes)
+
+if(BUILD_STATIC)
+    if(CMAKE_C_COMPILER_ID MATCHES "^(GNU|Clang)$")
+        target_link_options(test_file_sizes PRIVATE -static)
+    endif()
+endif()
+
+add_test(NAME file_sizes COMMAND $<TARGET_FILE:test_file_sizes>)
+
+set_property(TEST file_sizes PROPERTY ENVIRONMENT_MODIFICATION PATH=path_list_append:$<TARGET_RUNTIME_DLL_DIRS:test_file_sizes>)
 
 add_subdirectory(v0/avigomanager)
 add_subdirectory(v0/baldurs_gate_patch_v1_1_4315_international)
