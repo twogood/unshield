@@ -8,7 +8,7 @@ static int current_log_level = UNSHIELD_LOG_LEVEL_HIGHEST;
 static UnshieldLogCallback* current_log_handler = NULL;
 static void* current_log_handler_userdata = NULL;
 
-void unshield_set_log_level(int level)
+void _unshield_set_log_level(int level)
 {
 	current_log_level = level;
 }

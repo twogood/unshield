@@ -39,3 +39,5 @@ CTestTestfile.cmake
 *.ilk
 *.exe
 *.dll
+.qtcreator
+CMakeLists.txt.user
