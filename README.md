@@ -112,6 +112,22 @@ reporting the problem. Review logs for private paths or other sensitive
 information before sharing them.
 
 
+Untrusted input
+---------------
+
+Unshield is written for the happy path: extracting real InstallShield
+cabinets that you already trust. It does little validation of file
+contents, so a malformed or crafted file can easily make it crash or
+read out of bounds.
+
+Don't run Unshield on untrusted files outside a sandbox (container,
+VM, seccomp, etc.).
+
+Crashes on malformed input are not security vulnerabilities in this
+project. Please don't report them as issues; send a pull request with
+the fix instead. See [SECURITY.md](SECURITY.md).
+
+
 License
 -------
 
