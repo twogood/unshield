@@ -393,7 +393,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
   }
 
 
-  if(strlen(output_directory) < path_max-1)
+  if(strlen(output_directory) < (size_t)path_max-1)
   {
     strncpy(dirname, output_directory,path_max-1);
     if (path_max > 0)
@@ -410,7 +410,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
 
   if (prefix && prefix[0])
   {
-    if(strlen(dirname)+strlen(prefix) < path_max-1)
+    if(strlen(dirname)+strlen(prefix) < (size_t)path_max-1)
     {
       strcat(dirname, prefix);
       strcat(dirname, "/");
@@ -428,7 +428,7 @@ static bool extract_file(Unshield* unshield, const char* prefix, int index)
     const char* tmp = unshield_directory_name(unshield, directory);
     if (tmp && tmp[0])
     {
-      if(strlen(dirname)+strlen(tmp) < path_max-1)
+      if(strlen(dirname)+strlen(tmp) < (size_t)path_max-1)
       {
         strcat(dirname, tmp);
         strcat(dirname, "/");
@@ -628,6 +628,7 @@ static bool test_file(Unshield* unshield, int index)
 
 static int test_helper(Unshield* unshield, const char* prefix, int first, int last)/*{{{*/
 {
+  (void)prefix;
   int i;
   int count = 0;
   
