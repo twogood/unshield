@@ -47,9 +47,8 @@ jobs:
       run: |
         sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa -y
         sudo apt-get update
-        sudo apt-get install -y gcc-${{matrix.platform.gcc}} g++-${{matrix.platform.gcc}}
+        sudo apt-get install -y gcc-${{matrix.platform.gcc}}
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${{matrix.platform.gcc}} 100
-        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${{matrix.platform.gcc}} 100
 
     - name: Setup macOS dependencies
       if: runner.os == 'macOS'
